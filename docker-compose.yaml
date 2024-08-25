@@ -1,0 +1,13 @@
+services:
+  bot_db:
+    image: postgres:16-alpine3.20
+    container_name: bot_db
+    environment:
+      - "POSTGRES_USER=${DB_USER}"
+      - "POSTGRES_PASSWORD=${DB_PASS}"
+      - "POSTGRES_DB=${DB_NAME}"
+    ports:
+      - '5432:5432'
+    restart: always
+    volumes:
+      - ./bot_db/:/var/lib/postgresql/data
