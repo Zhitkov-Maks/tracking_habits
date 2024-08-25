@@ -14,7 +14,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(32), unique=True)
     user_chat_id: Mapped[int] = mapped_column(BigInteger)
     password: Mapped[str] = mapped_column(String(50))
-    posts: Mapped[list["Habits"]] = relationship(back_populates="user")
+
+    habits: Mapped[list["Habits"]] = relationship(back_populates="user")
 
     def __str__(self):
         return f"{self.__class__.__name__}(id={self.id}, username={self.username!r})"
