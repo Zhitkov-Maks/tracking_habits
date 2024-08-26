@@ -1,4 +1,5 @@
-from sqlalchemy import String, Text
+from datetime import datetime as dt, UTC
+from sqlalchemy import String, Text, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .mixins import UserRelationMixin
@@ -16,9 +17,18 @@ class Habits(UserRelationMixin, Base):
         default="",
         server_default="",
     )
+    start_date: Mapped[DateTime] = mapped_column(
+        DateTime,
+        default=dt.now(UTC),
+        server_default=str(dt.now(UTC))
+    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     def __str__(self):
-        return f"{self.__class__.__name__}(id={self.id}, username={self.title!r}, user_id={self.user_id})"
+        return (
+                f"{self.__class__.__name__}(id={self.id}, "
+                f"username={self.title!r}, user_id={self.user_id})"
+        )
 
     def __repr__(self):
         return str(self)
