@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
 class User(Base):
     username: Mapped[str] = mapped_column(String(32), unique=True)
-    user_chat_id: Mapped[int] = mapped_column(BigInteger)
-    password: Mapped[str] = mapped_column(String(50))
+    user_chat_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+    password: Mapped[str] = mapped_column(String(100))
 
     habits: Mapped[list["Habits"]] = relationship(back_populates="user")
 
