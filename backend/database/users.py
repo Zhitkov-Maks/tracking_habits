@@ -7,7 +7,7 @@ from .base import Base
 
 
 if TYPE_CHECKING:
-    from .habits import Habits
+    from .habits import Habit
 
 
 class User(Base):
@@ -15,10 +15,15 @@ class User(Base):
     user_chat_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     password: Mapped[str] = mapped_column(String(100))
 
-    habits: Mapped[list["Habits"]] = relationship(back_populates="user")
+    habits: Mapped[list["Habit"]] = relationship(
+        "Habit",
+        back_populates="user",
+        lazy="select",
+        cascade="all, delete",
+    )
 
     def __str__(self):
-        return f"{self.__class__.__name__}(id={self.id}, username={self.username!r})"
+        return f"username={self.username}, chat_id={self.user_chat_id}"
 
     def __repr__(self):
         return str(self)
