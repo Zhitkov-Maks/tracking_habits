@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from starlette import status
 
-from auth.demo_auth import router
-from auth.settings import settings
+from config import settings
+from routes.habits import habits_router
 from routes.user import user_rout
 from schemas.user import ReturnUserSchema
 
@@ -35,8 +35,8 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
-app.include_router(router)
 app.include_router(user_rout)
+app.include_router(habits_router)
 
 
 @app.get(
