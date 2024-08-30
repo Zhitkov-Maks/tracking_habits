@@ -1,16 +1,14 @@
-from datetime import datetime as dt, UTC
-from sqlalchemy import String, Text, DateTime, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime as dt, UTC, datetime
+from typing import List
 
-from .mixins import UserRelationMixin
+from sqlalchemy import String, Text, DateTime, Boolean, ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from . import User
 from .base import Base
 
 
-class Habits(UserRelationMixin, Base):
-    # _user_id_nullable = False
-    # _user_id_unique = False
-    _user_back_populates = "habits"
-
+class Habit(Base):
     title: Mapped[str] = mapped_column(String(100), unique=False)
     body: Mapped[str] = mapped_column(
         Text,
@@ -23,12 +21,39 @@ class Habits(UserRelationMixin, Base):
         server_default=str(dt.now(UTC))
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    number_of_days: Mapped[int] = mapped_column(
+        Integer, default=21, server_default="21"
+    )
+    user: Mapped[List["User"]] = relationship(
+        "User",
+        back_populates="habits",
+        lazy="joined"
+    )
+    tracking: Mapped[list["Tracking"]] = relationship(
+        "Tracking",
+        back_populates="habit",
+        cascade="all, delete",
+    )
 
     def __str__(self):
-        return (
-                f"{self.__class__.__name__}(id={self.id}, "
-                f"username={self.title!r}, user_id={self.user_id})"
-        )
+        return (f"title={self.title}, "
+                f"body={self.body}, "
+                f"start_date={self.start_date}")
 
     def __repr__(self):
         return str(self)
+
+
+class Tracking(Base):
+    done: Mapped[bool] = mapped_column(Boolean, default=False)
+    date: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=dt.now(UTC),
+        server_default=str(dt.now(UTC))
+    )
+    habit_id: Mapped[int] = mapped_column(ForeignKey("habits.id"), index=True)
+    habit: Mapped[List["Habit"]] = relationship(
+        "Habit",
+        back_populates="tracking",
+    )
