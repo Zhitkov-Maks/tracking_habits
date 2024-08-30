@@ -3,23 +3,17 @@ from fastapi import (
     Depends,
     status,
 )
-from fastapi.security import (
-    OAuth2PasswordBearer,
-)
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth import utils as auth_utils
 from crud.user import create_user
 from crud.utils import validate_auth_user
 from database.conf_db import get_async_session
-from routes.utils import hash_password
+from routes.utils import hash_password, encode_jwt
 from schemas.user import UserData, SuccessSchema, ErrorSchema, TokenSchema
 
-# oauth2_scheme = OAuth2PasswordBearer(
-#     tokenUrl="/jwt/login/",
-# )
 
-user_rout = APIRouter(prefix="/auth", tags=["JWT"])
+user_rout = APIRouter(prefix="/auth", tags=["AUTH"])
 
 
 @user_rout.post(
@@ -44,15 +38,10 @@ async def registration_user_rout(
     responses={403: {"model": ErrorSchema}},
     response_model=TokenSchema
 )
-def auth_user(
+async def auth_user(
     user: UserData = Depends(validate_auth_user),
 ) -> TokenSchema:
-    jwt_payload = {
-        "sub": user.user_chat_id,
-        "username": user.username,
-        "password": user.password,
-    }
-    token = auth_utils.encode_jwt(jwt_payload)
+    token = await encode_jwt(user)
     return TokenSchema(
         access_token=token,
         token_type="Bearer",
