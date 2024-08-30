@@ -17,8 +17,8 @@ class Habit(Base):
     )
     start_date: Mapped[DateTime] = mapped_column(
         DateTime,
-        default=dt.now(UTC),
-        server_default=str(dt.now(UTC))
+        default=dt.now(),
+        server_default=str(dt.now())
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
@@ -49,8 +49,8 @@ class Tracking(Base):
     done: Mapped[bool] = mapped_column(Boolean, default=False)
     date: Mapped[datetime] = mapped_column(
         DateTime,
-        default=dt.now(UTC),
-        server_default=str(dt.now(UTC))
+        default=dt.now(),
+        server_default=str(dt.now())
     )
     habit_id: Mapped[int] = mapped_column(ForeignKey("habits.id"), index=True)
     habit: Mapped[List["Habit"]] = relationship(
