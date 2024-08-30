@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 class HabitsSchema(BaseModel):
     title: str = Field(..., min_length=3)
     body: str =Field(..., min_length=10)
+    number_of_days: int
 
 
 class Habits(BaseModel):
