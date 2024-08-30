@@ -25,7 +25,7 @@ async def create_user(session: AsyncSession, user: dict) -> None:
         )
 
 
-async def get_user_by_chat_id(
+async def get_user_by_id_and_username(
     session: AsyncSession,
     chat_id: int,
     username: str
