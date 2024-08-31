@@ -2,28 +2,17 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
-class SuccessSchema(BaseModel):
-    result: bool
-
-
-class ErrorSchema(BaseModel):
-    result: bool
-    descr: str
-
-
-class TokenSchema(BaseModel):
-    access_token: str
-    token_type: str
-
-
 class UserData(BaseModel):
-    username: str
-    user_chat_id: int
-    password: str = Field(..., min_length=8)
-
-
-class ReturnUserSchema(BaseModel):
-    """Schema for adding tweet."""
-
-    response: bool = Field(..., description="Result, true or false")
-    data: UserData = Field(..., description="Данные пользователя")
+    """
+    Схема для отправки данных пользователя на сервер.
+    Username и user_chat_id берутся из данных о пользователе в телеграм.
+    Пользователь идентифицируется по user_chat_id, так как он является
+    уникальным для каждого пользователя телеграмм.
+    """
+    username: str = Field(..., description="Ваш username из телеграмм.")
+    user_chat_id: int = Field(..., description="Чат ай ди из телеграмм.")
+    password: str = Field(
+        ...,
+        min_length=4,
+        description="Пароль который ввел пользователь."
+    )
