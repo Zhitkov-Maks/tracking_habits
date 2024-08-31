@@ -1,10 +1,9 @@
 from fastapi import FastAPI
-from starlette import status
 
 from config import settings
 from routes.habits import habits_router
+from routes.tracking import track_rout
 from routes.user import user_rout
-from schemas.user import ReturnUserSchema
 
 
 tags_metadata = [
@@ -37,20 +36,4 @@ app = FastAPI(
 
 app.include_router(user_rout)
 app.include_router(habits_router)
-
-
-@app.get(
-    "/user",
-    status_code=status.HTTP_200_OK,
-    response_model=ReturnUserSchema,
-    tags=["users"]
-)
-async def simple_get_data():
-    return {
-        "response": True,
-        "data": {
-            "username": "Maksim",
-            "password": "Zhitkov123",
-            "user_chat_id": 123789
-        }
-    }
+app.include_router(track_rout)
