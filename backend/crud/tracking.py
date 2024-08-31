@@ -12,7 +12,7 @@ from schemas.habits import AddTrackSchema
 
 async def add_tracking_for_habit(data, session):
     """
-    Добавляет привычку в базу данных.
+    Добавляет отслеживание за день в базу данных.
     :param data: Данные об отслеживании(Выполнено/Не выполнено)
     :param session: AsyncSession
     """
@@ -35,6 +35,11 @@ async def delete_all_habit_tracking(
     habit_id: int,
     session: AsyncSession
 ) -> None:
+    """
+    Удаляет всё отслеживание у конкретной привычки
+    :param habit_id: ID Habit
+    :param session: AsyncSession
+    """
     stmt = delete(Tracking).where(Tracking.habit_id == habit_id)
     await session.execute(stmt)
     await session.commit()
@@ -45,6 +50,13 @@ async def tracking_done_by_habit_id(
     done: True | False,
     session: AsyncSession
 ) -> list:
+    """
+    Возвращает данные об отслеживании конкретной привычки.
+    :param habit_id: ID Habit
+    :param done: True или False для получения списка
+    выполненных дней и невыполненных дней.
+    :param session: AsyncSession
+    """
     stmt = (
         select(Tracking)
         .filter(
@@ -62,10 +74,16 @@ async def patch_habit_tracking(
     data: AddTrackSchema,
     session: AsyncSession
 ) -> None:
+    """
+    Меняет статус выполнения привычки на текущий день.
+    :param habit_id: ID Habit
+    :param data: Донные для обновления статуса выполнения отслеживания..
+    :param session: AsyncSession
+    """
     stmt = (select(Tracking)
             .where(Tracking.date == dt.now().date())
             .where(Tracking.habit_id == habit_id))
-    tracking: Tracking = await session.scalar(stmt)
+    tracking: Tracking | None = await session.scalar(stmt)
 
     if tracking is None:
         raise HTTPException(
