@@ -20,6 +20,15 @@ async def encode_jwt(
     expire_days: int = settings.auth_jwt.access_token_expire_days,
     expire_timedelta: timedelta | None = None,
 ) -> str:
+    """
+    Кодирует данные о пользователе. Возвращает токен.
+    :param user: Пришедшие данные о пользователе.
+    :param private_key: Приватный ключ для кодирования.
+    :param expire_days: Количество дней, в течении которого действителен токен
+    :param expire_timedelta: timedelta из datetime
+    :param algorithm: Тип алгоритма шифрования.
+    :return str: Возвращает строку, содержащую токен.
+    """
     now: datetime = dt.now(UTC)
 
     if expire_timedelta:
@@ -31,6 +40,7 @@ async def encode_jwt(
     to_encode: dict = {
         "user_chat_id": user.user_chat_id,
         "username": user.username,
+        "password": user.password,
         "exp": expire,
         "iat":now,
     }
@@ -48,7 +58,15 @@ async def decode_jwt(
     public_key: str = settings.auth_jwt.public_key_path.read_text(),
     algorithm: str = settings.auth_jwt.algorithm,
 ) -> dict:
-    decoded = jwt.decode(
+    """
+    Декодирует присланный токен.
+    Возвращает словарь сданными о пользователе.
+    :param token: Присланный токен для аутентификации
+    :param public_key: Ключ для декодирования.
+    :param algorithm: Тип алгоритма шифрования.
+    :return dict: Возвращает словарь с данными о пользователе.
+    """
+    decoded: dict = jwt.decode(
         token,
         public_key,
         algorithms=[algorithm],
