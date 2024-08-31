@@ -1,7 +1,8 @@
 from datetime import datetime as dt, UTC, datetime
 from typing import List
 
-from sqlalchemy import String, Text, DateTime, Boolean, ForeignKey, Integer
+from sqlalchemy import String, Text, DateTime, Boolean, ForeignKey, Integer, \
+    Date, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from . import User
@@ -15,10 +16,10 @@ class Habit(Base):
         default="",
         server_default="",
     )
-    start_date: Mapped[DateTime] = mapped_column(
-        DateTime,
-        default=dt.now(),
-        server_default=str(dt.now())
+    start_date: Mapped[Date] = mapped_column(
+        Date,
+        default=dt.now().date(),
+        server_default=str(dt.now().date())
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
@@ -28,12 +29,13 @@ class Habit(Base):
     user: Mapped[List["User"]] = relationship(
         "User",
         back_populates="habits",
-        lazy="joined"
+        lazy="select"
     )
     tracking: Mapped[list["Tracking"]] = relationship(
         "Tracking",
         back_populates="habit",
         cascade="all, delete",
+        lazy="select"
     )
 
     def __str__(self):
@@ -46,14 +48,21 @@ class Habit(Base):
 
 
 class Tracking(Base):
+    __table_args__ = (
+        UniqueConstraint(
+            "habit_id",
+            "date",
+        ),
+    )
     done: Mapped[bool] = mapped_column(Boolean, default=False)
-    date: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=dt.now(),
-        server_default=str(dt.now())
+    date: Mapped[Date] = mapped_column(
+        Date,
+        default=dt.now().date(),
+        server_default=str(dt.now().date())
     )
     habit_id: Mapped[int] = mapped_column(ForeignKey("habits.id"), index=True)
     habit: Mapped[List["Habit"]] = relationship(
         "Habit",
         back_populates="tracking",
+        lazy="select"
     )
