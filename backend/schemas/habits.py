@@ -28,9 +28,13 @@ class HabitSchema(BaseModel):
     )
 
 
+class FullHabitSchema(HabitSchema):
+    id: int = Field(..., description="ID habit's")
+
+
 class ListHabitsSchema(BaseModel):
     """Список активных привычек пользователя."""
-    data: List[HabitSchema] = Field(
+    data: List[FullHabitSchema] = Field(
         ..., description="Объект со списком привычек."
     )
 
