@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+from datetime import datetime as dt, datetime
 
 from fastapi import HTTPException
 from sqlalchemy import select, ScalarResult, delete
@@ -10,14 +10,23 @@ from database import Tracking
 from schemas.habits import AddTrackSchema
 
 
-async def add_tracking_for_habit(data, session):
+async def add_tracking_for_habit(
+    habit_id: int,
+    data:AddTrackSchema,
+    session: AsyncSession
+) -> None:
     """
     Добавляет отслеживание за день в базу данных.
+    :param habit_id: ID привычки.
     :param data: Данные об отслеживании(Выполнено/Не выполнено)
     :param session: AsyncSession
     """
     try:
-        tracking: Tracking = Tracking(**data)
+        tracking: Tracking = Tracking(
+            done=data.done,
+            date=datetime.date(data.date),
+            habit_id=habit_id
+        )
         session.add(tracking)
         await session.commit()
     except IntegrityError:
