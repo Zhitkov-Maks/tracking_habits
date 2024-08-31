@@ -13,7 +13,7 @@ async def change_habit_is_active(
     session: AsyncSession
 ) -> None:
     """
-    Добавляет привычку в базу данных.
+    Изменяет статус привычки.
     :param habit_id: ID Habit
     :param data: Донные для изменения статуса привычки.
     :param session: AsyncSession
@@ -37,7 +37,7 @@ async def update_habit(
     session: AsyncSession
 ) -> None:
     """
-    Добавляет привычку в базу данных.
+    Изменяет все данные о привычке.
     :param habit_id: ID Habit
     :param data: Донные для обновления привычки.
     :param session: AsyncSession
@@ -62,7 +62,7 @@ async def delete_habit_by_id(
     session: AsyncSession
 ) -> None:
     """
-    Добавляет привычку в базу данных.
+    Удаляет привычку из базу данных.
     :param habit_id: ID Habit
     :param session: AsyncSession
     """
