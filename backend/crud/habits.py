@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from database import Habit, User
-from schemas.habits import HabitsSchema, ChangeIsActiveSchema
+from schemas.habits import HabitSchema, ChangeIsActiveSchema
 
 
 async def change_habit_is_active(
@@ -33,7 +33,7 @@ async def change_habit_is_active(
 
 async def update_habit(
     habit_id: int,
-    data: HabitsSchema,
+    data: HabitSchema,
     session: AsyncSession
 ) -> None:
     """
@@ -107,7 +107,7 @@ async def habit_by_id(
 
 
 async def write_habit(
-    data: HabitsSchema,
+    data: HabitSchema,
     user: User,
     session: AsyncSession
 ) -> None:
