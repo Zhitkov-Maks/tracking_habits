@@ -1,8 +1,15 @@
-from datetime import datetime as dt, UTC, datetime
+from datetime import datetime as dt
 from typing import List
 
-from sqlalchemy import String, Text, DateTime, Boolean, ForeignKey, Integer, \
-    Date, UniqueConstraint
+from sqlalchemy import (
+    String,
+    Text,
+    Boolean,
+    ForeignKey,
+    Integer,
+    Date,
+    UniqueConstraint
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from . import User
