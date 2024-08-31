@@ -7,13 +7,21 @@ from starlette import status
 from database import User
 
 
-async def create_user(session: AsyncSession, user: dict) -> None:
-    """Записывает пользователя в бд."""
+async def create_user(
+    session: AsyncSession,
+    user: dict
+) -> None:
+    """
+    Создает пользователя в базе данных.
+    :param user: Словарь с данными о пользователе.
+    :param session: AsyncSession
+    """
     user: User = User(**user)
     try:
         session.add(user)
         await session.commit()
         await session.close()
+
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -30,7 +38,12 @@ async def get_user_by_id_and_username(
     chat_id: int,
     username: str
 ) -> User:
-    """Находит пользователя по chat_id и username."""
+    """
+    Находит пользователя по id телеграмм и его username.
+    :param chat_id: ID чата телеграмм.
+    :param username: Username пользователя
+    :param session: AsyncSession
+    """
     stmt = select(User).where(
         User.user_chat_id == chat_id
     ).where(User.username == username)
