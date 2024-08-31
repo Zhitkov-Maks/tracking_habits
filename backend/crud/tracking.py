@@ -1,4 +1,4 @@
-from datetime import datetime as dt, datetime
+from datetime import datetime as dt
 
 from fastapi import HTTPException
 from sqlalchemy import select, ScalarResult, delete
@@ -24,7 +24,7 @@ async def add_tracking_for_habit(
     try:
         tracking: Tracking = Tracking(
             done=data.done,
-            date=datetime.date(data.date),
+            date=dt.date(data.date),
             habit_id=habit_id
         )
         session.add(tracking)
