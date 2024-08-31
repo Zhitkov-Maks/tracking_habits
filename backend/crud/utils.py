@@ -1,8 +1,9 @@
 from fastapi import HTTPException, Depends
+from jwt import DecodeError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from routes.utils import hash_password
+from routes.utils import hash_password, decode_jwt
 from crud.user import get_user_by_id_and_username
 from database import User
 from database.conf_db import get_async_session
@@ -14,8 +15,10 @@ async def validate_auth_user(
     session: AsyncSession = Depends(get_async_session)
 ) -> User:
     """
-    Функция для проверки существует ли пользователь в базе данных,
-    и соответствует ли пароль введенному.
+    Проверка существования пользователя в базе.
+    :param login: Данные о пользователе(chat_id, username, password).
+    :param session: AsyncSession
+    :return User: Возвращает экземпляр пользователя.
     """
     user: User = await get_user_by_id_and_username(
         session, login.user_chat_id, login.username
@@ -38,8 +41,10 @@ async def validate_decode_user(
     session: AsyncSession = Depends(get_async_session)
 ) -> User:
     """
-    Функция для проверки существует ли пользователь в базе данных,
-    и соответствует ли пароль введенному.
+    Проверка существования пользователя в базе.
+    :param login: Данные о пользователе(chat_id, username, password).
+    :param session: AsyncSession
+    :return User: Возвращает экземпляр пользователя.
     """
     user: User = await get_user_by_id_and_username(
         session, login.user_chat_id, login.username
@@ -49,8 +54,31 @@ async def validate_decode_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
                 "result": False,
-                "descr": "Пользователь не найден."
+                "descr": "Неверные данные пользователя."
             },
         )
 
     return user
+
+
+async def valid_decode_jwt(
+    token: str,
+    session: AsyncSession
+) -> User:
+    """
+    Отправляет токен на валидацию и получение пользователя.
+    :param token: Переданный токен.
+    :param session: AsyncSession
+    :return User: Возвращает экземпляр пользователя.
+    """
+    try:
+        data_user: dict = await decode_jwt(token)
+        return await validate_decode_user(UserData(**data_user), session)
+    except DecodeError:
+            raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "result": False,
+                "description": "Ошибка декодирования вашего токена."
+            },
+        )
