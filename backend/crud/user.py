@@ -27,7 +27,7 @@ async def create_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
                 "result": False,
-                "description": "Пользователь с таким именем "
+                "descr": "Пользователь с текущими данными"
                                "уже зарегистрирован."
             },
         )
