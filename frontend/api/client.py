@@ -1,5 +1,5 @@
 import aiohttp
-from aiohttp import ClientResponse
+from aiohttp.client_exceptions import ClientError
 
 
 class Client:
@@ -19,7 +19,14 @@ class Client:
                 json=self.data,
                 headers=self.header
         ) as response:
-                return await response.json()
+                data: dict = await response.json()
+
+                if response.status == 201:
+                    return data
+
+                else:
+                    message: str = data.get("detail").get("descr")
+                    raise ClientError(message)
 
     async def get(self) -> dict:
         """Метод для получения каких то данных."""
@@ -30,4 +37,11 @@ class Client:
                     url=self.url,
                     headers=self.header
             ) as response:
-                return await response.json()
+                data: dict = await response.json()
+
+                if response.status == 200:
+                    return data
+
+                else:
+                    message: str = data.get("detail").get("descr")
+                    raise ClientError(message)
