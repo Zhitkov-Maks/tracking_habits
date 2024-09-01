@@ -3,11 +3,9 @@ from frontend.config import register_url, login_url
 from frontend.utils.login import update_jwt_token
 
 
-async def registration(data: dict) -> dict:
+async def registration(data: dict) -> None:
     client: Client = Client(register_url, data)
-    result = await client.post()
-    if not result.get("result"):
-        return result.get("detail").get("description")
+    await client.post()
 
 
 async def login_user(data: dict, user_id: int) -> None:
