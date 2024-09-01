@@ -40,7 +40,7 @@ async def registration_user_rout(
 
 @user_rout.post(
     "/login/",
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_201_CREATED,
     responses={403: {"model": ErrorSchema}},
     response_model=TokenSchema
 )
