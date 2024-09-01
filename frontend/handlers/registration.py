@@ -1,5 +1,7 @@
 from aiogram import Router, types, F, Bot
 from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery
+from aiohttp import ClientError
 
 from frontend.api.auth import registration, login_user
 from frontend.config import BOT_TOKEN
@@ -11,13 +13,16 @@ register_route = Router()
 bot = Bot(token=BOT_TOKEN)
 
 
-@register_route.message(F.text == "/register")
-async def handler_register(message: types.Message, state: FSMContext):
+@register_route.callback_query(F.data == "registration")
+async def handler_register(
+    call: CallbackQuery,
+    state: FSMContext
+) -> None:
     await state.set_state(RegisterState.password)
-    await message.answer(
+    await call.message.answer(
         "Для регистрации будет использоваться ваш аккаунт от "
         "телеграм, поэтому вам остается придумать только пароль. Пароль "
-        "должен содержать не менее 8 символов.\n<b>Введите ваш пароль:</b>",
+        "должен содержать не менее 4 символов.\n<b>Введите ваш пароль:</b>",
         parse_mode="HTML",
         reply_markup=cancel
     )
@@ -29,20 +34,23 @@ async def handler_register_password(
     state: FSMContext
 ) -> None:
     data: dict = await create_data(message)
-    result = await registration(data)
-    login = await login_user(data, message.from_user.id)
-    if isinstance(result, bool) and login:
+    try:
+        await registration(data), await login_user(data, message.from_user.id)
         await bot.send_sticker(
             message.chat.id,
-            sticker="CAACAgIAAxkBAAPLZsuKEwhHOtn4gpepPXZduXajXPcAAq8MAAJ549hIUM9aLUMN9Tw1BA")
+            sticker="CAACAgIAAxkBAAPLZsuKEwhHOtn4gpepPXZduXa"
+                    "jXPcAAq8MAAJ549hIUM9aLUMN9Tw1BA"
+        )
+
         await message.answer(
             "Ok! Вы успешно зарегистрировались! Теперь вы имеете доступ "
             "к остальному функционалу бота.",
             reply_markup=main_menu
         )
-    else:
+
+    except ClientError as err:
         await message.answer(
-            result,
+            text=str(err),
             reply_markup=main_menu
         )
     await state.clear()

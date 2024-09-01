@@ -1,5 +1,7 @@
 from aiogram import Router, types, F, Bot
 from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery
+from aiohttp import ClientError
 
 from frontend.api.auth import login_user
 from frontend.config import BOT_TOKEN, jwt_token_data
@@ -11,10 +13,13 @@ login_route = Router()
 bot = Bot(token=BOT_TOKEN)
 
 
-@login_route.message(F.text == "/login")
-async def handler_register(message: types.Message, state: FSMContext):
+@login_route.callback_query(F.data == "login")
+async def handler_register(
+    call: CallbackQuery,
+    state: FSMContext
+):
     await state.set_state(LoginState.password)
-    await message.answer(
+    await call.message.answer(
         "Для входа будет также использоваться ваш аккаунт от "
         "телеграм, поэтому вам остается только ввести пароль."
         "\n<b>Введите ваш пароль:</b>",
@@ -29,9 +34,9 @@ async def handler_login_password(
     state: FSMContext
 ) -> None:
     data: dict = await create_data(message)
-    result: dict | str = await login_user(data, message.from_user.id)
 
-    if isinstance(result, bool):
+    try:
+        await login_user(data, message.from_user.id)
         await bot.send_sticker(
             message.chat.id,
             sticker="CAACAgIAAxkBAAPeZsuLfu_BUoCPbpPHsfkhqXiHX8AAAtMJAAIZju"
@@ -42,9 +47,10 @@ async def handler_login_password(
             "к остальному функционалу бота.",
             reply_markup=main_menu
         )
-    else:
+
+    except ClientError as err:
         await message.answer(
-            result,
+            text=str(err),
             reply_markup=main_menu
         )
     await state.clear()
