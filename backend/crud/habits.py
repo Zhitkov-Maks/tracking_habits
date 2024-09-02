@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import select, ScalarResult, true
+from sqlalchemy import select, ScalarResult, true, false, True_, False_
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -72,7 +72,7 @@ async def delete_habit_by_id(
         status_code=status.HTTP_404_NOT_FOUND,
         detail={
             "result": False,
-            "description": "Привычка не найдена, возможно она уже удалена."
+            "descr": "Привычка не найдена, возможно она уже удалена."
         },
     )
     await session.delete(habit)
@@ -128,17 +128,20 @@ async def write_habit(
 
 async def get_habits_by_user(
     session: AsyncSession,
-    user: User
+    user: User,
+    is_active: bool
 ) -> ScalarResult[Habit]:
     """
     Возвращает список привычек для конкретного пользователя.
     :param session: AsyncSession
-    :param user: Экземпляр User
-    :return ScalarResult[Habit]: возвращает список привычек пользователя.
+    :param user: Экземпляр User.
+    :param is_active: Показать активные или уже неактивные привычки.
+    :return ScalarResult[Habit]: Возвращает список привычек пользователя.
     """
+    archive: True_ | False_ = true() if is_active else false()
     stmt = (select(Habit)
             .where(
         Habit.user_id == user.id,
-        Habit.is_active == true())
+        Habit.is_active == archive)
     )
     return await session.scalars(stmt)
