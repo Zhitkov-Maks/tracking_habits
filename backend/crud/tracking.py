@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from database import Tracking
+from database import Tracking, Habit
 from schemas.habits import AddTrackSchema
 
 
@@ -34,7 +34,7 @@ async def add_tracking_for_habit(
             status_code=status.HTTP_409_CONFLICT,
             detail={
                 "result": False,
-                "description": "Вы уже добавили запись у данной "
+                "descr": "Вы уже добавили запись у данной "
                                "привычки на сегодня."
             },
         )
@@ -90,7 +90,7 @@ async def patch_habit_tracking(
     :param session: AsyncSession
     """
     stmt = (select(Tracking)
-            .where(Tracking.date == dt.now().date())
+            .where(Tracking.date == dt.date(data.date))
             .where(Tracking.habit_id == habit_id))
     tracking: Tracking | None = await session.scalar(stmt)
 
@@ -104,3 +104,20 @@ async def patch_habit_tracking(
     )
     tracking.done = data.done
     await session.commit()
+
+
+async def check_valid_date(
+    data: AddTrackSchema,
+    habit_id: int,
+    session: AsyncSession
+) -> None:
+    habit: Habit | None = await session.get(Habit, habit_id)
+    if habit.start_date > dt.date(data.date):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "result": False,
+                "descr": "Дата отметки не может быть меньше "
+                         "чем дата начала отслеживания."
+            },
+        )
