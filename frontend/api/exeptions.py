@@ -1,0 +1,4 @@
+
+
+class DateValidationError(ValueError):
+    pass
