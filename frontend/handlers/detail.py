@@ -6,7 +6,6 @@ from aiohttp import ClientError
 from frontend.api.get import (
     get_list_habits,
     get_full_info,
-    delete_habit,
     archive_habit
 )
 from frontend.api.tracking import habit_clean_all_tracking
@@ -27,7 +26,7 @@ async def output_list_habits(
 ) -> None:
     try:
         result: dict = await get_list_habits(
-            call.from_user.id
+            call.from_user.id, is_active=1
         )
         keyword = await generate_inline_habits_list(result.get("data"))
         await state.set_state(HabitState.show)
@@ -78,24 +77,6 @@ async def delete_habit_by_id(
         await call.message.answer(str(err))
 
 
-@detail.callback_query(HabitState.action, F.data == "delete")
-async def delete_habit_by_id(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    data = await state.get_data()
-    try:
-        await delete_habit(int(data.get("id")), call.from_user.id)
-        await call.message.answer(
-            text="Привычка была удалена.",
-            reply_markup=main_menu
-        )
-        await state.clear()
-    except (ClientError, KeyError) as err:
-        await state.clear()
-        await call.message.answer(str(err))
-
-
 @detail.callback_query(HabitState.action, F.data == "archive")
 async def habit_to_archive(
     call: CallbackQuery,
@@ -103,7 +84,9 @@ async def habit_to_archive(
 ) -> None:
     data = await state.get_data()
     try:
-        await archive_habit(int(data.get("id")), call.from_user.id)
+        await archive_habit(
+            int(data.get("id")), call.from_user.id, is_active=False
+        )
         await call.message.answer(
             text="Привычка была помечена как выполнена и не будет "
                  "отображаться в списке активных привычек..",
