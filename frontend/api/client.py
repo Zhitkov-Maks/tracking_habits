@@ -4,7 +4,7 @@ from aiohttp.client_exceptions import ClientError
 
 class Client:
 
-    def __init__(self, url: str, data: dict):
+    def __init__(self, url: str, data: dict | None = None):
         self.data = data
         self.url = url
         self.header = {"Content-Type": "application/json"}
@@ -20,10 +20,9 @@ class Client:
                 headers=self.header
         ) as response:
                 data: dict = await response.json()
-
-                if response.status == 201:
+                print(data)
+                if response.status == 201 or response.status == 200:
                     return data
-
                 else:
                     message: str = data.get("detail").get("descr")
                     raise ClientError(message)
@@ -42,6 +41,51 @@ class Client:
                 if response.status == 200:
                     return data
 
+                else:
+                    message: str = data.get("detail").get("descr")
+                    raise ClientError(message)
+
+    async def delete(self) -> None:
+        async with aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(60)
+        ) as client:
+            async with client.delete(
+                    url=self.url,
+                    headers=self.header
+            ) as response:
+                data: dict = await response.json()
+                if response.status != 200:
+                    message: str = data.get("detail").get("descr")
+                    raise ClientError(message)
+
+    async def patch(self) -> None:
+        async with aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(60)
+        ) as client:
+            async with client.patch(
+                    url=self.url,
+                    json=self.data,
+                    headers=self.header
+            ) as response:
+                data: dict = await response.json()
+                if response.status != 200:
+                    message: str = data.get("detail").get("descr")
+                    raise ClientError(message)
+
+    async def put(self) -> dict:
+        """Метод для добавления каких то данных."""
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(60)
+    ) as client:
+            async with client.put(
+                url=self.url,
+                json=self.data,
+                headers=self.header
+        ) as response:
+                data: dict = await response.json()
+
+                if response.status == 200:
+                    return data
                 else:
                     message: str = data.get("detail").get("descr")
                     raise ClientError(message)

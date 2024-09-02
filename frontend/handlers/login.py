@@ -4,16 +4,16 @@ from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
 from frontend.api.auth import login_user
-from frontend.config import BOT_TOKEN, jwt_token_data
+from frontend.config import BOT_TOKEN
 from frontend.keyboards.keyboard import main_menu, cancel
 from frontend.states.login import LoginState
 from frontend.utils.register import create_data
 
-login_route = Router()
+auth = Router()
 bot = Bot(token=BOT_TOKEN)
 
 
-@login_route.callback_query(F.data == "login")
+@auth.callback_query(F.data == "login")
 async def handler_register(
     call: CallbackQuery,
     state: FSMContext
@@ -28,7 +28,7 @@ async def handler_register(
     )
 
 
-@login_route.message(LoginState.password)
+@auth.message(LoginState.password)
 async def handler_login_password(
     message: types.Message,
     state: FSMContext

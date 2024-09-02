@@ -5,7 +5,7 @@ from aiogram.utils.markdown import hbold
 from aiogram.enums import ParseMode
 from aiohttp import ClientError
 
-from frontend.api.add_habit import request_create_habit
+from frontend.api.create import request_create_habit
 from frontend.keyboards.keyboard import cancel, main_menu
 from frontend.states.add import AddState
 
@@ -14,8 +14,8 @@ add = Router()
 
 @add.callback_query(F.data == "create")
 async def input_name_habits(
-        call: CallbackQuery,
-        state: FSMContext
+    call: CallbackQuery,
+    state: FSMContext
 ) -> None:
     text = hbold("1-й этап") + ("\nВведите привычку которую вы хотите "
                                 "приобрести: ")
@@ -27,8 +27,8 @@ async def input_name_habits(
 
 @add.message(AddState.title)
 async def input_describe_habits(
-        mess: Message,
-        state: FSMContext
+    mess: Message,
+    state: FSMContext
 ) -> None:
     await state.update_data(title=mess.text)
     await state.set_state(AddState.describe)
@@ -74,3 +74,11 @@ async def create_and_record_db(
             reply_markup=main_menu
         )
     await state.clear()
+
+
+@add.message(AddState.numbers_of_days)
+async def handler_errors(mess: Message):
+    await mess.answer(
+        text="Ошибка ввода, нужно было ввести число, попробуйте сначала.",
+        reply_markup=main_menu
+    )

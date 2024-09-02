@@ -1,6 +1,6 @@
 from frontend.api.client import Client
 from frontend.config import create_habit_url
-from frontend.utils.add_habit import create_header
+from frontend.utils.create_update import create_header
 
 
 async def request_create_habit(data: dict, user_id) -> None:
