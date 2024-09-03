@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 from typing import List
 
 from sqlalchemy import (
@@ -27,6 +27,11 @@ class Habit(Base):
         Date,
         default=dt.now().date(),
         server_default=str(dt.now().date())
+    )
+    end_date: Mapped[Date] = mapped_column(
+        Date,
+        default=dt.now().date() + timedelta(days=21),
+        server_default=str(dt.now().date() + timedelta(days=21))
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
