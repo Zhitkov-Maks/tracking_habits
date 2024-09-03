@@ -93,6 +93,7 @@ class HabitFull(BaseModel):
                     "хочет отслеживать привычку."
     )
     start_date: datetime = None
+    end_date: datetime = None
     is_active: bool
     tracking: FullTracking = Field(
         ...,
