@@ -12,7 +12,7 @@ from schemas.habits import AddTrackSchema
 
 async def add_tracking_for_habit(
     habit_id: int,
-    data:AddTrackSchema,
+    data: AddTrackSchema,
     session: AsyncSession
 ) -> None:
     """
@@ -34,8 +34,7 @@ async def add_tracking_for_habit(
             status_code=status.HTTP_409_CONFLICT,
             detail={
                 "result": False,
-                "descr": "Вы уже добавили запись у данной "
-                               "привычки на сегодня."
+                "descr": "Запись на выбранную дату уже существует."
             },
         )
 
