@@ -6,13 +6,13 @@ from starlette import status
 from crud.tracking import (
     delete_all_habit_tracking,
     patch_habit_tracking,
-    add_tracking_for_habit
+    add_tracking_for_habit, check_valid_date
 )
 from crud.utils import valid_decode_jwt
 from database.conf_db import get_async_session
 from routes.habits import jwt_token
 from schemas.habits import AddTrackSchema
-from schemas.general import SuccessSchema
+from schemas.general import SuccessSchema, ErrorSchema
 
 track_rout = APIRouter(prefix="/tracking", tags=["TRACKING"])
 
@@ -20,6 +20,7 @@ track_rout = APIRouter(prefix="/tracking", tags=["TRACKING"])
 @track_rout.post(
     "/{habit_id}/add/",
     status_code=status.HTTP_201_CREATED,
+    responses={409: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def add_habits_track(
@@ -30,6 +31,7 @@ async def add_habits_track(
 ) -> SuccessSchema:
     """Роут добавляет отслеживание привычки."""
     await valid_decode_jwt(token.credentials, session)
+    await check_valid_date(data, habit_id, session)
     await add_tracking_for_habit(habit_id, data, session)
     return SuccessSchema(result=True)
 
@@ -49,6 +51,7 @@ async def add_habits_track(
     выполнено на выполнено.
     """
     await valid_decode_jwt(token.credentials, session)
+    await check_valid_date(data, habit_id, session)
     await patch_habit_tracking(habit_id, data, session)
     return SuccessSchema(result=True)
 
