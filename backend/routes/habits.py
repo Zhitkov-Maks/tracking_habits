@@ -25,7 +25,7 @@ from schemas.habits import (
     HabitFull,
     ChangeIsActiveSchema
 )
-from schemas.general import SuccessSchema
+from schemas.general import SuccessSchema, ErrorSchema
 
 habits_router = APIRouter(prefix="/habits", tags=["HABITS"])
 
@@ -54,6 +54,7 @@ async def create_habits(
     response_model=ListHabitsSchema,
 )
 async def get_list_habits(
+    is_active: int,
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token)
 ) -> dict:
@@ -62,7 +63,10 @@ async def get_list_habits(
     привычками у конкретного пользователя.
     """
     user: User = await valid_decode_jwt(token.credentials, session)
-    return {"data": (await get_habits_by_user(session, user)).unique().all()}
+    return {
+        "data": (await get_habits_by_user(
+            session, user, bool(is_active)
+        )).unique().all()}
 
 
 @habits_router.get(
@@ -86,6 +90,7 @@ async def get_habits_by_id(
         title=habit.title,
         body=habit.body,
         start_date=habit.start_date,
+        end_date=habit.end_date,
         is_active=habit.is_active,
         number_of_days=habit.number_of_days,
         tracking={
@@ -98,6 +103,7 @@ async def get_habits_by_id(
 @habits_router.delete(
     "/{habit_id}/delete/",
     status_code=status.HTTP_200_OK,
+    responses={403: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def delete_habits_track(
