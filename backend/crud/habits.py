@@ -1,3 +1,5 @@
+from datetime import datetime as dt, timedelta, datetime
+
 from fastapi import HTTPException
 from sqlalchemy import select, ScalarResult, true, false, True_, False_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -117,10 +119,16 @@ async def write_habit(
     :param user: Экземпляр User
     :param session: AsyncSession
     """
+    end_date: datetime.date = (
+            dt.now().date() + timedelta(days=data.number_of_days)
+    )
     habit: Habit = Habit(
         user_id=user.id,
         title=data.title,
         body=data.body,
+        number_of_days=data.number_of_days,
+        end_date=end_date
+
     )
     session.add(habit)
     await session.commit()
