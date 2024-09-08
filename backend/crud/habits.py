@@ -146,10 +146,10 @@ async def get_habits_by_user(
     :param is_active: Показать активные или уже неактивные привычки.
     :return ScalarResult[Habit]: Возвращает список привычек пользователя.
     """
-    archive: True_ | False_ = true() if is_active else false()
+    active: True_ | False_ = true() if is_active else false()
     stmt = (select(Habit)
             .where(
         Habit.user_id == user.id,
-        Habit.is_active == archive)
+        Habit.is_active == active)
     )
     return await session.scalars(stmt)
