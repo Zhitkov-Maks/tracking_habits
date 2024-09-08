@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime
 from typing import List
 
 from pydantic import BaseModel, Field, ConfigDict
@@ -69,6 +69,9 @@ class FullTracking(BaseModel):
         ..., description="Список с выполненными днями."
     )
     not_done: List[Tracking] = Field(
+        ..., description="Список с не выполненными днями."
+    )
+    all: List[Tracking] = Field(
         ..., description="Список с не выполненными днями."
     )
 
