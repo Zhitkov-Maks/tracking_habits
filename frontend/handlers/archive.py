@@ -3,14 +3,19 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.get import get_full_info, delete_habit, get_list_habits, \
+from frontend.api.get import (
+    get_full_info,
+    delete_habit,
+    get_list_habits,
     archive_habit
+)
 from frontend.keyboards.keyboard import main_menu
-from frontend.states.add import HabitState
 from frontend.states.archive import ArchiveState
 from frontend.utils.archive import gen_habit_keyword_archive
-from frontend.utils.habits import generate_inline_habits_list, \
+from frontend.utils.habits import (
+    generate_inline_habits_list,
     generate_message_answer
+)
 
 arch = Router()
 
