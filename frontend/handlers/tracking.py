@@ -3,12 +3,19 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.tracking import habit_tracking_mark, \
+from frontend.api.exeptions import DateValidationError
+from frontend.api.tracking import (
+    habit_tracking_mark,
     habit_tracking_mark_update
+)
 from frontend.keyboards.keyboard import main_menu, confirm
 from frontend.states.add import HabitState
-from frontend.utils.habits import inline_choice_calendar, get_choice_date, \
-    inline_done_not_done, gen_message_done_not_done
+from frontend.utils.habits import (
+    inline_choice_calendar,
+    get_choice_date,
+    inline_done_not_done,
+    gen_message_done_not_done, get_weekdays, days_ago
+)
 
 track = Router()
 
@@ -30,8 +37,9 @@ async def choice_date(
 
 
 @track.callback_query(
+
     HabitState.done,
-    F.data.in_(["today", "yesterday", "beforeYesterday"])
+    F.data.in_(days_ago)
 )
 async def choice_done(
     call: CallbackQuery,
@@ -68,11 +76,19 @@ async def mark_tracking_habit(
             parse_mode="HTML"
         )
         await state.clear()
+
     except ClientError as err:
         await state.set_state(HabitState.confirm)
         await call.message.answer(
             text=str(err) + f"Хотите изменить запись?",
             reply_markup=confirm
+        )
+
+    except DateValidationError as err:
+        await state.clear()
+        await call.message.answer(
+            text=str(err),
+            reply_markup=main_menu
         )
 
 
