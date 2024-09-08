@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 
 from fastapi import HTTPException
-from sqlalchemy import select, ScalarResult, delete
+from sqlalchemy import select, ScalarResult, delete, desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -53,6 +53,28 @@ async def delete_all_habit_tracking(
     await session.commit()
 
 
+async def tracking_for_seven_days(
+    habit_id: int,
+    session: AsyncSession
+) -> list:
+    """
+    Возвращает данные об отслеживании конкретной привычки за последние дни.
+    :param habit_id: ID Habit
+    :param done: True или False для получения списка
+    выполненных дней и невыполненных дней.
+    :param session: AsyncSession
+    """
+    stmt = (
+        select(Tracking)
+        .filter(Tracking.habit_id == habit_id)
+        .order_by(desc(Tracking.date)).limit(7)
+    )
+    track: ScalarResult[Tracking] = await session.scalars(stmt)
+    if track.__sizeof__() == 0:
+        return []
+    return list(track.unique().all())
+
+
 async def tracking_done_by_habit_id(
     habit_id: int,
     done: True | False,
@@ -85,7 +107,7 @@ async def patch_habit_tracking(
     """
     Меняет статус выполнения привычки на текущий день.
     :param habit_id: ID Habit
-    :param data: Донные для обновления статуса выполнения отслеживания..
+    :param data: Данные для обновления статуса выполнения отслеживания.
     :param session: AsyncSession
     """
     stmt = (select(Tracking)
