@@ -15,7 +15,7 @@ from crud.habits import (
     update_habit,
     change_habit_is_active,
 )
-from crud.tracking import tracking_done_by_habit_id
+from crud.tracking import tracking_done_by_habit_id, tracking_for_seven_days
 from crud.utils import valid_decode_jwt
 from database import User, Habit
 from database.conf_db import get_async_session
@@ -33,7 +33,7 @@ jwt_token = HTTPBearer()
 
 
 @habits_router.post(
-    "/new/",
+    "/",
     status_code=status.HTTP_201_CREATED,
     response_model=SuccessSchema,
 )
@@ -49,7 +49,7 @@ async def create_habits(
 
 
 @habits_router.get(
-    "/list/",
+    "/",
     status_code=status.HTTP_200_OK,
     response_model=ListHabitsSchema,
 )
@@ -85,6 +85,7 @@ async def get_habits_by_id(
 
     done: list = await tracking_done_by_habit_id(habit_id, true(), session)
     not_done: list = await tracking_done_by_habit_id(habit_id, false(), session)
+    seven_days: list = await tracking_for_seven_days(habit_id, session)
 
     return HabitFull(
         title=habit.title,
@@ -95,13 +96,14 @@ async def get_habits_by_id(
         number_of_days=habit.number_of_days,
         tracking={
             "done": done,
-            "not_done": not_done
+            "not_done": not_done,
+            "all": seven_days
         }
     )
 
 
 @habits_router.delete(
-    "/{habit_id}/delete/",
+    "/{habit_id}/",
     status_code=status.HTTP_200_OK,
     responses={403: {"model": ErrorSchema}},
     response_model=SuccessSchema,
@@ -119,7 +121,7 @@ async def delete_habits_track(
 
 
 @habits_router.put(
-    "/{habit_id}/update/",
+    "/{habit_id}/",
     status_code=status.HTTP_200_OK,
     response_model=SuccessSchema,
 )
@@ -139,7 +141,7 @@ async def update_habits_data(
 
 
 @habits_router.patch(
-    "/{habit_id}/patch/",
+    "/{habit_id}/",
     status_code=status.HTTP_200_OK,
     response_model=SuccessSchema,
 )

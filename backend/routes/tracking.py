@@ -18,7 +18,7 @@ track_rout = APIRouter(prefix="/tracking", tags=["TRACKING"])
 
 
 @track_rout.post(
-    "/{habit_id}/add/",
+    "/{habit_id}/",
     status_code=status.HTTP_201_CREATED,
     responses={409: {"model": ErrorSchema}},
     response_model=SuccessSchema,
@@ -37,7 +37,7 @@ async def add_habits_track(
 
 
 @track_rout.patch(
-    "/{habit_id}/update-status/",
+    "/{habit_id}/",
     status_code=status.HTTP_200_OK,
     response_model=SuccessSchema,
 )
@@ -57,7 +57,7 @@ async def add_habits_track(
 
 
 @track_rout.delete(
-    "/{habit_id}/delete/",
+    "/{habit_id}/",
     status_code=status.HTTP_200_OK,
     response_model=SuccessSchema,
 )
