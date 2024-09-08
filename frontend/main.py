@@ -8,18 +8,26 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Sticker
 
 from config import BOT_TOKEN
-from frontend.handlers.login import login_route
+from frontend.handlers.archive import arch
+from frontend.handlers.edit import edit_rout
+from frontend.handlers.detail import detail
+from frontend.handlers.login import auth
 from frontend.handlers.registration import register_route
+from frontend.handlers.tracking import track
 from keyboards.keyboard import main_menu
 from loader import greeting, guide
-from handlers.addHandler import add
+from handlers.create import add
 
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 dp.include_router(add)
 dp.include_router(register_route)
-dp.include_router(login_route)
+dp.include_router(auth)
+dp.include_router(detail)
+dp.include_router(edit_rout)
+dp.include_router(track)
+dp.include_router(arch)
 
 
 
@@ -46,13 +54,6 @@ async def _main(
 async def handler_help(message: types.Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer(guide, reply_markup=main_menu)
-
-
-@dp.callback_query(F.data == "show")
-async def begin_work(callback: CallbackQuery):
-    """Обработчик для команды can"""
-    await callback.message.answer("fff")
-    await callback.message.answer("Меню.", reply_markup=main_menu)
 
 
 # @dp.message()
