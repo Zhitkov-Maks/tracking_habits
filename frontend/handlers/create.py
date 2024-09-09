@@ -66,12 +66,12 @@ async def create_and_record_db(
         await mess.answer(
             text="Ваша привычка успешно сохранена. Не забывайте "
                  "ежедневно выполнять ее и добавлять в отслеживание.",
-            reply_markup=main_menu
+            reply_markup=await main_menu(mess.from_user.id)
         )
     except (ClientError, KeyError) as err:
         await mess.answer(
             text=str(err),
-            reply_markup=main_menu
+            reply_markup=await main_menu(mess.from_user.id)
         )
     await state.clear()
 
@@ -80,5 +80,5 @@ async def create_and_record_db(
 async def handler_errors(mess: Message):
     await mess.answer(
         text="Ошибка ввода, нужно было ввести число, попробуйте сначала.",
-        reply_markup=main_menu
+        reply_markup=await main_menu(mess.from_user.id)
     )

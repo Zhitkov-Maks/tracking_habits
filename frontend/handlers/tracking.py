@@ -14,7 +14,7 @@ from frontend.utils.habits import (
     inline_choice_calendar,
     get_choice_date,
     inline_done_not_done,
-    gen_message_done_not_done, get_weekdays, days_ago
+    gen_message_done_not_done, days_ago
 )
 
 track = Router()
@@ -72,7 +72,7 @@ async def mark_tracking_habit(
         )
         await call.message.answer(
             text=await gen_message_done_not_done(data),
-            reply_markup=main_menu,
+            reply_markup=await main_menu(call.from_user.id),
             parse_mode="HTML"
         )
         await state.clear()
@@ -88,7 +88,7 @@ async def mark_tracking_habit(
         await state.clear()
         await call.message.answer(
             text=str(err),
-            reply_markup=main_menu
+            reply_markup=await main_menu(call.from_user.id)
         )
 
 
@@ -105,14 +105,14 @@ async def mark_tracking_habit_update(
         )
         await call.message.answer(
             text=await gen_message_done_not_done(data),
-            reply_markup=main_menu,
+            reply_markup=await main_menu(call.from_user.id),
             parse_mode="HTML"
         )
 
     except (ClientError, KeyError) as err:
         await call.message.answer(
             text=str(err),
-            reply_markup=main_menu
+            reply_markup=await main_menu(call.from_user.id)
         )
 
     finally:

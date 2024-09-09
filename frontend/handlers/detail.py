@@ -37,7 +37,7 @@ async def output_list_habits(
     except (ClientError, KeyError) as err:
         await call.message.answer(
             text=str(err),
-            reply_markup=main_menu
+            reply_markup=await main_menu(call.from_user.id)
         )
 
 
@@ -69,7 +69,7 @@ async def delete_habit_by_id(
         await habit_clean_all_tracking(int(data.get("id")), call.from_user.id)
         await call.message.answer(
             text="Все отметки о выполнении были удалены.",
-            reply_markup=main_menu
+            reply_markup=await main_menu(call.from_user.id)
         )
         await state.clear()
     except (ClientError, KeyError) as err:
@@ -90,7 +90,7 @@ async def habit_to_archive(
         await call.message.answer(
             text="Привычка была помечена как выполнена и не будет "
                  "отображаться в списке активных привычек..",
-            reply_markup=main_menu
+            reply_markup=await main_menu(call.from_user.id)
         )
         await state.clear()
     except (ClientError, KeyError) as err:
