@@ -90,10 +90,13 @@ async def mark_tracking_habit(
         )
 
     except DateValidationError as err:
-        await state.clear()
+        response: dict = await get_full_info(data.get("id"), call.from_user.id)
+        await state.set_state(HabitState.action)
+        await call.message.answer(text=str(err))
         await call.message.answer(
-            text=str(err),
-            reply_markup=main_menu
+            text=await generate_message_answer(response),
+            parse_mode="HTML",
+            reply_markup=await gen_habit_keyword()
         )
 
 
