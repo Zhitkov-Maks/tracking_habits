@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy import select, ScalarResult, delete, desc
@@ -64,10 +64,12 @@ async def tracking_for_seven_days(
     выполненных дней и невыполненных дней.
     :param session: AsyncSession
     """
+    seven_days = (dt.now() - timedelta(days=7)).date()
     stmt = (
         select(Tracking)
         .filter(Tracking.habit_id == habit_id)
-        .order_by(desc(Tracking.date)).limit(7)
+        .where(Tracking.date > seven_days)
+        .order_by(Tracking.date)
     )
     track: ScalarResult[Tracking] = await session.scalars(stmt)
     if track.__sizeof__() == 0:
