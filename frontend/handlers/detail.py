@@ -10,7 +10,7 @@ from frontend.api.get import (
 )
 from frontend.api.tracking import habit_clean_all_tracking
 from frontend.config import BOT_TOKEN
-from frontend.keyboards.keyboard import main_menu
+from frontend.keyboards.keyboard import main_menu, confirm
 from frontend.states.add import HabitState
 from frontend.utils.habits import generate_inline_habits_list, \
     generate_message_answer, gen_habit_keyword
@@ -41,11 +41,11 @@ async def output_list_habits(
         )
 
 
-@detail.callback_query(HabitState.show)
+@detail.callback_query(HabitState.show, F.data.isdigit())
 async def detail_info_habit(
     call: CallbackQuery,
     state: FSMContext
-):
+) -> None:
     response: dict = await get_full_info(int(call.data), call.from_user.id)
     text: str = await generate_message_answer(response)
     await state.update_data(id=call.data)
@@ -78,11 +78,22 @@ async def delete_habit_by_id(
 
 
 @detail.callback_query(HabitState.action, F.data == "archive")
+async def habit_to_archive_confirm(
+    call: CallbackQuery,
+) -> None:
+    await call.message.answer(
+        text="Привычка будет помечена как выполнена!!!"
+             "Нажмите да чтобы продолжить или нет чтобы отменить действие.",
+        reply_markup=confirm
+    )
+
+
+@detail.callback_query(HabitState.action, F.data == "yes")
 async def habit_to_archive(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
-    data = await state.get_data()
+    data: dict = await state.get_data()
     try:
         await archive_habit(
             int(data.get("id")), call.from_user.id, is_active=False
