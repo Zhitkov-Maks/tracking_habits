@@ -66,11 +66,11 @@ async def create_and_record_db(
         await mess.answer(
             text="Ваша привычка успешно обновлена. Не забывайте "
                  "ежедневно выполнять ее и добавлять в отслеживание.",
-            reply_markup=await main_menu(mess.from_user.id)
+            reply_markup=main_menu
         )
     except (ClientError, KeyError) as err:
         await mess.answer(
             text=str(err),
-            reply_markup=await main_menu(mess.from_user.id)
+            reply_markup=main_menu
         )
     await state.clear()

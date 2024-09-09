@@ -38,7 +38,10 @@ async def greeting_handler(message: types.Message):
         sticker='CAACAgIAAxkBAAMeZsjqmWI_'
                 'G7V8iBgvNbq7eZadeJYAAjQBAAJSiZEjE83Xb_UcB1g1BA'
     )
-    await message.answer(text=greeting, reply_markup=main_menu)
+    await message.answer(
+        text=greeting,
+        reply_markup=main_menu
+    )
 
 
 @dp.callback_query(F.data == "main")
@@ -47,13 +50,18 @@ async def _main(
         state: FSMContext
 ) -> None:
     await state.clear()
-    await call.message.answer(text="Меню", reply_markup=main_menu)
+    await call.message.answer(
+        text="Меню",
+        reply_markup=main_menu
+    )
 
 
 @dp.message(F.text == "/help")
 async def handler_help(message: types.Message, state: FSMContext) -> None:
     await state.clear()
-    await message.answer(guide, reply_markup=main_menu)
+    await message.answer(
+        guide, reply_markup=main_menu
+    )
 
 
 # @dp.message()

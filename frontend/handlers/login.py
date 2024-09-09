@@ -45,12 +45,12 @@ async def handler_login_password(
         await message.answer(
             "Ok! Вы успешно вошли в ваш аккаунт! Теперь вы имеете доступ "
             "к остальному функционалу бота.",
-            reply_markup=await main_menu(message.from_user.id)
+            reply_markup=main_menu
         )
 
     except ClientError as err:
         await message.answer(
             text=str(err),
-            reply_markup=await main_menu(message.from_user.id)
+            reply_markup=main_menu
         )
     await state.clear()

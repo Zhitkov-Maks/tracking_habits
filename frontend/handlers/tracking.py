@@ -4,6 +4,7 @@ from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
 from frontend.api.exeptions import DateValidationError
+from frontend.api.get import get_full_info
 from frontend.api.tracking import (
     habit_tracking_mark,
     habit_tracking_mark_update
@@ -14,7 +15,9 @@ from frontend.utils.habits import (
     inline_choice_calendar,
     get_choice_date,
     inline_done_not_done,
-    gen_message_done_not_done, days_ago
+    days_ago,
+    generate_message_answer,
+    gen_habit_keyword
 )
 
 track = Router()
@@ -64,18 +67,20 @@ async def mark_tracking_habit(
     state: FSMContext
 ) -> None:
     await state.update_data(done=call.data)
-    data = await state.get_data()
+    data: dict = await state.get_data()
     try:
         await habit_tracking_mark(
             data,
             call.from_user.id
         )
+        response: dict = await get_full_info(data.get("id"), call.from_user.id)
+        await state.set_state(HabitState.action)
+
         await call.message.answer(
-            text=await gen_message_done_not_done(data),
-            reply_markup=await main_menu(call.from_user.id),
-            parse_mode="HTML"
+            text=await generate_message_answer(response),
+            parse_mode="HTML",
+            reply_markup=await gen_habit_keyword()
         )
-        await state.clear()
 
     except ClientError as err:
         await state.set_state(HabitState.confirm)
@@ -88,7 +93,7 @@ async def mark_tracking_habit(
         await state.clear()
         await call.message.answer(
             text=str(err),
-            reply_markup=await main_menu(call.from_user.id)
+            reply_markup=main_menu
         )
 
 
@@ -103,16 +108,18 @@ async def mark_tracking_habit_update(
             data,
             call.from_user.id
         )
+        response: dict = await get_full_info(data.get("id"), call.from_user.id)
+        await state.set_state(HabitState.action)
         await call.message.answer(
-            text=await gen_message_done_not_done(data),
-            reply_markup=await main_menu(call.from_user.id),
-            parse_mode="HTML"
+            text=await generate_message_answer(response),
+            parse_mode="HTML",
+            reply_markup=await gen_habit_keyword()
         )
 
     except (ClientError, KeyError) as err:
         await call.message.answer(
             text=str(err),
-            reply_markup=await main_menu(call.from_user.id)
+            reply_markup=main_menu
         )
 
     finally:

@@ -38,7 +38,7 @@ async def archive_list_habits(
     except (ClientError, KeyError) as err:
         await call.message.answer(
             text=str(err),
-            reply_markup=await main_menu(call.from_user.id)
+            reply_markup=main_menu
         )
 
 
@@ -70,7 +70,7 @@ async def delete_habit_by_id(
         await delete_habit(int(data.get("id")), call.from_user.id)
         await call.message.answer(
             text="Привычка была удалена, без возможности восстановления.",
-            reply_markup=await main_menu(call.from_user.id)
+            reply_markup=main_menu
         )
     except (ClientError, KeyError) as err:
         await call.message.answer(str(err))
@@ -92,7 +92,7 @@ async def habit_to_un_archive(
         await call.message.answer(
             text="Привычка была помечена как активная и будет "
                  "отображаться в списке активных привычек..",
-            reply_markup=await main_menu(call.from_user.id)
+            reply_markup=main_menu
         )
     except (ClientError, KeyError) as err:
         await call.message.answer(str(err))
