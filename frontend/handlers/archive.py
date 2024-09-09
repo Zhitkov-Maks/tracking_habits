@@ -9,12 +9,12 @@ from frontend.api.get import (
     get_list_habits,
     archive_habit
 )
-from frontend.keyboards.keyboard import main_menu
+from frontend.keyboards.keyboard import main_menu, confirm
 from frontend.states.archive import ArchiveState
 from frontend.utils.archive import gen_habit_keyword_archive
 from frontend.utils.habits import (
     generate_inline_habits_list,
-    generate_message_answer
+    generate_message_archive
 )
 
 arch = Router()
@@ -48,7 +48,7 @@ async def detail_info_habit(
     state: FSMContext
 ):
     response: dict = await get_full_info(int(call.data), call.from_user.id)
-    text: str = await generate_message_answer(response)
+    text: str = await generate_message_archive(response)
     await state.update_data(id=call.data)
     await state.set_state(ArchiveState.action)
     keyword = await gen_habit_keyword_archive()
@@ -61,6 +61,17 @@ async def detail_info_habit(
 
 
 @arch.callback_query(ArchiveState.action, F.data == "delete")
+async def delete_habit_by_id(
+    call: CallbackQuery,
+) -> None:
+    await call.message.answer(
+        text="Привычка будет удалена без возможности восстановления, "
+             "чтобы продолжить нажмите да.",
+        reply_markup=confirm
+    )
+
+
+@arch.callback_query(ArchiveState.action, F.data == "yes")
 async def delete_habit_by_id(
     call: CallbackQuery,
     state: FSMContext
