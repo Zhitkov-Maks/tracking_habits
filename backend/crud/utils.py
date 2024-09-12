@@ -27,10 +27,7 @@ async def validate_auth_user(
     if not user or user.password != hash_pass:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "result": False,
-                "descr": "Пользователь не найден."
-            },
+            detail={"result": False, "descr": "Пользователь не найден."},
         )
 
     return user
@@ -52,19 +49,13 @@ async def validate_decode_user(
     if not user or user.password != login.password:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "result": False,
-                "descr": "Неверные данные пользователя."
-            },
+            detail={"result": False, "descr": "Неверные данные пользователя."},
         )
 
     return user
 
 
-async def valid_decode_jwt(
-    token: str,
-    session: AsyncSession
-) -> User:
+async def valid_decode_jwt(token: str, session: AsyncSession) -> User:
     """
     Отправляет токен на валидацию и получение пользователя.
     :param token: Переданный токен.
@@ -75,10 +66,10 @@ async def valid_decode_jwt(
         data_user: dict = await decode_jwt(token)
         return await validate_decode_user(UserData(**data_user), session)
     except DecodeError:
-            raise HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
                 "result": False,
-                "description": "Ошибка декодирования вашего токена."
+                "description": "Ошибка декодирования вашего токена.",
             },
         )
