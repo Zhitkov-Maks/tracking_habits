@@ -23,7 +23,7 @@ from schemas.habits import (
     HabitSchema,
     ListHabitsSchema,
     HabitFull,
-    ChangeIsActiveSchema
+    ChangeIsActiveSchema,
 )
 from schemas.general import SuccessSchema, ErrorSchema
 
@@ -40,7 +40,7 @@ jwt_token = HTTPBearer()
 async def create_habits(
     data: HabitSchema,
     session: AsyncSession = Depends(get_async_session),
-    token: HTTPAuthorizationCredentials = Security(jwt_token)
+    token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
     """Роут обрабатывающий создание новой привычки."""
     user: User = await valid_decode_jwt(token.credentials, session)
@@ -56,7 +56,7 @@ async def create_habits(
 async def get_list_habits(
     is_active: int,
     session: AsyncSession = Depends(get_async_session),
-    token: HTTPAuthorizationCredentials = Security(jwt_token)
+    token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> dict:
     """
     Роут возвращает список с
@@ -64,9 +64,10 @@ async def get_list_habits(
     """
     user: User = await valid_decode_jwt(token.credentials, session)
     return {
-        "data": (await get_habits_by_user(
-            session, user, bool(is_active)
-        )).unique().all()}
+        "data": (await get_habits_by_user(session, user, bool(is_active)))
+        .unique()
+        .all()
+    }
 
 
 @habits_router.get(
@@ -77,14 +78,14 @@ async def get_list_habits(
 async def get_habits_by_id(
     habit_id: int,
     session: AsyncSession = Depends(get_async_session),
-    token: HTTPAuthorizationCredentials = Security(jwt_token)
+    token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> HabitFull:
     """Роут возвращает полную информацию о привычке."""
     await valid_decode_jwt(token.credentials, session)
     habit: Habit = await habit_by_id(habit_id, session)
 
-    done: list = await tracking_done_by_habit_id(habit_id, true(), session)
-    not_done: list = await tracking_done_by_habit_id(habit_id, false(), session)
+    done: int = await tracking_done_by_habit_id(habit_id, true(), session)
+    not_done: int = await tracking_done_by_habit_id(habit_id, false(), session)
     seven_days: list = await tracking_for_seven_days(habit_id, session)
 
     return HabitFull(
@@ -94,11 +95,7 @@ async def get_habits_by_id(
         end_date=habit.end_date,
         is_active=habit.is_active,
         number_of_days=habit.number_of_days,
-        tracking={
-            "done": done,
-            "not_done": not_done,
-            "all": seven_days
-        }
+        tracking={"done": done, "not_done": not_done, "all": seven_days},
     )
 
 
@@ -111,13 +108,12 @@ async def get_habits_by_id(
 async def delete_habits_track(
     habit_id: int,
     session: AsyncSession = Depends(get_async_session),
-    token: HTTPAuthorizationCredentials = Security(jwt_token)
+    token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
     """Роут удаляет выбранную привычку."""
     await valid_decode_jwt(token.credentials, session)
     await delete_habit_by_id(habit_id, session)
     return SuccessSchema(result=True)
-
 
 
 @habits_router.put(
@@ -129,7 +125,7 @@ async def update_habits_data(
     habit_id: int,
     data: HabitSchema,
     session: AsyncSession = Depends(get_async_session),
-    token: HTTPAuthorizationCredentials = Security(jwt_token)
+    token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
     """
     Роут изменяет такие данные как название, описание и
@@ -149,7 +145,7 @@ async def patch_habits_data(
     habit_id: int,
     data: ChangeIsActiveSchema,
     session: AsyncSession = Depends(get_async_session),
-    token: HTTPAuthorizationCredentials = Security(jwt_token)
+    token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
     """Роут изменяет активность привычки."""
     await valid_decode_jwt(token.credentials, session)
