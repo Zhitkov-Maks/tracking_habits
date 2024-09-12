@@ -1,9 +1,6 @@
-from config import DB_USER, DB_PASS, DB_NAME
-
-
-
-"""We describe the connection to the database."""
 from typing import AsyncGenerator
+
+from config import DB_USER, DB_PASS, DB_NAME
 
 
 from sqlalchemy.ext.asyncio import (
