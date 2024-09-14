@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, BigInteger
+from sqlalchemy import String, BigInteger, Time, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -27,3 +27,8 @@ class User(Base):
 
     def __repr__(self):
         return str(self)
+
+
+class Remind(Base):
+    time: Mapped[Time] = mapped_column(Time)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
