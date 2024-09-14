@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Sticker
 
 from config import BOT_TOKEN
+from frontend.handlers.remind import remind
 from frontend.handlers.archive import arch
 from frontend.handlers.edit import edit_rout
 from frontend.handlers.detail import detail
@@ -28,7 +29,7 @@ dp.include_router(detail)
 dp.include_router(edit_rout)
 dp.include_router(track)
 dp.include_router(arch)
-
+dp.include_router(remind)
 
 
 @dp.message(CommandStart())
