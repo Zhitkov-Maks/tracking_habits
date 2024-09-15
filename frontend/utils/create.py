@@ -1,7 +1,6 @@
 from frontend.config import jwt_token_data
 
 
-
 async def create_header(user_id: int) -> str:
     """
     Формирование header а для отправки его в запросе для
