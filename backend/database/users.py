@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
-from sqlalchemy import String, BigInteger, Time, ForeignKey
+from sqlalchemy import String, BigInteger, Time, ForeignKey, Integer
+from sqlalchemy.dialects.mysql import SMALLINT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -14,7 +15,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(32), unique=True)
     user_chat_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     password: Mapped[str] = mapped_column(String(100))
-
+    remind: Mapped["Remind"] = relationship(back_populates="user")
     habits: Mapped[list["Habit"]] = relationship(
         "Habit",
         back_populates="user",
@@ -30,5 +31,11 @@ class User(Base):
 
 
 class Remind(Base):
-    time: Mapped[Time] = mapped_column(Time)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    time: Mapped[int] = mapped_column(SMALLINT)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), index=True, unique=True
+    )
+    user: Mapped[User] = relationship(
+        back_populates="remind",
+        lazy="joined"
+    )
