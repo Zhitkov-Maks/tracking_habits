@@ -24,8 +24,8 @@ menu_bot = [
         ],
         [
             InlineKeyboardButton(
-                text="Инструкция",
-                callback_data="instruction"
+                text="Регистрация",
+                callback_data="registration"
             ),
             InlineKeyboardButton(
                 text="Напоминание",
@@ -45,7 +45,20 @@ confirm_button = [
     ]
 ]
 
+choice_remind = [
+    [
+        InlineKeyboardButton(text="Добавить", callback_data="add"),
+        InlineKeyboardButton(text="Удалить", callback_data="remove"),
+    ],
+    [
+        InlineKeyboardButton(text="Изменить время", callback_data="change"),
+        InlineKeyboardButton(text="Отмена", callback_data="main"),
+
+    ]
+]
+
 
 main_menu = InlineKeyboardMarkup(inline_keyboard=menu_bot)
 cancel = InlineKeyboardMarkup(inline_keyboard=cancel_button)
 confirm = InlineKeyboardMarkup(inline_keyboard=confirm_button)
+remind_button = InlineKeyboardMarkup(inline_keyboard=choice_remind)
