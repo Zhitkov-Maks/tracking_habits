@@ -112,3 +112,4 @@ async def remove_scheduler_job(user_chat_id: int) -> None:
     schedule_id: str = scheduler_ids.get(user_chat_id)
     if schedule_id is not None:
         scheduler.remove_job(schedule_id)
+        del scheduler_ids[user_chat_id]
