@@ -1,19 +1,36 @@
 from fastapi import HTTPException
-from sqlalchemy import delete
+from sqlalchemy import (
+    delete,
+    Select,
+    select,
+    Sequence,
+    text,
+    TextClause,
+    Result,
+    Delete
+)
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from database.users import Remind
+from database.users import Remind, User
 from schemas.remind import RemindSchema
 
 
 async def add_user_time(
     data: RemindSchema,
+    user: User,
     session: AsyncSession
 ) -> None:
+    """
+    Добавляет настройки для уведомлений.
+    :param data: Новое время уведомлений.
+    :param user: Пользователь у которого нужно обновить время.
+    :param session: Сессия для работы с бд.
+    :return None:
+    """
     remind: Remind = Remind(
-        user_id=data.user_id,
+        user_id=user.id,
         time=data.time,
     )
     try:
@@ -31,11 +48,21 @@ async def add_user_time(
 
 async def upgrade_time(
     data: RemindSchema,
+    user: User,
     session: AsyncSession
 ) -> None:
-    remind: Remind | None = await session.get(Remind, data.user_id)
+    """
+    Обновляет время уведомлений.
+    :param data: Новое время уведомлений.
+    :param user: Пользователь у которого нужно обновить время.
+    :param session: Сессия для работы с бд.
+    :return None:
+    """
+    stmt: Select = select(Remind).filter(Remind.user_id == user.id)
+    remind: Remind = await session.scalar(stmt)
     if remind is not None:
         remind.time = data.time
+        await session.commit()
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -46,9 +73,30 @@ async def upgrade_time(
         )
 
 async def remove_time(
-    data: RemindSchema,
+    user: User,
     session: AsyncSession
 ) -> None:
-    stmt = delete(Remind).where(Remind.user_id == data.user_id)
+    """
+    Удаляет настройки уведомлений.
+    :param user: Пользователь которому нужно удалить настройки.
+    :param session: Сессия для работы с бд.
+    :return None:
+    """
+    stmt: Delete = delete(Remind).where(Remind.user_id == user.id)
     await session.execute(stmt)
     await session.commit()
+
+
+async def get_settings_all(session: AsyncSession) -> Sequence:
+    """
+    Функция возвращает список пользователей у которых
+    имеются настройки для уведомлений.
+    :param session: AsyncSession
+    :return Sequence: Список пользователей и время для показа уведомлений.
+    """
+    sql: TextClause = text(
+        'SELECT us.user_chat_id, rm.time FROM users as us INNER JOIN '
+        'reminds as rm on (us.id = rm.user_id)'
+    )
+    results: Result = await session.execute(sql)
+    return results.all()
