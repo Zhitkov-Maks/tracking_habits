@@ -7,10 +7,7 @@ from starlette import status
 from database import User
 
 
-async def create_user(
-    session: AsyncSession,
-    user: dict
-) -> None:
+async def create_user(session: AsyncSession, user: dict) -> None:
     """
     Создает пользователя в базе данных.
     :param user: Словарь с данными о пользователе.
@@ -27,8 +24,7 @@ async def create_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
                 "result": False,
-                "description": "Пользователь с таким именем "
-                               "уже зарегистрирован."
+                "descr": "Пользователь с текущими данными уже зарегистрирован.",
             },
         )
 
@@ -44,7 +40,9 @@ async def get_user_by_id_and_username(
     :param username: Username пользователя
     :param session: AsyncSession
     """
-    stmt = select(User).where(
-        User.user_chat_id == chat_id
-    ).where(User.username == username)
+    stmt = (
+        select(User)
+        .where(User.user_chat_id == chat_id)
+        .where(User.username == username)
+    )
     return await session.scalar(stmt)

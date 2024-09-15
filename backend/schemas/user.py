@@ -9,10 +9,9 @@ class UserData(BaseModel):
     Пользователь идентифицируется по user_chat_id, так как он является
     уникальным для каждого пользователя телеграмм.
     """
+
     username: str = Field(..., description="Ваш username из телеграмм.")
     user_chat_id: int = Field(..., description="Чат ай ди из телеграмм.")
     password: str = Field(
-        ...,
-        min_length=4,
-        description="Пароль который ввел пользователь."
+        ..., min_length=4, description="Пароль который ввел пользователь."
     )

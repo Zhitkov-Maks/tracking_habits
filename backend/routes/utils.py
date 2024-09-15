@@ -10,7 +10,7 @@ from schemas.user import UserData
 async def hash_password(
     password: str,
 ) -> str:
-    return hashlib.md5(password.encode('utf-8')).hexdigest()
+    return hashlib.md5(password.encode("utf-8")).hexdigest()
 
 
 async def encode_jwt(
@@ -42,7 +42,7 @@ async def encode_jwt(
         "username": user.username,
         "password": user.password,
         "exp": expire,
-        "iat":now,
+        "iat": now,
     }
 
     encoded = jwt.encode(
