@@ -41,6 +41,5 @@ async def get_all_users() -> dict:
     :return dict: Возвращает словарь со списком пользователей у которых
         есть настройки для уведомлений.
     """
-    url: str = remind_url + "list/"
-    client: Client = Client(url)
+    client: Client = Client(remind_url)
     return await client.get()
