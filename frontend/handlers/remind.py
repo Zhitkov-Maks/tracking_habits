@@ -82,6 +82,8 @@ async def finalize_add_remind(
 ) -> None:
     update: bool = (await state.get_data())["update"]
     data: dict = {"time": int(call.data)}
+    if update:
+        await remove_scheduler_job(call.from_user.id)
     try:
         await add_time_remind(data, update, call.from_user.id)
         await add_send_message(call.from_user.id, time=int(call.data))
