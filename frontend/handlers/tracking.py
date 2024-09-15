@@ -40,7 +40,6 @@ async def choice_date(
 
 
 @track.callback_query(
-
     HabitState.done,
     F.data.in_(days_ago)
 )
@@ -62,7 +61,7 @@ async def choice_done(
     HabitState.date,
     F.data.in_(["done", "not_done"])
 )
-async def mark_tracking_habit(
+async def mark_tracking_habit_done(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
@@ -124,6 +123,3 @@ async def mark_tracking_habit_update(
             text=str(err),
             reply_markup=main_menu
         )
-
-    finally:
-        await state.clear()
