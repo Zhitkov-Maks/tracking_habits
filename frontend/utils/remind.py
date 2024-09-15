@@ -3,10 +3,11 @@ from typing import List
 from aiogram import BaseMiddleware, Bot, Dispatcher
 from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from frontend.api.remind import get_all_users
-from frontend.config import BOT_TOKEN, app_schedule
+from frontend.config import BOT_TOKEN, app_schedule, scheduler_ids
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -63,10 +64,8 @@ async def get_or_create_scheduler() -> AsyncIOScheduler:
     """
     if app_schedule.get("scheduler") is None:
         scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+        scheduler.start()
         app_schedule["scheduler"] = scheduler
-        scheduler: AsyncIOScheduler = AsyncIOScheduler(
-            timezone='Europe/Moscow'
-        )
         dp.update.middleware(
             SchedulerMiddleware(schedule=scheduler),
         )
@@ -83,14 +82,14 @@ async def add_send_message(user_chat_id: int, time: int) -> None:
     :return AsyncIOScheduler: Экземпляр планировщика.
     """
     scheduler: AsyncIOScheduler = await get_or_create_scheduler()
-    scheduler.start()
-    scheduler.add_job(
+    schedule_obj: Job = scheduler.add_job(
         send_message_cron,
         'cron',
         args=[user_chat_id],
         hour=time,
         minute=00,
     )
+    scheduler_ids[user_chat_id] = schedule_obj.id
 
 
 async def create_scheduler_all() -> None:
@@ -101,3 +100,15 @@ async def create_scheduler_all() -> None:
     result: dict = await get_all_users()
     for user in result.get("users"):
         await add_send_message(user.get("user_chat_id"), user.get("time"))
+
+
+async def remove_scheduler_job(user_chat_id: int) -> None:
+    """
+    Удаляет из планировщика задачу, чтобы затем добавить заново.
+    :param user_chat_id: Идентификатор пользователя для получения ID scheduler.
+    :return None:
+    """
+    scheduler: AsyncIOScheduler = await get_or_create_scheduler()
+    schedule_id: str = scheduler_ids.get(user_chat_id)
+    if schedule_id is not None:
+        scheduler.remove_job(schedule_id)
