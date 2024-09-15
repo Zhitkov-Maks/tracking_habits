@@ -89,7 +89,7 @@ async def add_send_message(user_chat_id: int, time: int) -> None:
         'cron',
         args=[user_chat_id],
         hour=time,
-        minute=18,
+        minute=00,
     )
 
 
