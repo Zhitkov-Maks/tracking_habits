@@ -12,3 +12,4 @@ remind_url: str = API_ADDRESS + "/api/v1/remind/"
 
 jwt_token_data: dict = {}
 app_schedule: dict = {}
+scheduler_ids: dict = {}
