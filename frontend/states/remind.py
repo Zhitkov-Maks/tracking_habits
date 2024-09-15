@@ -3,5 +3,5 @@ from aiogram.fsm.state import StatesGroup, State
 
 class RemindState(StatesGroup):
     start = State()
-    choice = State()
+    add = State()
     confirm = State()
