@@ -8,7 +8,6 @@ from frontend.api.get import (
     get_full_info,
     archive_habit
 )
-from frontend.api.tracking import habit_clean_all_tracking
 from frontend.config import BOT_TOKEN
 from frontend.keyboards.keyboard import main_menu, confirm
 from frontend.states.add import HabitState
@@ -57,24 +56,6 @@ async def detail_info_habit(
         parse_mode="HTML",
         reply_markup=keyword
     )
-
-
-@detail.callback_query(HabitState.action, F.data == "clean")
-async def delete_habit_by_id(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    data = await state.get_data()
-    try:
-        await habit_clean_all_tracking(int(data.get("id")), call.from_user.id)
-        await call.message.answer(
-            text="Все отметки о выполнении были удалены.",
-            reply_markup=main_menu
-        )
-        await state.clear()
-    except (ClientError, KeyError) as err:
-        await state.clear()
-        await call.message.answer(str(err))
 
 
 @detail.callback_query(HabitState.action, F.data == "archive")
