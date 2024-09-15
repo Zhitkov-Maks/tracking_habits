@@ -11,7 +11,8 @@ from frontend.keyboards.keyboard import (
 )
 
 from frontend.states.remind import RemindState
-from frontend.utils.remind import create_time, add_send_message
+from frontend.utils.remind import create_time, add_send_message, \
+    remove_scheduler_job
 
 remind = Router()
 
@@ -47,6 +48,7 @@ async def finalize_remove(
 ) -> None:
     try:
         await remove_time(call.from_user.id)
+        await remove_scheduler_job(call.from_user.id)
         await call.message.answer(
             text="Напоминание было удалено.",
             reply_markup=main_menu
