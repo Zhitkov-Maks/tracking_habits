@@ -14,7 +14,7 @@ from frontend.states.archive import ArchiveState
 from frontend.utils.archive import gen_habit_keyword_archive
 from frontend.utils.habits import (
     generate_inline_habits_list,
-    generate_message_archive
+    generate_message_answer
 )
 
 arch = Router()
@@ -48,7 +48,7 @@ async def detail_info_habit(
     state: FSMContext
 ):
     response: dict = await get_full_info(int(call.data), call.from_user.id)
-    text: str = await generate_message_archive(response)
+    text: str = await generate_message_answer(response)
     await state.update_data(id=call.data)
     await state.set_state(ArchiveState.action)
     keyword = await gen_habit_keyword_archive()
@@ -107,6 +107,4 @@ async def habit_to_un_archive(
         )
     except (ClientError, KeyError) as err:
         await call.message.answer(str(err))
-
-    finally:
         await state.clear()
