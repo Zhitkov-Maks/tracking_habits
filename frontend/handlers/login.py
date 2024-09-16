@@ -20,9 +20,7 @@ async def handler_register(
 ):
     await state.set_state(LoginState.password)
     await call.message.answer(
-        "Для входа будет также использоваться ваш аккаунт от "
-        "телеграм, поэтому вам остается только ввести пароль."
-        "\n<b>Введите ваш пароль:</b>",
+        text="<b>Введите ваш пароль:</b>",
         parse_mode="HTML",
         reply_markup=cancel
     )

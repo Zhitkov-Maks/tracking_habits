@@ -17,8 +17,8 @@ async def input_name_habits(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
-    text = hbold("1-й этап") + ("\nВведите привычку которую вы хотите "
-                                "приобрести: ")
+    text = hbold("1-й этап") + ("\nВведите краткое название привычки котору "
+                                "вы хотите отследить...")
     await state.set_state(AddState.title)
     await call.message.answer(
         text=text, parse_mode="HTML", reply_markup=cancel
@@ -33,8 +33,8 @@ async def input_describe_habits(
     await state.update_data(title=mess.text)
     await state.set_state(AddState.describe)
     await mess.answer(
-        text=hbold("2-й этап") + ("\nОпишите подробнее о "
-                                  "привычке и цели которую вы хотите достичь:"),
+        text=hbold("2-й этап") + ("\nОпишите подробнее о привычке "
+                                  "и цели которую вы хотите достичь..."),
         parse_mode=ParseMode.HTML,
         reply_markup=cancel
     )

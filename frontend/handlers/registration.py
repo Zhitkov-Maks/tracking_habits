@@ -20,9 +20,7 @@ async def handler_register(
 ) -> None:
     await state.set_state(RegisterState.password)
     await call.message.answer(
-        "Для регистрации будет использоваться ваш аккаунт от "
-        "телеграм, поэтому вам остается придумать только пароль. Пароль "
-        "должен содержать не менее 4 символов.\n<b>Введите ваш пароль:</b>",
+        text="<b>Введите ваш пароль:</b>",
         parse_mode="HTML",
         reply_markup=cancel
     )
@@ -34,7 +32,6 @@ async def handler_register_password(
     state: FSMContext
 ) -> None:
     data: dict = await create_data(message)
-    print(data)
     try:
         await registration(data), await login_user(data, message.from_user.id)
         await bot.send_sticker(
@@ -54,4 +51,4 @@ async def handler_register_password(
             text=str(err),
             reply_markup=main_menu
         )
-    await state
+    await state.clear()
