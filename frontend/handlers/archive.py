@@ -102,7 +102,7 @@ async def habit_to_un_archive(
         )
         await call.message.answer(
             text="Привычка была помечена как активная и будет "
-                 "отображаться в списке активных привычек..",
+                 "отображаться в списке активных привычек.",
             reply_markup=main_menu
         )
     except (ClientError, KeyError) as err:
