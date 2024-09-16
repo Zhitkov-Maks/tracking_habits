@@ -32,6 +32,12 @@ menu_bot = [
                 callback_data="remind"
             )
         ],
+        [
+            InlineKeyboardButton(
+                text="Гайд по работе с ботом",
+                callback_data="guide"
+            )
+        ],
     ]
 
 cancel_button = [
