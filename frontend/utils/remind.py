@@ -3,6 +3,7 @@ from typing import List
 from aiogram import BaseMiddleware, Bot, Dispatcher
 from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiohttp import ClientError
 from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -97,9 +98,12 @@ async def create_scheduler_all() -> None:
     Создаем расписание для отправки уведомлений.
     :return: None
     """
-    result: dict = await get_all_users()
-    for user in result.get("users"):
-        await add_send_message(user.get("user_chat_id"), user.get("time"))
+    try:
+        result: dict = await get_all_users()
+        for user in result.get("users"):
+            await add_send_message(user.get("user_chat_id"), user.get("time"))
+    except ClientError:
+        pass
 
 
 async def remove_scheduler_job(user_chat_id: int) -> None:

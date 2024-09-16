@@ -9,7 +9,7 @@ from sqlalchemy import (
     Result,
     Delete
 )
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -94,9 +94,18 @@ async def get_settings_all(session: AsyncSession) -> Sequence:
     :param session: AsyncSession
     :return Sequence: Список пользователей и время для показа уведомлений.
     """
-    sql: TextClause = text(
-        'SELECT us.user_chat_id, rm.time FROM users as us INNER JOIN '
-        'reminds as rm on (us.id = rm.user_id)'
-    )
-    results: Result = await session.execute(sql)
-    return results.all()
+    try:
+        sql: TextClause = text(
+            'SELECT us.user_chat_id, rm.time FROM users as us INNER JOIN '
+            'reminds as rm on (us.id = rm.user_id)'
+        )
+        results: Result = await session.execute(sql)
+        return results.all()
+    except ProgrammingError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "result": False,
+                "descr": "Записей еще не создано.",
+            },
+        )
