@@ -59,11 +59,14 @@ async def _main(
     )
 
 
-@dp.message(F.text == "/help")
-async def handler_help(message: types.Message, state: FSMContext) -> None:
+@dp.callback_query(F.data == "guide")
+async def handler_help(
+    call: types.CallbackQuery,
+    state: FSMContext
+) -> None:
     await state.clear()
-    await message.answer(
-        guide,
+    await call.message.answer(
+        text=guide,
         reply_markup=main_menu
     )
 
