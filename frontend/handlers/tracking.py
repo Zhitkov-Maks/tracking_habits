@@ -3,15 +3,15 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.exeptions import DateValidationError
-from frontend.api.get import get_full_info
-from frontend.api.tracking import (
+from api.exeptions import DateValidationError
+from api.get import get_full_info
+from api.tracking import (
     habit_tracking_mark,
     habit_tracking_mark_update
 )
-from frontend.keyboards.keyboard import main_menu, confirm
-from frontend.states.add import HabitState
-from frontend.utils.habits import (
+from keyboards.keyboard import main_menu, confirm
+from states.add import HabitState
+from utils.habits import (
     inline_choice_calendar,
     get_choice_date,
     inline_done_not_done,

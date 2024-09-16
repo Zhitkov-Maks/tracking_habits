@@ -6,9 +6,9 @@ from aiogram.utils.markdown import hbold
 from aiohttp import ClientError
 from aiogram import F
 
-from frontend.api.edit import request_update_habit
-from frontend.keyboards.keyboard import cancel, main_menu
-from frontend.states.add import EditState, HabitState
+from api.edit import request_update_habit
+from keyboards.keyboard import cancel, main_menu
+from states.add import EditState, HabitState
 
 edit_rout = Router()
 

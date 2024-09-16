@@ -1,6 +1,6 @@
-from frontend.api.client import Client
-from frontend.config import remind_url
-from frontend.utils.create import create_header
+from api.client import Client
+from config import remind_url
+from utils.create import create_header
 
 
 async def add_time_remind(data: dict, update, user_id) -> None:

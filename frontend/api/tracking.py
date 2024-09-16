@@ -1,6 +1,6 @@
-from frontend.api.client import Client
-from frontend.config import tracking_url
-from frontend.utils.create import create_header
+from api.client import Client
+from config import tracking_url
+from utils.create import create_header
 
 
 async def habit_tracking_mark_update(

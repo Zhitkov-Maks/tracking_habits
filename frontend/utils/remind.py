@@ -6,8 +6,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from frontend.api.remind import get_all_users
-from frontend.config import BOT_TOKEN, app_schedule, scheduler_ids
+from api.remind import get_all_users
+from config import BOT_TOKEN, app_schedule, scheduler_ids
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -112,3 +112,4 @@ async def remove_scheduler_job(user_chat_id: int) -> None:
     schedule_id: str = scheduler_ids.get(user_chat_id)
     if schedule_id is not None:
         scheduler.remove_job(schedule_id)
+        del scheduler_ids[user_chat_id]

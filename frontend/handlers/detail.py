@@ -3,15 +3,15 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.get import (
+from api.get import (
     get_list_habits,
     get_full_info,
     archive_habit
 )
-from frontend.config import BOT_TOKEN
-from frontend.keyboards.keyboard import main_menu, confirm
-from frontend.states.add import HabitState
-from frontend.utils.habits import generate_inline_habits_list, \
+from config import BOT_TOKEN
+from keyboards.keyboard import main_menu, confirm
+from states.add import HabitState
+from utils.habits import generate_inline_habits_list, \
     generate_message_answer, gen_habit_keyword
 
 detail = Router()

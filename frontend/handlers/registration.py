@@ -3,11 +3,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.auth import registration, login_user
-from frontend.config import BOT_TOKEN
-from frontend.keyboards.keyboard import main_menu, cancel
-from frontend.states.register import RegisterState
-from frontend.utils.register import create_data
+from api.auth import registration, login_user
+from config import BOT_TOKEN
+from keyboards.keyboard import main_menu, cancel
+from states.register import RegisterState
+from utils.register import create_data
 
 register_route = Router()
 bot = Bot(token=BOT_TOKEN)
@@ -20,9 +20,7 @@ async def handler_register(
 ) -> None:
     await state.set_state(RegisterState.password)
     await call.message.answer(
-        "Для регистрации будет использоваться ваш аккаунт от "
-        "телеграм, поэтому вам остается придумать только пароль. Пароль "
-        "должен содержать не менее 4 символов.\n<b>Введите ваш пароль:</b>",
+        text="<b>Введите ваш пароль:</b>",
         parse_mode="HTML",
         reply_markup=cancel
     )
@@ -34,7 +32,6 @@ async def handler_register_password(
     state: FSMContext
 ) -> None:
     data: dict = await create_data(message)
-    print(data)
     try:
         await registration(data), await login_user(data, message.from_user.id)
         await bot.send_sticker(

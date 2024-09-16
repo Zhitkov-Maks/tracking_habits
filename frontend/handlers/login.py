@@ -3,11 +3,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.auth import login_user
-from frontend.config import BOT_TOKEN
-from frontend.keyboards.keyboard import main_menu, cancel
-from frontend.states.login import LoginState
-from frontend.utils.register import create_data
+from api.auth import login_user
+from config import BOT_TOKEN
+from keyboards.keyboard import main_menu, cancel
+from states.login import LoginState
+from utils.register import create_data
 
 auth = Router()
 bot = Bot(token=BOT_TOKEN)
@@ -20,9 +20,7 @@ async def handler_register(
 ):
     await state.set_state(LoginState.password)
     await call.message.answer(
-        "Для входа будет также использоваться ваш аккаунт от "
-        "телеграм, поэтому вам остается только ввести пароль."
-        "\n<b>Введите ваш пароль:</b>",
+        text="<b>Введите ваш пароль:</b>",
         parse_mode="HTML",
         reply_markup=cancel
     )

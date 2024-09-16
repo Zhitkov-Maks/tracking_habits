@@ -1,7 +1,7 @@
 import aiohttp
 from aiohttp.client_exceptions import ClientError
 
-from frontend.api.exeptions import DateValidationError
+from api.exeptions import DateValidationError
 
 
 class Client:

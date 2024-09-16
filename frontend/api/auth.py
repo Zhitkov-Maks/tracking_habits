@@ -1,6 +1,6 @@
-from frontend.api.client import Client
-from frontend.config import register_url, login_url
-from frontend.utils.login import update_jwt_token
+from api.client import Client
+from config import register_url, login_url
+from utils.login import update_jwt_token
 
 
 async def registration(data: dict) -> None:
