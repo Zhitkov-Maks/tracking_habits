@@ -1,6 +1,6 @@
-from frontend.api.client import Client
-from frontend.utils.create import create_header
-from frontend.config import habit_url
+from api.client import Client
+from utils.create import create_header
+from config import habit_url
 
 
 async def get_list_habits(

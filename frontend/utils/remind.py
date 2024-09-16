@@ -6,8 +6,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from frontend.api.remind import get_all_users
-from frontend.config import BOT_TOKEN, app_schedule, scheduler_ids
+from api.remind import get_all_users
+from config import BOT_TOKEN, app_schedule, scheduler_ids
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()

@@ -12,7 +12,7 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
-DATABASE_URL: str = "postgresql+asyncpg://{0}:{1}@localhost:5432/{2}".format(
+DATABASE_URL: str = "postgresql+asyncpg://{0}:{1}@bot_db/{2}".format(
     DB_USER,
     DB_PASS,
     DB_NAME,

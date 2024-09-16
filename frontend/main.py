@@ -7,14 +7,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from config import BOT_TOKEN
-from frontend.handlers.remind import remind
-from frontend.handlers.archive import arch
-from frontend.handlers.edit import edit_rout
-from frontend.handlers.detail import detail
-from frontend.handlers.login import auth
-from frontend.handlers.registration import register_route
-from frontend.handlers.tracking import track
-from frontend.utils.remind import create_scheduler_all
+from handlers.remind import remind
+from handlers.archive import arch
+from handlers.edit import edit_rout
+from handlers.detail import detail
+from handlers.login import auth
+from handlers.registration import register_route
+from handlers.tracking import track
+from utils.remind import create_scheduler_all
 from keyboards.keyboard import main_menu
 from loader import greeting, guide
 from handlers.create import add

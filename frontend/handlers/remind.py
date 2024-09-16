@@ -3,15 +3,15 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.remind import add_time_remind, remove_time
-from frontend.keyboards.keyboard import (
+from api.remind import add_time_remind, remove_time
+from keyboards.keyboard import (
     remind_button,
     main_menu,
     confirm
 )
 
-from frontend.states.remind import RemindState
-from frontend.utils.remind import create_time, add_send_message, \
+from states.remind import RemindState
+from utils.remind import create_time, add_send_message, \
     remove_scheduler_job
 
 remind = Router()

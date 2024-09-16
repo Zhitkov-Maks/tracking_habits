@@ -3,7 +3,6 @@ from typing import List, Dict
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.markdown import hbold, hitalic
-from asyncpg.pgproto.pgproto import timedelta
 
 
 weekdays: tuple = ("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс",)
@@ -25,7 +24,7 @@ async def get_choice_date(call_data: str) -> str:
     :return str: Дату в виде строки.
     """
     now: datetime.date = dt.now(UTC).date()
-    date: datetime = now - timedelta(days=days_ago.get(call_data))
+    date: datetime.date = now - timedelta(days=days_ago.get(call_data))
     return str(date)
 
 

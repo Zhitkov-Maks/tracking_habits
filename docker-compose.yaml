@@ -11,3 +11,37 @@ services:
     restart: always
     volumes:
       - ./bot_db/:/var/lib/postgresql/data
+
+  telegram_bot:
+    container_name: Tracking
+    build:
+      context: frontend
+
+    environment:
+      - BOT_TOKEN=${TOKEN}
+
+    env_file:
+      - .env
+
+    ports:
+      - "443:443"
+
+    volumes:
+      - ./logs:/usr/logs
+
+    restart: on-failure
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: backend
+    stop_signal: SIGKILL
+    container_name: tracking_app
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - bot_db

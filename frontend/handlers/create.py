@@ -5,9 +5,9 @@ from aiogram.utils.markdown import hbold
 from aiogram.enums import ParseMode
 from aiohttp import ClientError
 
-from frontend.api.create import request_create_habit
-from frontend.keyboards.keyboard import cancel, main_menu
-from frontend.states.add import AddState
+from api.create import request_create_habit
+from keyboards.keyboard import cancel, main_menu
+from states.add import AddState
 
 add = Router()
 

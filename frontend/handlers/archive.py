@@ -3,16 +3,16 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.get import (
+from api.get import (
     get_full_info,
     delete_habit,
     get_list_habits,
     archive_habit
 )
-from frontend.keyboards.keyboard import main_menu, confirm
-from frontend.states.archive import ArchiveState
-from frontend.utils.archive import gen_habit_keyword_archive
-from frontend.utils.habits import (
+from keyboards.keyboard import main_menu, confirm
+from states.archive import ArchiveState
+from utils.archive import gen_habit_keyword_archive
+from utils.habits import (
     generate_inline_habits_list,
     generate_message_answer
 )

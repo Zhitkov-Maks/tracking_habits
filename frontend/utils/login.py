@@ -1,4 +1,4 @@
-from frontend.config import jwt_token_data
+from config import jwt_token_data
 
 
 async def update_jwt_token(

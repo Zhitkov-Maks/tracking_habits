@@ -3,11 +3,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiohttp import ClientError
 
-from frontend.api.auth import registration, login_user
-from frontend.config import BOT_TOKEN
-from frontend.keyboards.keyboard import main_menu, cancel
-from frontend.states.register import RegisterState
-from frontend.utils.register import create_data
+from api.auth import registration, login_user
+from config import BOT_TOKEN
+from keyboards.keyboard import main_menu, cancel
+from states.register import RegisterState
+from utils.register import create_data
 
 register_route = Router()
 bot = Bot(token=BOT_TOKEN)
@@ -54,4 +54,4 @@ async def handler_register_password(
             text=str(err),
             reply_markup=main_menu
         )
-    await state.clear()
+    await state
