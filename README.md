@@ -37,7 +37,9 @@ openssl rsa -in jwt-private.pem -outform PEM -pubout -out jwt-public.pem
 docker compose up -d
 ```
 
-- Далее нужно применить миграции для создания таблиц в бд.
+- Далее нужно применить миграции для создания таблиц в бд, для этого нужно перейти в контейнер 
+tracking_app(docker ps посмотреть ID контейнера и docker exec -it <ID docker container> sh) и 
+выполнить команду:
 
 ```commandline
 alembic upgrade head

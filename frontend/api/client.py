@@ -14,13 +14,13 @@ class Client:
     async def post(self) -> dict:
         """Метод для добавления каких то данных."""
         async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(60)
-    ) as client:
+                timeout=aiohttp.ClientTimeout(60)
+        ) as client:
             async with client.post(
                 url=self.url,
                 json=self.data,
                 headers=self.header
-        ) as response:
+            ) as response:
                 data: dict = await response.json()
                 if response.status == 201 or response.status == 200:
                     return data
@@ -80,13 +80,13 @@ class Client:
     async def put(self) -> dict:
         """Метод для добавления каких то данных."""
         async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(60)
-    ) as client:
+                timeout=aiohttp.ClientTimeout(60)
+        ) as client:
             async with client.put(
                 url=self.url,
                 json=self.data,
                 headers=self.header
-        ) as response:
+            ) as response:
                 data: dict = await response.json()
 
                 if response.status == 200:

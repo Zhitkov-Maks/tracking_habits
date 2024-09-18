@@ -20,7 +20,7 @@ async def handler_register(
 ) -> None:
     await state.set_state(RegisterState.password)
     await call.message.answer(
-        text="<b>Введите ваш пароль:</b>",
+        text="<b>Придумайте ваш пароль(не менее 5 символов).</b>",
         parse_mode="HTML",
         reply_markup=cancel
     )
@@ -32,6 +32,7 @@ async def handler_register_password(
     state: FSMContext
 ) -> None:
     data: dict = await create_data(message)
+    print(data)
     try:
         await registration(data), await login_user(data, message.from_user.id)
         await bot.send_sticker(
