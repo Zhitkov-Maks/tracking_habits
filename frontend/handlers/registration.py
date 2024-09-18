@@ -32,6 +32,7 @@ async def handler_register_password(
     state: FSMContext
 ) -> None:
     data: dict = await create_data(message)
+    print(data)
     try:
         await registration(data), await login_user(data, message.from_user.id)
         await bot.send_sticker(
