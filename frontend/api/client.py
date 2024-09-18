@@ -11,86 +11,83 @@ class Client:
         self.url = url
         self.header = {"Content-Type": "application/json"}
 
+    @classmethod
+    async def _client(cls):
+        async with aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(60)
+        ) as client:
+            return client
+
     async def post(self) -> dict:
         """Метод для добавления каких то данных."""
-        async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(60)
-    ) as client:
-            async with client.post(
-                url=self.url,
-                json=self.data,
-                headers=self.header
-        ) as response:
-                data: dict = await response.json()
-                if response.status == 201 or response.status == 200:
-                    return data
+        client = await self._client()
+        async with client.post(
+            url=self.url,
+            json=self.data,
+            headers=self.header
+    ) as response:
+            data: dict = await response.json()
+            if response.status == 201 or response.status == 200:
+                return data
 
-                elif response.status == 400:
-                    message: str = data.get("detail").get("descr")
-                    raise DateValidationError(message)
+            elif response.status == 400:
+                message: str = data.get("detail").get("descr")
+                raise DateValidationError(message)
 
-                else:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
+            else:
+                message: str = data.get("detail").get("descr")
+                raise ClientError(message)
 
     async def get(self) -> dict:
         """Метод для получения каких то данных."""
-        async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(60)
-        ) as client:
-            async with client.get(
-                    url=self.url,
-                    headers=self.header
-            ) as response:
-                data: dict = await response.json()
-                if response.status == 200:
-                    return data
+        client = await self._client()
+        async with client.get(
+                url=self.url,
+                headers=self.header
+        ) as response:
+            data: dict = await response.json()
+            if response.status == 200:
+                return data
 
-                else:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
+            else:
+                message: str = data.get("detail").get("descr")
+                raise ClientError(message)
 
     async def delete(self) -> None:
-        async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(60)
-        ) as client:
-            async with client.delete(
-                    url=self.url,
-                    headers=self.header
-            ) as response:
-                data: dict = await response.json()
-                if response.status != 200:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
+        client = await self._client()
+        async with client.delete(
+                url=self.url,
+                headers=self.header
+        ) as response:
+            data: dict = await response.json()
+            if response.status != 200:
+                message: str = data.get("detail").get("descr")
+                raise ClientError(message)
 
     async def patch(self) -> None:
-        async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(60)
-        ) as client:
-            async with client.patch(
-                    url=self.url,
-                    json=self.data,
-                    headers=self.header
-            ) as response:
-                data: dict = await response.json()
-                if response.status != 200:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
-
-    async def put(self) -> dict:
-        """Метод для добавления каких то данных."""
-        async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(60)
-    ) as client:
-            async with client.put(
+        client = await self._client()
+        async with client.patch(
                 url=self.url,
                 json=self.data,
                 headers=self.header
         ) as response:
-                data: dict = await response.json()
+            data: dict = await response.json()
+            if response.status != 200:
+                message: str = data.get("detail").get("descr")
+                raise ClientError(message)
 
-                if response.status == 200:
-                    return data
-                else:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
+    async def put(self) -> dict:
+        """Метод для добавления каких то данных."""
+        client = await self._client()
+        async with client.put(
+            url=self.url,
+            json=self.data,
+            headers=self.header
+        ) as response:
+            data: dict = await response.json()
+
+            if response.status == 200:
+                return data
+            else:
+                message: str = data.get("detail").get("descr")
+                raise ClientError(message)
