@@ -1,6 +1,6 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
-from sqlalchemy import String, BigInteger, Time, ForeignKey, Integer
+from sqlalchemy import String, BigInteger, ForeignKey
 from sqlalchemy.dialects.mysql import SMALLINT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,9 +33,9 @@ class User(Base):
 class Remind(Base):
     time: Mapped[int] = mapped_column(SMALLINT)
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), index=True, unique=True
+        ForeignKey("users.id"), index=True, unique=True,
     )
     user: Mapped[User] = relationship(
         back_populates="remind",
-        lazy="joined"
+        lazy="select"
     )
