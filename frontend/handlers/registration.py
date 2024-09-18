@@ -20,7 +20,7 @@ async def handler_register(
 ) -> None:
     await state.set_state(RegisterState.password)
     await call.message.answer(
-        text="<b>Введите ваш пароль:</b>",
+        text="<b>Придумайте ваш пароль(не менее 5 символов).</b>",
         parse_mode="HTML",
         reply_markup=cancel
     )
