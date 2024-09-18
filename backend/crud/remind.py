@@ -7,7 +7,7 @@ from sqlalchemy import (
     text,
     TextClause,
     Result,
-    Delete
+    Delete,
 )
 from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.ext.asyncio import AsyncSession
