@@ -64,6 +64,7 @@ async def handler_help(
     call: types.CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Показывает подробную информацию о работе бота."""
     await state.clear()
     await call.message.answer(
         text=guide,
@@ -73,7 +74,9 @@ async def handler_help(
 
 async def main():
     """
-    Функция запускает бот и также запускает планировщик уведомлений.
+    Функция запускает бот и также запускает планировщик уведомлений, чтобы
+    запустить уведомления для пользователей у которых
+    есть настройки уведомлений.
     """
     await create_scheduler_all()
     logging.basicConfig(level=logging.DEBUG)
