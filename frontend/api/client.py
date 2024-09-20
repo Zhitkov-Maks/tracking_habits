@@ -1,15 +1,16 @@
+from dataclasses import dataclass
+
 import aiohttp
 from aiohttp.client_exceptions import ClientError
 
 from api.exeptions import DateValidationError
 
 
+@dataclass
 class Client:
-
-    def __init__(self, url: str, data: dict | None = None):
-        self.data = data
-        self.url = url
-        self.header = {"Content-Type": "application/json"}
+    header = {"Content-Type": "application/json"}
+    url: str
+    data: dict | None = None
 
     async def post(self) -> dict:
         """Метод для добавления каких то данных."""
