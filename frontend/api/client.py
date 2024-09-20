@@ -4,7 +4,7 @@ import aiohttp
 from aiohttp.client_exceptions import ClientError
 
 from api.exeptions import DateValidationError
-from starlette import status
+from http import HTTPStatus as status
 
 
 @dataclass
@@ -29,11 +29,11 @@ class Client:
 
                 data: dict = await response.json()
 
-                if (response.status == status.HTTP_201_CREATED or
-                    response.status == status.HTTP_200_OK):
+                if (response.status == status.CREATED or
+                    response.status == status.OK):
                     return data
 
-                elif response.status == status.HTTP_400_BAD_REQUEST:
+                elif response.status == status.BAD_REQUEST:
                     message: str = data.get("detail").get("descr")
                     raise DateValidationError(message)
 
@@ -53,7 +53,7 @@ class Client:
 
                 data: dict = await response.json()
 
-                if response.status == status.HTTP_200_OK:
+                if response.status == status.OK:
                     return data
 
                 else:
@@ -72,7 +72,7 @@ class Client:
 
                 data: dict = await response.json()
 
-                if response.status != status.HTTP_200_OK:
+                if response.status != status.OK:
                     message: str = data.get("detail").get("descr")
                     raise ClientError(message)
 
@@ -89,7 +89,7 @@ class Client:
 
                 data: dict = await response.json()
 
-                if response.status != status.HTTP_200_OK:
+                if response.status != status.OK:
                     message: str = data.get("detail").get("descr")
                     raise ClientError(message)
 
@@ -106,7 +106,7 @@ class Client:
 
                 data: dict = await response.json()
 
-                if response.status == status.HTTP_200_OK:
+                if response.status == status.OK:
                     return data
 
                 else:
