@@ -20,7 +20,7 @@ async def habit_tracking_mark_update(
 
 
 async def habit_tracking_mark(
-    data,
+    data: dict,
     user_id: int
 ) -> None:
     url: str = tracking_url.format(habit_id=data.get("id"))
