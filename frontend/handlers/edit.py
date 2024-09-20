@@ -18,6 +18,7 @@ async def edit_habit_title(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Ввод нового названия привычки при редактировании привычки."""
     await state.set_state(EditState.title)
     text = hbold("1-й этап") + ("\nДайте название привычке которую вы "
                                 "хотите отслеживать: ")
@@ -31,6 +32,7 @@ async def edit_description_habit(
     mess: Message,
     state: FSMContext
 ) -> None:
+    """Ввод нового описания привычки при редактировании привычки."""
     await state.update_data(title=mess.text)
     await state.set_state(EditState.describe)
     await mess.answer(
@@ -45,10 +47,11 @@ async def edit_habit_number_of_days(
     mess: Message,
     state: FSMContext
 ) -> None:
+    """Ввод нового количества дней для отслеживания привычки."""
     await state.update_data(body=mess.text)
     await state.set_state(EditState.numbers_of_days)
     await mess.answer(
-        text="Сколько дней будем отслеживать?",
+        text=hbold("3-й этап\n") + "Сколько дней будем отслеживать?",
         reply_markup=cancel
     )
 
@@ -58,6 +61,7 @@ async def create_and_record_db(
     mess: Message,
     state: FSMContext
 ) -> None:
+    """Сохранение обновленной привычки."""
     await state.update_data(number_of_days=mess.text)
     try:
         await request_update_habit(

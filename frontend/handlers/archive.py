@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from aiohttp import ClientError
 
 from api.get import (
@@ -25,11 +25,14 @@ async def archive_list_habits(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Показывает привычки из архива."""
     try:
         result: dict = await get_list_habits(
             call.from_user.id, is_active=0
         )
-        keyword = await generate_inline_habits_list(result.get("data"))
+        keyword: InlineKeyboardMarkup = \
+            await generate_inline_habits_list(result.get("data"))
+
         await state.set_state(ArchiveState.show)
         await call.message.answer(
             text="Список ваших привычек из архива.",
@@ -46,12 +49,14 @@ async def archive_list_habits(
 async def detail_info_habit(
     call: CallbackQuery,
     state: FSMContext
-):
+) -> None:
+    """Показать подробную информацию о привычке из архива."""
     response: dict = await get_full_info(int(call.data), call.from_user.id)
     text: str = await generate_message_answer(response)
+
     await state.update_data(id=call.data)
     await state.set_state(ArchiveState.action)
-    keyword = await gen_habit_keyword_archive()
+    keyword: InlineKeyboardMarkup = await gen_habit_keyword_archive()
 
     await call.message.answer(
         text=text,
@@ -62,8 +67,12 @@ async def detail_info_habit(
 
 @arch.callback_query(ArchiveState.action, F.data == "delete")
 async def delete_habit_by_id(
-    call: CallbackQuery,
+    call: CallbackQuery
 ) -> None:
+    """
+    Подтверждение удаления привычки. Показывает клавиатуру с
+    выбором да или нет.
+    """
     await call.message.answer(
         text="Привычка будет удалена без возможности восстановления, "
              "чтобы продолжить нажмите да.",
@@ -76,7 +85,8 @@ async def delete_habit_by_id(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
-    data = await state.get_data()
+    """Подтверждение удаления привычки насовсем."""
+    data: dict = await state.get_data()
     try:
         await delete_habit(int(data.get("id")), call.from_user.id)
         await call.message.answer(
@@ -95,7 +105,8 @@ async def habit_to_un_archive(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
-    data = await state.get_data()
+    """Возврат привычки для отслеживания."""
+    data: dict = await state.get_data()
     try:
         await archive_habit(
             int(data.get("id")), call.from_user.id, is_active=True
