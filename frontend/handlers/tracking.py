@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from aiohttp import ClientError
 
 from api.exeptions import DateValidationError
@@ -28,13 +28,14 @@ async def choice_date(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
-    keyword = await inline_choice_calendar()
+    """
+    Обрабатывает команду о необходимости отметит привычку,
+    получает клавиатуру для показа возможных дней для отметки.
+    """
+    keyword: InlineKeyboardMarkup = await inline_choice_calendar()
     await state.set_state(HabitState.done)
     await call.message.answer(
-        text="Выберите вариант. Более поздних дат не предусмотрено, так "
-             "как если вы не отмечали два дня скорее всего вы не "
-             "выполняли условие, поэтому стоит начать сначала, "
-             "выбрав вариант под привычкой очистить.",
+        text="Выберите дату для отметки о выполнении.",
         reply_markup=keyword
     )
 
@@ -47,8 +48,13 @@ async def choice_done(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """
+    Обработчик данных после ввода даты отметки.
+    Получает клавиатуру для выбора выполнено/не выполнено.
+    """
     date: str = await get_choice_date(call.data)
-    keyword = await inline_done_not_done()
+    keyword: InlineKeyboardMarkup = await inline_done_not_done()
+
     await state.update_data(date=date)
     await state.set_state(HabitState.date)
     await call.message.answer(
@@ -65,6 +71,11 @@ async def mark_tracking_habit_done(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """
+    Обрабатывает команды выполнено/не выполнено.
+    Вызывает функцию на сохранение отметки в бд. Если все прошло успешно,
+    то так же заново показывает текущую привычку.
+    """
     await state.update_data(done=call.data)
     data: dict = await state.get_data()
     try:
@@ -81,6 +92,7 @@ async def mark_tracking_habit_done(
             reply_markup=await gen_habit_keyword()
         )
 
+    # Срабатывает когда в бд за текущий день уже есть отметка.
     except ClientError as err:
         await state.set_state(HabitState.confirm)
         await call.message.answer(
@@ -88,6 +100,7 @@ async def mark_tracking_habit_done(
             reply_markup=confirm
         )
 
+    # Срабатывает когда введена дата меньше начала отслеживания привычки.
     except DateValidationError as err:
         response: dict = await get_full_info(data.get("id"), call.from_user.id)
         await state.set_state(HabitState.action)
@@ -104,6 +117,7 @@ async def mark_tracking_habit_update(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Обрабатывает перезапись привычки."""
     data: dict = await state.get_data()
     try:
         await habit_tracking_mark_update(
