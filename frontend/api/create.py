@@ -15,4 +15,3 @@ async def request_create_habit(data: dict, user_id: int) -> None:
         {"Authorization": await create_header(user_id)}
     )
     await client.post()
-ат
