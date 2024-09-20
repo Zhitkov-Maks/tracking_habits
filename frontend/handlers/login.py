@@ -18,6 +18,7 @@ async def handler_register(
     call: CallbackQuery,
     state: FSMContext
 ):
+    """Спрашивает пароль для аутентификации."""
     await state.set_state(LoginState.password)
     await call.message.answer(
         text="<b>Введите ваш пароль:</b>",
@@ -31,6 +32,7 @@ async def handler_login_password(
     message: types.Message,
     state: FSMContext
 ) -> None:
+    """Аутентифицирует пользователя."""
     data: dict = await create_data(message)
 
     try:

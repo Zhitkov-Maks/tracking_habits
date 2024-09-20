@@ -11,7 +11,7 @@ async def add_time_remind(data: dict, update, user_id) -> None:
     :param user_id: Идентификатор пользователя телеграмм.
     :return None:
     """
-    client: Client = Client(remind_url, data)
+    client: Client = Client(url=remind_url, data=data)
     client.header.update(
         {"Authorization": await create_header(user_id)}
     )
@@ -27,7 +27,7 @@ async def remove_time(user_id: int) -> None:
     :param user_id: Идентификатор пользователя для получения токена.
     :return None:
     """
-    client: Client = Client(remind_url)
+    client: Client = Client(url=remind_url)
     client.header.update(
         {"Authorization": await create_header(user_id)}
     )
@@ -41,5 +41,5 @@ async def get_all_users() -> dict:
     :return dict: Возвращает словарь со списком пользователей у которых
         есть настройки для уведомлений.
     """
-    client: Client = Client(remind_url)
+    client: Client = Client(url=remind_url)
     return await client.get()

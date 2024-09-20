@@ -1,6 +1,6 @@
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from aiohttp import ClientError
 
 from api.get import (
@@ -23,11 +23,14 @@ async def output_list_habits(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Обработчик для показа отслеживаемых привычек."""
     try:
         result: dict = await get_list_habits(
             call.from_user.id, is_active=1
         )
-        keyword = await generate_inline_habits_list(result.get("data"))
+        keyword: InlineKeyboardMarkup = \
+            await generate_inline_habits_list(result.get("data"))
+
         await state.set_state(HabitState.show)
         await call.message.answer(
             text="Список ваших актуальных привычек",
@@ -45,11 +48,13 @@ async def detail_info_habit(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Показывает подробную информацию о привычке."""
     response: dict = await get_full_info(int(call.data), call.from_user.id)
     text: str = await generate_message_answer(response)
+
     await state.update_data(id=call.data)
     await state.set_state(HabitState.action)
-    keyword = await gen_habit_keyword()
+    keyword: InlineKeyboardMarkup = await gen_habit_keyword()
 
     await call.message.answer(
         text=text,
@@ -62,6 +67,7 @@ async def detail_info_habit(
 async def habit_to_archive_confirm(
     call: CallbackQuery,
 ) -> None:
+    """Подтверждение добавления привычки в архив."""
     await call.message.answer(
         text="Привычка будет помечена как выполнена!!!"
              "Нажмите да чтобы продолжить или нет чтобы отменить действие.",
@@ -74,6 +80,7 @@ async def habit_to_archive(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Добавление привычки в архив."""
     data: dict = await state.get_data()
     try:
         await archive_habit(

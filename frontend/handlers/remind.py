@@ -11,8 +11,11 @@ from keyboards.keyboard import (
 )
 
 from states.remind import RemindState
-from utils.remind import create_time, add_send_message, \
+from utils.remind import (
+    create_time,
+    add_send_message,
     remove_scheduler_job
+)
 
 remind = Router()
 
@@ -22,6 +25,10 @@ async def start_work_to_remind(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """
+    Обработчик команды для работы с напоминаниями.
+    Показывает меню для выбора действия.
+    """
     await state.set_state(RemindState.start)
     await call.message.answer(
         text="Выберите действие",
@@ -34,6 +41,10 @@ async def confirm_to_remove_remind(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """
+    Обработчик команды для удаления напоминания.
+    Показывает меню для подтверждения.
+    """
     await state.set_state(RemindState.confirm)
     await call.message.answer(
         text="Вы уверены?",
@@ -43,9 +54,9 @@ async def confirm_to_remove_remind(
 
 @remind.callback_query(RemindState.confirm, F.data == "yes")
 async def finalize_remove(
-    call: CallbackQuery,
-
+    call: CallbackQuery
 ) -> None:
+    """Обработчик для удаления напоминания."""
     try:
         await remove_time(call.from_user.id)
         await remove_scheduler_job(call.from_user.id)
@@ -65,11 +76,18 @@ async def add_remind(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """
+    Обработчик для добавления или изменения времени напоминания.
+    Показывает клавиатуру для выбора часа для уведомления.
+    """
     await state.set_state(RemindState.add)
+
     if call.data == "change":
         await state.update_data(update=True)
+
     else:
         await state.update_data(update=False)
+
     await call.message.answer(
         text="Выберите в какой час вам напомнить о "
              "необходимости сделать запись.",
@@ -82,10 +100,13 @@ async def finalize_add_remind(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Финальный обработчик для добавления напоминания."""
     update: bool = (await state.get_data())["update"]
     data: dict = {"time": int(call.data)}
+
     if update:
         await remove_scheduler_job(call.from_user.id)
+
     try:
         await add_time_remind(data, update, call.from_user.id)
         await add_send_message(call.from_user.id, time=int(call.data))

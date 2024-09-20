@@ -17,7 +17,8 @@ async def input_name_habits(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
-    text = hbold("1-й этап") + ("\nВведите краткое название привычки котору "
+    """Обработчик для ввода названия привычки."""
+    text: str = hbold("1-й этап") + ("\nВведите краткое название привычки котору "
                                 "вы хотите отследить...")
     await state.set_state(AddState.title)
     await call.message.answer(
@@ -30,6 +31,7 @@ async def input_describe_habits(
     mess: Message,
     state: FSMContext
 ) -> None:
+    """Обработчик для ввода описания привычки."""
     await state.update_data(title=mess.text)
     await state.set_state(AddState.describe)
     await mess.answer(
@@ -45,10 +47,11 @@ async def create_and_record_db(
         mess: Message,
         state: FSMContext
 ) -> None:
+    """Обработчик ввода количества дней для отслеживания привычки."""
     await state.update_data(body=mess.text)
     await state.set_state(AddState.numbers_of_days)
     await mess.answer(
-        text="Сколько дней будем отслеживать?",
+        text=hbold("3-й этап\n") + "Сколько дней будем отслеживать?",
         reply_markup=cancel
     )
 
@@ -58,6 +61,7 @@ async def create_and_record_db(
         mess: Message,
         state: FSMContext
 ) -> None:
+    """Итоговое сохранение привычки."""
     await state.update_data(number_of_days=mess.text)
     try:
         await request_create_habit(
@@ -77,7 +81,8 @@ async def create_and_record_db(
 
 
 @add.message(AddState.numbers_of_days)
-async def handler_errors(mess: Message):
+async def handler_errors(mess: Message) -> None:
+    """Обработчик если пользователь вдруг ввел не число, а строку."""
     await mess.answer(
         text="Ошибка ввода, нужно было ввести число, попробуйте сначала.",
         reply_markup=main_menu

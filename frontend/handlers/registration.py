@@ -18,6 +18,7 @@ async def handler_register(
     call: CallbackQuery,
     state: FSMContext
 ) -> None:
+    """Обработчик для запроса пароля."""
     await state.set_state(RegisterState.password)
     await call.message.answer(
         text="<b>Придумайте ваш пароль(не менее 5 символов).</b>",
@@ -31,8 +32,8 @@ async def handler_register_password(
     message: types.Message,
     state: FSMContext
 ) -> None:
+    """Создает и аутентифицирует пользователя."""
     data: dict = await create_data(message)
-    print(data)
     try:
         await registration(data), await login_user(data, message.from_user.id)
         await bot.send_sticker(

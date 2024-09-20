@@ -51,7 +51,7 @@ async def delete_habit(
     :return None:
     """
     url: str = habit_url + f"{habit_id}/"
-    client: Client = Client(url)
+    client: Client = Client(url=url)
     client.header.update(
         {"Authorization": await create_header(user_id)}
     )

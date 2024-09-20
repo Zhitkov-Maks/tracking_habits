@@ -1,18 +1,23 @@
+from dataclasses import dataclass
+
 import aiohttp
 from aiohttp.client_exceptions import ClientError
 
 from api.exeptions import DateValidationError
+from starlette import status
 
 
+@dataclass
 class Client:
-
-    def __init__(self, url: str, data: dict | None = None):
-        self.data = data
-        self.url = url
-        self.header = {"Content-Type": "application/json"}
+    """
+    Клиент для работы с tracking api. Нужен, чтобы убрать повторяющийся код.
+    """
+    url: str
+    data: dict | None = None
+    header = {"Content-Type": "application/json"}
 
     async def post(self) -> dict:
-        """Метод для добавления каких то данных."""
+        """Метод для POST запросов."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -21,11 +26,14 @@ class Client:
                 json=self.data,
                 headers=self.header
             ) as response:
+
                 data: dict = await response.json()
-                if response.status == 201 or response.status == 200:
+
+                if (response.status == status.HTTP_201_CREATED or
+                    response.status == status.HTTP_200_OK):
                     return data
 
-                elif response.status == 400:
+                elif response.status == status.HTTP_400_BAD_REQUEST:
                     message: str = data.get("detail").get("descr")
                     raise DateValidationError(message)
 
@@ -34,7 +42,7 @@ class Client:
                     raise ClientError(message)
 
     async def get(self) -> dict:
-        """Метод для получения каких то данных."""
+        """Метод для GET запросов."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -42,8 +50,10 @@ class Client:
                     url=self.url,
                     headers=self.header
             ) as response:
+
                 data: dict = await response.json()
-                if response.status == 200:
+
+                if response.status == status.HTTP_200_OK:
                     return data
 
                 else:
@@ -51,6 +61,7 @@ class Client:
                     raise ClientError(message)
 
     async def delete(self) -> None:
+        """Метод для DELETE запросов."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -58,12 +69,15 @@ class Client:
                     url=self.url,
                     headers=self.header
             ) as response:
+
                 data: dict = await response.json()
-                if response.status != 200:
+
+                if response.status != status.HTTP_200_OK:
                     message: str = data.get("detail").get("descr")
                     raise ClientError(message)
 
     async def patch(self) -> None:
+        """Метод для PATCH запросов."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -72,13 +86,15 @@ class Client:
                     json=self.data,
                     headers=self.header
             ) as response:
+
                 data: dict = await response.json()
-                if response.status != 200:
+
+                if response.status != status.HTTP_200_OK:
                     message: str = data.get("detail").get("descr")
                     raise ClientError(message)
 
     async def put(self) -> dict:
-        """Метод для добавления каких то данных."""
+        """Метод для PUT запросов."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -87,10 +103,12 @@ class Client:
                 json=self.data,
                 headers=self.header
             ) as response:
+
                 data: dict = await response.json()
 
-                if response.status == 200:
+                if response.status == status.HTTP_200_OK:
                     return data
+
                 else:
                     message: str = data.get("detail").get("descr")
                     raise ClientError(message)
