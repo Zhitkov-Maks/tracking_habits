@@ -52,7 +52,8 @@ async def create_and_record_db(
     await state.set_state(AddState.numbers_of_days)
     await mess.answer(
         text=hbold("3-й этап\n") + "Сколько дней будем отслеживать?",
-        reply_markup=cancel
+        reply_markup=cancel,
+        parse_mode="HTML"
     )
 
 
