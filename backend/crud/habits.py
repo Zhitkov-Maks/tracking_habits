@@ -133,6 +133,7 @@ async def write_habit(
         title=data.title,
         body=data.body,
         number_of_days=data.number_of_days,
+        start_date=datetime.now().date(),
         end_date=end_date,
     )
     session.add(habit)
