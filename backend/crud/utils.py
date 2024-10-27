@@ -1,5 +1,5 @@
 from fastapi import HTTPException, Depends
-from jwt import DecodeError
+from jwt import DecodeError, ExpiredSignatureError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -27,7 +27,7 @@ async def validate_auth_user(
     if not user or user.password != hash_pass:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"result": False, "descr": "Пользователь не найден."},
+            detail={"detail": False, "descr": "Пользователь не найден."},
         )
 
     return user
@@ -49,7 +49,7 @@ async def validate_decode_user(
     if not user or user.password != login.password:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"result": False, "descr": "Неверные данные пользователя."},
+            detail={"detail": False, "descr": "Неверные данные пользователя."},
         )
 
     return user
@@ -65,11 +65,12 @@ async def valid_decode_jwt(token: str, session: AsyncSession) -> User:
     try:
         data_user: dict = await decode_jwt(token)
         return await validate_decode_user(UserData(**data_user), session)
-    except DecodeError:
+    except (DecodeError, ExpiredSignatureError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
-                "result": False,
-                "description": "Ошибка декодирования вашего токена.",
+                "detail": False,
+                "descr": "Недействительный токен или время работы токена "
+                         "истекло, авторизуйтесь заново",
             },
         )
