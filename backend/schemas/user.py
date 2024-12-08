@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from pydantic import Field
 
 
@@ -8,7 +8,7 @@ class UserData(BaseModel):
     Пользователь идентифицируется по email, так как он является
     уникальным для каждого пользователя.
     """
-    email: str = Field(..., description="Ваш email.")
+    email: EmailStr = Field(..., description="User's email.")
     password: str = Field(
         ..., min_length=4, description="User's password."
     )

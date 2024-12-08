@@ -20,14 +20,12 @@ async def validate_auth_user(
     :param session: AsyncSession
     :return User: Возвращает экземпляр пользователя.
     """
-    user: User = await get_user_by_id_and_username(
-        session, login.user_chat_id, login.username
-    )
+    user: User = await get_user_by_id_and_username(session, login.email)
     hash_pass: str = await hash_password(login.password)
     if not user or user.password != hash_pass:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"detail": False, "descr": "Пользователь не найден."},
+            detail={"result": False, "descr": "User not found."},
         )
 
     return user
@@ -43,13 +41,11 @@ async def validate_decode_user(
     :param session: AsyncSession
     :return User: Возвращает экземпляр пользователя.
     """
-    user: User = await get_user_by_id_and_username(
-        session, login.user_chat_id, login.username
-    )
+    user: User = await get_user_by_id_and_username(session, login.email)
     if not user or user.password != login.password:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"detail": False, "descr": "Неверные данные пользователя."},
+            detail={"result": False, "descr": "User not fount"},
         )
 
     return user

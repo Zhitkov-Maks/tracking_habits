@@ -38,11 +38,9 @@ async def encode_jwt(
         expire = now + timedelta(days=expire_days)
 
     to_encode: dict = {
-        "user_chat_id": user.user_chat_id,
-        "username": user.username,
+        "email": user.email,
         "password": user.password,
         "exp": expire,
-        "iat": now,
     }
 
     encoded = jwt.encode(

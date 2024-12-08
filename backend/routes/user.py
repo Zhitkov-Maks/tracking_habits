@@ -24,7 +24,8 @@ user_rout = APIRouter(prefix="/auth", tags=["AUTH"])
     response_model=SuccessSchema,
 )
 async def registration_user_rout(
-    user: UserData, session: AsyncSession = Depends(get_async_session)
+        user: UserData,
+        session: AsyncSession = Depends(get_async_session)
 ) -> SuccessSchema:
     """
     Роут для регистрации пользователя на сервере.
@@ -38,7 +39,7 @@ async def registration_user_rout(
 
 @user_rout.post(
     "/login/",
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     responses={403: {"model": ErrorSchema}},
     response_model=TokenSchema,
 )
@@ -52,7 +53,4 @@ async def auth_user(
     пользователя.
     """
     token: str = await encode_jwt(user)
-    return TokenSchema(
-        access_token=token,
-        token_type="Bearer",
-    )
+    return TokenSchema(access_token=token, token_type="Bearer")
