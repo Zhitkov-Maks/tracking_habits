@@ -17,7 +17,6 @@ async def create_user(session: AsyncSession, user: dict) -> None:
     try:
         session.add(user)
         await session.commit()
-        await session.close()
 
     except IntegrityError:
         raise HTTPException(
@@ -31,18 +30,12 @@ async def create_user(session: AsyncSession, user: dict) -> None:
 
 async def get_user_by_id_and_username(
     session: AsyncSession,
-    chat_id: int,
-    username: str
+    email: str,
 ) -> User:
     """
     Находит пользователя по id телеграмм и его username.
-    :param chat_id: ID чата телеграмм.
-    :param username: Username пользователя
+    :param email: User's email.
     :param session: AsyncSession
     """
-    stmt = (
-        select(User)
-        .where(User.user_chat_id == chat_id)
-        .where(User.username == username)
-    )
+    stmt = select(User).where(User.email == email)
     return await session.scalar(stmt)
