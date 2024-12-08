@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, BigInteger, ForeignKey
+from sqlalchemy import String, ForeignKey
 from sqlalchemy.dialects.mysql import SMALLINT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 
 
 class User(Base):
-    username: Mapped[str] = mapped_column(String(32), unique=True)
-    user_chat_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+    email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(100))
     remind: Mapped["Remind"] = relationship(back_populates="user")
     habits: Mapped[list["Habit"]] = relationship(
@@ -24,7 +23,7 @@ class User(Base):
     )
 
     def __str__(self):
-        return f"username={self.username}, chat_id={self.user_chat_id}"
+        return f"username={self.email}"
 
     def __repr__(self):
         return str(self)
