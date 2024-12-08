@@ -4,7 +4,7 @@ import logging
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
 from config import BOT_TOKEN
 from handlers.remind import remind
@@ -34,49 +34,36 @@ dp.include_router(remind)
 
 @dp.message(CommandStart())
 async def greeting_handler(message: types.Message) -> None:
-    """Приветственная функция."""
-    await bot.send_sticker(
-        message.chat.id,
-        sticker='CAACAgIAAxkBAAMeZsjqmWI_'
-                'G7V8iBgvNbq7eZadeJYAAjQBAAJSiZEjE83Xb_UcB1g1BA'
-    )
-    await message.answer(
-        text=greeting,
-        reply_markup=main_menu
-    )
+    """Welcome Handler."""
+    await message.answer(text=greeting, reply_markup=main_menu)
 
 
 @dp.callback_query(F.data == "main")
-async def _main(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Показывает основное меню бота."""
+async def handler_main(call: CallbackQuery, state: FSMContext) -> None:
+    """Show base bot's menu."""
     await state.clear()
-    await call.message.answer(
-        text="Меню",
-        reply_markup=main_menu
-    )
+    await call.message.answer(text="Меню", reply_markup=main_menu)
+
+
+@dp.message(F.text == "/main")
+async def handler_main(message: Message, state: FSMContext) -> None:
+    """Show base bot's menu."""
+    await state.clear()
+    await message.answer(text="Меню", reply_markup=main_menu)
 
 
 @dp.callback_query(F.data == "guide")
-async def handler_help(
-    call: types.CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Показывает подробную информацию о работе бота."""
+async def handler_help(call: types.CallbackQuery, state: FSMContext) -> None:
+    """Shows detailed information about the work of the bot."""
     await state.clear()
-    await call.message.answer(
-        text=guide,
-        reply_markup=main_menu
-    )
+    await call.message.answer(text=guide, reply_markup=main_menu)
 
 
 async def main():
     """
-    Функция запускает бот и также запускает планировщик уведомлений, чтобы
-    запустить уведомления для пользователей у которых
-    есть настройки уведомлений.
+    The function launches the bot and also launches the notification
+    scheduler to launch notifications for users who have
+    there are notification settings.
     """
     await create_scheduler_all()
     logging.basicConfig(level=logging.DEBUG)
