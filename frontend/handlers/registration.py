@@ -52,7 +52,7 @@ async def input_password(
 
 
 @register_route.message(RegisterState.password)
-async def handler_register_password(
+async def final_registration(
     message: Message,
     state: FSMContext
 ) -> None:
