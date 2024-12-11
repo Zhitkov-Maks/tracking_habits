@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import String, ForeignKey
-from sqlalchemy.dialects.mysql import SMALLINT
+from sqlalchemy.dialects.mysql import SMALLINT, BIGINT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -34,6 +34,7 @@ class Remind(Base):
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"), index=True, unique=True,
     )
+    user_chat_id: Mapped[BIGINT] = mapped_column(BIGINT)
     user: Mapped[User] = relationship(
         back_populates="remind",
         lazy="select"
