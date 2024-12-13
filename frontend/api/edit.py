@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from api.client import Client
 from config import habit_url
 from utils.create import create_header
@@ -15,4 +17,6 @@ async def request_update_habit(data: dict, user_id) -> None:
     client.header.update(
         {"Authorization": await create_header(user_id)}
     )
-    await client.put()
+    response: Tuple[int, dict] = await client.put()
+    if response[0] != 200:
+        return response[1].get("detail").get("descr")

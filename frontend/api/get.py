@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from api.client import Client
 from utils.create import create_header
 from config import habit_url
@@ -19,7 +21,11 @@ async def get_list_habits(
     client.header.update(
         {"Authorization": await create_header(user_id)}
     )
-    return await client.get()
+    response: Tuple[int, dict] = await client.get()
+
+    if response[0] == 200:
+        return response[1]
+    return response[1].get("detail").get("descr")
 
 
 async def get_full_info(
@@ -37,7 +43,11 @@ async def get_full_info(
     client.header.update(
        {"Authorization": await create_header(user_id)}
     )
-    return await client.get()
+    response: Tuple[int, dict] = await client.get()
+
+    if response[0] == 200:
+        return response[1]
+    return response[1].get("detail").get("descr")
 
 
 async def delete_habit(
@@ -55,7 +65,10 @@ async def delete_habit(
     client.header.update(
         {"Authorization": await create_header(user_id)}
     )
-    await client.delete()
+    response: Tuple[int, dict] = await client.delete()
+
+    if response[0] != 200:
+        return response[1].get("detail").get("descr")
 
 
 async def archive_habit(
@@ -75,4 +88,7 @@ async def archive_habit(
     client.header.update(
         {"Authorization": await create_header(user_id)}
     )
-    await client.patch()
+    response: Tuple[int, dict] = await client.patch()
+
+    if response[0] != 200:
+        return response[1].get("detail").get("descr")
