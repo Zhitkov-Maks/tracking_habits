@@ -55,8 +55,11 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
     if valid:
         email: str = (await state.get_data())["email"]
         data: Dict[str, str] = await create_data(email, message.text)
-        await login_user(data, message.from_user.id)
-        await message.answer(success_auth, reply_markup=main_menu)
+        result: str | None = await login_user(data, message.from_user.id)
+        if result is None:
+            await message.answer(success_auth, reply_markup=main_menu)
+        else:
+            await message.answer(result, reply_markup=main_menu)
 
     else:
         text: str = "Ваш пароль не соответствует требованиям! "

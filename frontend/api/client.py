@@ -7,14 +7,15 @@ import aiohttp
 @dataclass
 class Client:
     """
-    Клиент для работы с tracking api. Нужен, чтобы убрать повторяющийся код.
+    A class for server requests, implemented to reduce the amount
+    of repetitive code.
     """
     url: str
     data: dict | None = None
     header = {"Content-Type": "application/json"}
 
     async def post(self) -> Tuple[int, dict]:
-        """Метод для POST запросов."""
+        """A method for implementing post requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)) as client:
             async with client.post(
@@ -24,7 +25,7 @@ class Client:
                 return response.status, data
 
     async def get(self) -> Tuple[int, dict]:
-        """Метод для GET запросов."""
+        """A method for implementing get requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -37,7 +38,7 @@ class Client:
                 return response.status, data
 
     async def delete(self) -> Tuple[int, dict]:
-        """Метод для DELETE запросов."""
+        """A method for implementing delete requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -47,7 +48,7 @@ class Client:
                 return response.status, data
 
     async def patch(self) -> Tuple[int, dict]:
-        """Метод для PATCH запросов."""
+        """A method for implementing patch requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -58,7 +59,7 @@ class Client:
                 return response.status, data
 
     async def put(self) -> Tuple[int, dict]:
-        """Метод для PUT запросов."""
+        """A method for implementing put requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:

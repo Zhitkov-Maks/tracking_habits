@@ -59,12 +59,18 @@ async def final_registration(
     """The handler Creates and authenticates the user."""
     valid: bool = is_valid_password(message.text)
     asyncio.create_task(remove_message_after_delay(5, message))
+
     if valid:
         email: str = (await state.get_data())["email"]
         data: Dict[str, str] = await create_data(email, message.text)
-        await registration(data)
-        await login_user(data, message.from_user.id)
-        await message.answer(success_registration, reply_markup=main_menu)
+        result: str | None = await registration(data)
+        # If the request is successful, None will be returned to us
+        if result is None:
+            await login_user(data, message.from_user.id)
+            await message.answer(success_registration, reply_markup=main_menu)
+        else:
+            await message.answer(result, reply_markup=main_menu)
+
     else:
         text: str = "Ваш пароль не соответствует требованиям! "
         await message.answer(
