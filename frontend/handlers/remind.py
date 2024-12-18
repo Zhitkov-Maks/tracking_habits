@@ -1,9 +1,9 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from aiohttp import ClientError
 
 from api.remind import add_time_remind, remove_time
+from handlers.decorator_handlers import decorator_errors
 from keyboards.keyboard import (
     remind_button,
     main_menu,
@@ -21,64 +21,46 @@ remind = Router()
 
 
 @remind.callback_query(F.data == "remind")
-async def start_work_to_remind(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
+async def start_work_to_remind(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Обработчик команды для работы с напоминаниями.
-    Показывает меню для выбора действия.
+    A command handler for working with reminders.
+    Shows a menu for selecting an action.
     """
     await state.set_state(RemindState.start)
     await call.message.answer(
-        text="Выберите действие",
-        reply_markup=remind_button
+        text="Выберите действие", reply_markup=remind_button
     )
 
 
 @remind.callback_query(RemindState.start, F.data == "remove")
 async def confirm_to_remove_remind(
-    call: CallbackQuery,
-    state: FSMContext
+        call: CallbackQuery, state: FSMContext
 ) -> None:
     """
-    Обработчик команды для удаления напоминания.
-    Показывает меню для подтверждения.
+    The handler of the command to delete the reminder.
+    Shows the menu for confirmation.
     """
     await state.set_state(RemindState.confirm)
-    await call.message.answer(
-        text="Вы уверены?",
-        reply_markup=confirm
-    )
+    await call.message.answer(text="Вы уверены?", reply_markup=confirm)
 
 
 @remind.callback_query(RemindState.confirm, F.data == "yes")
-async def finalize_remove(
-    call: CallbackQuery
-) -> None:
+@decorator_errors
+async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
     """Обработчик для удаления напоминания."""
-    try:
-        await remove_time(call.from_user.id)
-        await remove_scheduler_job(call.from_user.id)
-        await call.message.answer(
-            text="Напоминание было удалено.",
-            reply_markup=main_menu
-        )
-    except (ClientError, KeyError) as err:
-        await call.message.answer(
-            text=str(err),
-            reply_markup=main_menu
-        )
+    await remove_time(call.from_user.id)
+    await remove_scheduler_job(call.from_user.id)
+    await call.message.answer(
+        text="Напоминание было удалено.", reply_markup=main_menu
+    )
+    await state.clear()
 
 
 @remind.callback_query(RemindState.start, F.data.in_(["add", "change"]))
-async def add_remind(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
+async def add_remind(call: CallbackQuery, state: FSMContext) -> None:
     """
-    Обработчик для добавления или изменения времени напоминания.
-    Показывает клавиатуру для выбора часа для уведомления.
+    A handler for adding or changing the reminder time.
+    Shows the keyboard to select the hour for notification.
     """
     await state.set_state(RemindState.add)
 
@@ -96,26 +78,19 @@ async def add_remind(
 
 
 @remind.callback_query(RemindState.add, F.data.isdigit())
-async def finalize_add_remind(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Финальный обработчик для добавления напоминания."""
+@decorator_errors
+async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
+    """The final handler for adding a reminder."""
     update: bool = (await state.get_data())["update"]
-    data: dict = {"time": int(call.data)}
+    data: dict = {"time": int(call.data), "user_chat_id": call.from_user.id}
 
     if update:
         await remove_scheduler_job(call.from_user.id)
 
-    try:
-        await add_time_remind(data, update, call.from_user.id)
-        await add_send_message(call.from_user.id, time=int(call.data))
-        await call.message.answer(
-            text=f"Напоминание {'добавлено.' if not update else 'изменено'}",
-            reply_markup=main_menu
-        )
-    except (ClientError, KeyError) as err:
-        await call.message.answer(
-            text=str(err),
-            reply_markup=main_menu
-        )
+    await add_time_remind(data, update, call.from_user.id)
+    await add_send_message(call.from_user.id, time=int(call.data))
+    await call.answer(
+        f"Напоминание {'добавлено.' if not update else 'изменено'}",
+        show_alert=True
+    )
+    await call.message.answer(text="Меню", reply_markup=main_menu)
