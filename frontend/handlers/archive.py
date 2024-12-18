@@ -1,121 +1,90 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
-from aiohttp import ClientError
 
-from api.get import (
+from api.get_habit import (
     get_full_info,
     delete_habit,
     get_list_habits,
     archive_habit
 )
+from loader import delete_habit_message
+from handlers.decorator_handlers import decorator_errors
+from keyboards.archive import (
+    generate_inline_habits_list,
+    gen_habit_keyword_archive
+)
 from keyboards.keyboard import main_menu, confirm
 from states.archive import ArchiveState
-from utils.archive import gen_habit_keyword_archive
-from utils.habits import (
-    generate_inline_habits_list,
-    generate_message_answer
-)
+from utils.habits import generate_message_answer
 
-arch = Router()
+arch: Router = Router()
 
 
 @arch.callback_query(F.data == "show_archive")
-async def archive_list_habits(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Показывает привычки из архива."""
-    try:
-        result: dict = await get_list_habits(
-            call.from_user.id, is_active=0
-        )
-        keyword: InlineKeyboardMarkup = \
-            await generate_inline_habits_list(result.get("data"))
+@decorator_errors
+async def archive_list_habits(call: CallbackQuery, state: FSMContext) -> None:
+    """Shows archived habits"""
+    result: dict = await get_list_habits(call.from_user.id, is_active=0)
+    keyword: InlineKeyboardMarkup = \
+        await generate_inline_habits_list(result.get("data"))
 
-        await state.set_state(ArchiveState.show)
-        await call.message.answer(
-            text="Список ваших привычек из архива.",
-            reply_markup=keyword
-        )
-    except (ClientError, KeyError) as err:
-        await call.message.answer(
-            text=str(err),
-            reply_markup=main_menu
-        )
+    if len(result.get("data")) != 0:
+        text: str = "Список ваших привычек из архива."
+    else:
+        text: str = "У вас нет архивированных привычек."
+
+    await state.set_state(ArchiveState.show)
+    await call.message.answer(text=text, reply_markup=keyword)
 
 
 @arch.callback_query(ArchiveState.show)
-async def detail_info_habit(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Показать подробную информацию о привычке из архива."""
+@decorator_errors
+async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
+    """Show detailed information about the habit from the archive."""
     response: dict = await get_full_info(int(call.data), call.from_user.id)
     text: str = await generate_message_answer(response)
 
     await state.update_data(id=call.data)
     await state.set_state(ArchiveState.action)
-    keyword: InlineKeyboardMarkup = await gen_habit_keyword_archive()
 
+    keyword: InlineKeyboardMarkup = await gen_habit_keyword_archive()
     await call.message.answer(
-        text=text,
-        parse_mode="HTML",
-        reply_markup=keyword
+        text=text, parse_mode="HTML", reply_markup=keyword
     )
 
 
 @arch.callback_query(ArchiveState.action, F.data == "delete")
-async def delete_habit_by_id(
-    call: CallbackQuery
-) -> None:
+async def delete_habit_by_id(call: CallbackQuery) -> None:
     """
-    Подтверждение удаления привычки. Показывает клавиатуру с
-    выбором да или нет.
+    Confirmation of the habit deletion. Shows the keyboard
+    with the choice is yes or no.
     """
-    await call.message.answer(
-        text="Привычка будет удалена без возможности восстановления, "
-             "чтобы продолжить нажмите да.",
-        reply_markup=confirm
-    )
+    await call.message.answer(text=delete_habit_message, reply_markup=confirm)
 
 
 @arch.callback_query(ArchiveState.action, F.data == "yes")
-async def delete_habit_by_id(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Подтверждение удаления привычки насовсем."""
+@decorator_errors
+async def delete_habit_by_id(call: CallbackQuery, state: FSMContext) -> None:
+    """Confirmation of permanent removal of the habit."""
     data: dict = await state.get_data()
-    try:
-        await delete_habit(int(data.get("id")), call.from_user.id)
-        await call.message.answer(
-            text="Привычка была удалена, без возможности восстановления.",
-            reply_markup=main_menu
-        )
-    except (ClientError, KeyError) as err:
-        await call.message.answer(str(err))
-
-    finally:
-        await state.clear()
+    await delete_habit(int(data.get("id")), call.from_user.id)
+    await call.message.answer(
+        text="Привычка была удалена, без возможности восстановления.",
+        reply_markup=main_menu
+    )
+    await state.clear()
 
 
 @arch.callback_query(ArchiveState.action, F.data == "un_archive")
-async def habit_to_un_archive(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Возврат привычки для отслеживания."""
+@decorator_errors
+async def habit_to_un_archive(call: CallbackQuery, state: FSMContext) -> None:
+    """Returning a habit from the archive for tracking."""
     data: dict = await state.get_data()
-    try:
-        await archive_habit(
-            int(data.get("id")), call.from_user.id, is_active=True
-        )
-        await call.message.answer(
-            text="Привычка была помечена как активная и будет "
-                 "отображаться в списке активных привычек.",
-            reply_markup=main_menu
-        )
-    except (ClientError, KeyError) as err:
-        await call.message.answer(str(err))
-        await state.clear()
+    await archive_habit(int(data.get("id")), call.from_user.id, is_active=True)
+    await call.message.answer(
+        text="Привычка была помечена как активная и будет "
+             "отображаться в списке активных привычек.",
+        reply_markup=main_menu
+    )
+    await state.clear()

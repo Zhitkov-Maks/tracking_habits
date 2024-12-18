@@ -6,7 +6,9 @@ from aiogram.enums import ParseMode
 
 from api.create import request_create_habit
 from keyboards.keyboard import cancel, main_menu
+from loader import success_save
 from states.add import AddState
+from handlers.decorator_handlers import decorator_errors
 
 add: Router = Router()
 
@@ -49,22 +51,12 @@ async def input_numbers_days(mess: Message, state: FSMContext) -> None:
 
 
 @add.message(AddState.numbers_of_days, F.text.isdigit())
+@decorator_errors
 async def create_and_record_db(mess: Message, state: FSMContext) -> None:
     """The handler sends all the entered data for saving.."""
     await state.update_data(number_of_days=mess.text)
-    try:
-        result: None | str = await request_create_habit(
-            await state.get_data(), mess.from_user.id
-        )
-        if result is None:
-            text: str = ("Ваша привычка успешно сохранена. Не забывайте "
-                         "ежедневно выполнять ее и добавлять в отслеживание.")
-        else:
-            text: str = result
-        await mess.answer(text=text, reply_markup=main_menu)
-
-    except KeyError as err:
-        await mess.answer(text=str(err), reply_markup=main_menu)
+    await request_create_habit(await state.get_data(), mess.from_user.id)
+    await mess.answer(text=success_save, reply_markup=main_menu)
     await state.clear()
 
 
