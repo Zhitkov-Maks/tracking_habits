@@ -68,9 +68,7 @@ async def archive_habit(habit_id: int, user_id: int, is_active: bool) -> None:
     """
     url: str = habit_url + f"{habit_id}/"
     client: Client = Client(url=url, data={"is_active": is_active})
-    client.header.update(
-        {"Authorization": await create_header(user_id)}
-    )
+    client.header.update({"Authorization": await create_header(user_id)})
     response: Tuple[int, dict] = await client.patch()
 
     if response[0] != 200:
