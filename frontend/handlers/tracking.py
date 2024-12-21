@@ -10,9 +10,10 @@ from api.tracking import (
     habit_tracking_mark_update
 )
 from handlers.decorator_handlers import decorator_errors
+from keyboards.detail import gen_habit_keyword
 from keyboards.keyboard import confirm
 from states.add import HabitState
-from utils.habits import generate_message_answer, gen_habit_keyword
+from utils.habits import generate_message_answer
 
 from keyboards.tracking import inline_choice_calendar, inline_done_not_done
 from utils.tracking import get_choice_date, days_ago
