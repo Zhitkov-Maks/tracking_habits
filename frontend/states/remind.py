@@ -2,7 +2,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 
 class RemindState(StatesGroup):
-    """Класс состояний для напоминаний."""
+    """A status class for reminders."""
     start = State()
     add = State()
     confirm = State()

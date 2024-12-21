@@ -1,183 +1,17 @@
-from datetime import datetime as dt, UTC, datetime, timedelta
-from typing import List, Dict
+from datetime import datetime as dt, datetime
+from typing import Dict, List, Tuple
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.markdown import hbold, hitalic
 
 
-weekdays: tuple = ("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс",)
-days_ago: Dict[str, int] = {
-    "zero": 0,
-    "one": 1,
-    "two": 2,
-    "three": 3,
-    "four": 4,
-    "five": 5,
-    "six": 6,
-}
-
-
-async def get_choice_date(call_data: str) -> str:
+async def count_days_by_date(
+        data: Dict[str, str | dict]
+) -> Tuple[int, int, int]:
     """
-    Получает дату за некоторый промежуток времени(До 7 дней).
-    :param call_data: Число на сколько днй назад нужно получить дату.
-    :return str: Дату в виде строки.
-    """
-    now: datetime.date = dt.now(UTC).date()
-    date: datetime.date = now - timedelta(days=days_ago.get(call_data))
-    return str(date)
-
-
-async def inline_done_not_done() -> InlineKeyboardMarkup:
-    """
-    Создание клавиатуры для добавления отметки о выполнении или невыполнении.
-    :return InlineKeyboardMarkup: Возвращает клавиатуру.
-    """
-    choice: List[List[InlineKeyboardButton]] = [
-        [
-            InlineKeyboardButton(
-                text="✅", callback_data="done"
-            ),
-            InlineKeyboardButton(
-                text="❌", callback_data="not_done"
-            ),
-            InlineKeyboardButton(
-                text="Отмена", callback_data="main"
-            ),
-        ]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=choice)
-
-
-async def get_weekdays() -> dict:
-    """
-    Получает дату и день недели для добавления отметки о
-    выполнении/невыполнении.
-    :return dict: Словарь, где ключ количество дней назад,
-        а значение кортеж с датой и днем недели.
-    """
-    today: datetime.date = dt.now().date()
-    days = {}
-    for i in range(7):
-        curr_date = today - timedelta(days=i)
-        days.update({i: (
-            f"{str(curr_date)[8:10]}.{str(curr_date)[5:7]}",
-            weekdays[curr_date.weekday()]
-        )})
-    return days
-
-
-
-async def inline_choice_calendar() -> InlineKeyboardMarkup:
-    """
-    Формирует клавиатуру с датами для отметки о выполнении/невыполнении.
-    :return InlineKeyboardMarkup: Клавиатуру с датами.
-    """
-    days: dict = await get_weekdays()
-    inline_choice = [
-        [
-            InlineKeyboardButton(
-                text=str(days[0][0]) + f"({days[0][1]})",
-                callback_data="zero"
-            ),
-            InlineKeyboardButton(
-                text=str(days[1][0]) + f"({days[1][1]})",
-                callback_data="one"
-            ),
-            InlineKeyboardButton(
-                text=str(days[2][0]) + f"({days[2][1]})",
-                callback_data="two"
-            ),
-            InlineKeyboardButton(
-                text=str(days[3][0]) + f"({days[3][1]})",
-                callback_data="three"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text=str(days[4][0]) + f"({days[4][1]})",
-                callback_data="four"
-            ),
-            InlineKeyboardButton(
-                text=str(days[5][0]) + f"({days[5][1]})",
-                callback_data="five"
-            ),
-            InlineKeyboardButton(
-                text=str(days[6][0]) + f"({days[6][1]})",
-                callback_data="six"
-            ),
-        ]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=inline_choice)
-
-
-async def gen_habit_keyword() -> InlineKeyboardMarkup:
-    """
-    Функция генерирует клавиатуру для действия
-    по конкретной привычке.
-    :return InlineKeyboardMarkup: Клавиатуру для выбора действий.
-    """
-    inline_actions = [
-        [
-            InlineKeyboardButton(
-                text="В архив",
-                callback_data="archive"
-            ),
-            InlineKeyboardButton(
-                text="Отметить",
-                callback_data="mark"
-            ),
-            InlineKeyboardButton(
-                text="Меню",
-                callback_data="main"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-            text="Редактировать",
-            callback_data="edit"
-        ),
-            InlineKeyboardButton(
-                text="Список привычек",
-                callback_data="show_habits"
-            ),
-        ]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=inline_actions)
-
-
-async def generate_inline_habits_list(
-    habits_list: list
-) -> InlineKeyboardMarkup:
-    """
-    Функция для создания списка активных привычек в виде инлайн клавиатуры.
-    :param habits_list: Список привычек.
-    :return InlineKeyboardMarkup: Инлайн клавиатура со списком привычек.
-    """
-    inline_habits: List[List[InlineKeyboardButton]] = []
-    for obj_habits in habits_list:
-        inline_habits.append([
-            InlineKeyboardButton(
-                text=obj_habits.get("title"),
-                callback_data=str(obj_habits.get("id"))
-            )
-        ])
-    inline_habits.append(
-        [
-            InlineKeyboardButton(
-                text="Показать меню",
-                callback_data="main"
-            )
-        ])
-    return InlineKeyboardMarkup(inline_keyboard=inline_habits)
-
-
-async def count_days_by_date(data: dict) -> tuple:
-    """
-    Формирует данные об успешных/не успешных днях,
-    и сколько дней осталось отслеживать.
-    :param data: Дынные для формирования ответа.
-    :return tuple: Кортеж с тремя числами.
+    Generates data about successful/unsuccessful days,
+    and how many days are left to track.
+    :param data: Data for forming the response.
+    :return tuple: A tuple with three numbers.
     """
     end_date: datetime.date = dt.strptime(
         data.get("end_date")[:10], '%Y-%m-%d'
@@ -190,11 +24,11 @@ async def count_days_by_date(data: dict) -> tuple:
     return count_done, count_not_done, days_left
 
 
-async def generate_message_seven_days(data: list) -> str:
+async def generate_message_seven_days(data: List[Dict[str, str]]) -> str:
     """
-    Генерирует отчет об отслеживании за последние семь дней.
-    :param data: Данные об отслеживании.
-    :return str: Строку с информацией об отслеживании.
+    Generates a tracking report for the last seven days.
+    :param data: Tracking data.
+    :return str: A line with tracking information.
     """
     mess: str = f"{40 * '-'}\n"
     for item in data:
@@ -206,12 +40,12 @@ async def generate_message_seven_days(data: list) -> str:
 
 async def generate_message_answer(data: dict) -> str:
     """
-    Функция генерирует сообщения для показа
-    пользователю его конкретной активной/неактивной привычки.
-    :param data: Полные данные о привычке и ее отслеживании.
-    :return str:  Возвращает строку с подробной информацией.
+    The function generates messages to show
+    the user his specific active/inactive habit.
+    :param data: Complete data about the habit and its tracking.
+    :return str: Returns a string with detailed information.
     """
-    count_days: tuple = await count_days_by_date(data)
+    count_days: Tuple[int, int, int] = await count_days_by_date(data)
     report_sevent_days: str = await generate_message_seven_days(
         data.get('tracking').get('all')
     )
@@ -242,11 +76,25 @@ async def generate_message_answer(data: dict) -> str:
 
 async def gen_message_done_not_done(data: dict) -> str:
     """
-    Генерация сообщения на добавление отметки о выполнении/невыполнении.
-    :param data: Данные о выполнении/невыполнении.
-    :return str: Возвращает сообщение.
+    Generating a message to add a mark of completion/non-completion.
+    :param data: Data on completion/non-completion.
+    :return str: Returns the message.
     """
     return (f"За дату {hbold(data.get("date"))} была сделана "
     f"отметка о "
     f"{'не' if data.get('done') == 'not_done' else ''} "
     f"выполнении.")
+
+
+async def get_base_data_habit(
+        data: Dict[str, str | int]
+) -> Tuple[str, str, int]:
+    """
+    Returns a tuple of basic habit data.
+    :param data: Habit Data
+    :return: A tuple with three data.
+    """
+    title: str = data.get("title")
+    body: str = data.get("body")
+    numbers_of_days: int = data.get("number_of_days")
+    return title, body, numbers_of_days

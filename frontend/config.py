@@ -1,3 +1,5 @@
+from typing import Dict
+
 from decouple import config
 
 BOT_TOKEN: str = config("TOKEN")
@@ -11,6 +13,6 @@ habit_url: str = API_ADDRESS + BASE_URL + "habits/"
 tracking_url: str = API_ADDRESS + BASE_URL + "tracking/{habit_id}/"
 remind_url: str = API_ADDRESS + BASE_URL + "remind/"
 
-jwt_token_data: dict = {}
+jwt_token_data: Dict[int, str] = {}
 app_schedule: dict = {}
 scheduler_ids: dict = {}

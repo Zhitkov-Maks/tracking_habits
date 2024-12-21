@@ -1,22 +1,19 @@
-from typing import Tuple
+from http.client import HTTPException
 
 from api.client import Client
 from config import habit_url
 from utils.create import create_header
 
 
-async def request_update_habit(data: dict, user_id) -> None:
+async def request_update_habit(data: dict, user_id: int) -> None:
     """
-    Вызов клиента для обновления привычки.
-    :param data: Данные для изменения привычки.
-    :param user_id: Id пользователя чата.
-    :return None:
+    Request for habit updates.
+    :param data: Updated habit data
+    :param user_id: Chat user ID.
     """
     url: str = habit_url + f"{data.get("id")}/"
     client: Client = Client(url=url, data=data)
-    client.header.update(
-        {"Authorization": await create_header(user_id)}
-    )
-    response: Tuple[int, dict] = await client.put()
-    if response[0] != 200:
-        return response[1].get("detail").get("descr")
+    client.header.update(Authorization=await create_header(user_id))
+    status_code, response = await client.put()
+    if status_code != 200:
+        raise HTTPException(response.get("detail").get("descr"))

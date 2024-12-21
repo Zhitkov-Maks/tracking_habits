@@ -66,4 +66,3 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
         await message.answer(
             text=text + password, parse_mode="HTML", reply_markup=cancel
         )
-    await state.clear()

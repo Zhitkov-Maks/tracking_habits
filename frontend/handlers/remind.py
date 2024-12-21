@@ -9,15 +9,15 @@ from keyboards.keyboard import (
     main_menu,
     confirm
 )
+from keyboards.remind import create_time
 
 from states.remind import RemindState
 from utils.remind import (
-    create_time,
     add_send_message,
     remove_scheduler_job
 )
 
-remind = Router()
+remind: Router = Router()
 
 
 @remind.callback_query(F.data == "remind")
@@ -47,7 +47,7 @@ async def confirm_to_remove_remind(
 @remind.callback_query(RemindState.confirm, F.data == "yes")
 @decorator_errors
 async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
-    """Обработчик для удаления напоминания."""
+    """The handler for deleting the reminder."""
     await remove_time(call.from_user.id)
     await remove_scheduler_job(call.from_user.id)
     await call.message.answer(

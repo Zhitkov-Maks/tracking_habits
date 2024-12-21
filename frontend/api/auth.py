@@ -11,9 +11,9 @@ async def registration(data: Dict[str, str]) -> None:
     :param data: Dictionary with user data.
     """
     client: Client = Client(register_url, data)
-    response: Tuple[int, dict] = await client.post()
-    if response[0] != 201:
-        return response[1].get("detail").get("descr")
+    status_code, response = await client.post()
+    if status_code != 201:
+        return response.get("detail").get("descr")
 
 
 async def login_user(data: Dict[str, str], user_id: int) -> None:
@@ -25,8 +25,8 @@ async def login_user(data: Dict[str, str], user_id: int) -> None:
     :param user_id: ID user.
     """
     client: Client = Client(url=login_url, data=data)
-    response: Tuple[int, dict] = await client.post()
-    if response[0] != 200:
-        return response[1].get("detail").get("descr")
+    status_code, response = await client.post()
+    if status_code != 200:
+        return response.get("detail").get("descr")
     else:
-        await update_jwt_token(response[1], user_id)
+        await update_jwt_token(response, user_id)

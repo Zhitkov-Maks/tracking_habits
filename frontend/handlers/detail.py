@@ -9,9 +9,10 @@ from api.get_habit import (
 )
 from config import BOT_TOKEN
 from keyboards.archive import generate_inline_habits_list
+from keyboards.detail import gen_habit_keyword
 from keyboards.keyboard import main_menu, confirm
 from states.add import HabitState
-from utils.habits import generate_message_answer, gen_habit_keyword
+from utils.habits import generate_message_answer, get_base_data_habit
 from handlers.decorator_handlers import decorator_errors
 from loader import mark_as_archive, archived
 
@@ -42,7 +43,10 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
     response: dict = await get_full_info(int(call.data), call.from_user.id)
     text: str = await generate_message_answer(response)
 
-    await state.update_data(id=call.data)
+    title, body, days = await get_base_data_habit(response)
+    await state.update_data(
+        id=call.data, title=title, body=body, number_of_days=days
+    )
     await state.set_state(HabitState.action)
 
     keyword: InlineKeyboardMarkup = await gen_habit_keyword()

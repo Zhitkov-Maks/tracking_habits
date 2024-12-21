@@ -2,23 +2,16 @@ from aiogram.fsm.state import StatesGroup, State
 
 
 class AddState(StatesGroup):
-    """Класс состояний для добавления привычки."""
+    """A class of states for adding habits."""
     title = State()
     describe = State()
     numbers_of_days = State()
 
 
 class HabitState(StatesGroup):
-    """Класс состояний для работы с привычкой."""
+    """A class of states for working with a habit."""
     show = State()
     action = State()
     date = State()
     done = State()
     confirm = State()
-
-
-class EditState(StatesGroup):
-    """Класс состояний для редактирования привычки."""
-    title = State()
-    describe = State()
-    numbers_of_days = State()
