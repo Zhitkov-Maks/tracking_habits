@@ -1,15 +1,27 @@
 import hashlib
+import logging
 from datetime import datetime as dt, UTC, timedelta, datetime
+from email.mime.text import MIMEText
+from typing import Dict
 
+import aiosmtplib
 import jwt
 
-from config import settings
+from config import settings, EMAIL, EMAIL_PASSWORD, EMAIL_HOST, EMAIL_PORT
 from schemas.user import UserData
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 async def hash_password(
     password: str,
 ) -> str:
+    """
+    Password hashing function.
+    :param password: The password that needs to be hashed.
+    :return str: Hash as a string.
+    """
     return hashlib.md5(password.encode("utf-8")).hexdigest()
 
 
@@ -21,13 +33,13 @@ async def encode_jwt(
     expire_timedelta: timedelta | None = None,
 ) -> str:
     """
-    Кодирует данные о пользователе. Возвращает токен.
-    :param user: Пришедшие данные о пользователе.
-    :param private_key: Приватный ключ для кодирования.
-    :param expire_days: Количество дней, в течении которого действителен токен
+    Encodes user data. Returns the token.
+    :param user: Received user data.
+    :param private_key: A private key for encoding.
+    :param expire_days: The number of days during which the token is valid.
     :param expire_timedelta: timedelta из datetime
-    :param algorithm: Тип алгоритма шифрования.
-    :return str: Возвращает строку, содержащую токен.
+    :param algorithm: The type of encryption algorithm.
+    :return str: Returns a string containing the token.
     """
     now: datetime = dt.now(UTC)
 
@@ -37,7 +49,7 @@ async def encode_jwt(
     else:
         expire = now + timedelta(days=expire_days)
 
-    to_encode: dict = {
+    to_encode: Dict[str, str] = {
         "email": user.email,
         "password": user.password,
         "exp": expire,
@@ -55,18 +67,45 @@ async def decode_jwt(
     token: str | bytes,
     public_key: str = settings.auth_jwt.public_key_path.read_text(),
     algorithm: str = settings.auth_jwt.algorithm,
-) -> dict:
+) -> Dict[str, str]:
     """
-    Декодирует присланный токен.
-    Возвращает словарь сданными о пользователе.
-    :param token: Присланный токен для аутентификации
-    :param public_key: Ключ для декодирования.
-    :param algorithm: Тип алгоритма шифрования.
-    :return dict: Возвращает словарь с данными о пользователе.
+    Decodes the send token.
+    Returns a dictionary with user data.
+    :param token: The send authentication token.
+    :param public_key: The key for decoding.
+    :param algorithm: The type of encryption algorithm.
+    :return dict: Returns a dictionary with user data.
     """
-    decoded: dict = jwt.decode(
+    decoded: Dict[str, str] = jwt.decode(
         token,
         public_key,
         algorithms=[algorithm],
     )
     return decoded
+
+
+async def send_email(to_email: str, subject: str, body: str) -> None:
+    """
+    The function sends an email to the user about the successful
+    password change.
+    :param to_email: user's email.
+    :param subject: Email subject.
+    :param body: Email body.
+    :return None:
+    """
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = EMAIL
+    msg["To"] = to_email
+    try:
+        await aiosmtplib.send(
+            msg,
+            hostname=EMAIL_HOST,
+            port=EMAIL_PORT,
+            username=EMAIL,
+            password=EMAIL_PASSWORD,
+            start_tls=True
+        )
+        logging.info("Email sent successfully.")
+    except Exception as e:
+        logging.error(f"Error sending email: {e}")

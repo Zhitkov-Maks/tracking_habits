@@ -12,3 +12,12 @@ class UserData(BaseModel):
     password: str = Field(
         ..., min_length=4, description="User's password."
     )
+
+
+class Email(BaseModel):
+    email: str
+
+
+class ResetPassword(BaseModel):
+    new_password: str
+    token: str

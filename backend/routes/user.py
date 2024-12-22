@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 
 from fastapi import (
@@ -8,11 +9,12 @@ from fastapi import (
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import SUBJECT, BODY
 from crud.user import create_user, update_user_password
 from crud.utils import validate_auth_user, validate_user_mail, valid_decode_jwt
 from database import User
 from database.conf_db import get_async_session
-from routes.utils import hash_password, encode_jwt
+from routes.utils import hash_password, encode_jwt, send_email
 from schemas.general import ErrorSchema, SuccessSchema, TokenSchema, TokenReset
 from schemas.user import UserData, ResetPassword
 
@@ -30,9 +32,11 @@ async def registration_user_rout(
         session: AsyncSession = Depends(get_async_session)
 ) -> SuccessSchema:
     """
-    Роут для регистрации пользователя на сервере.
-    Обрабатывает входящие данные о пользователе, если все введено
-    корректно, то сохраняет пользователя в бд.
+    The router for registering the user on the server.
+    Processes incoming user data if everything is entered
+    if correct, it saves the user to the database.
+    :param user: Json with email and password.
+    :return SuccessSchema: Json with successful request completion.
     """
     user.password = await hash_password(user.password)
     await create_user(session, user.model_dump())
@@ -49,10 +53,10 @@ async def auth_user(
     user: UserData = Depends(validate_auth_user),
 ) -> TokenSchema:
     """
-    Роут для аутентификации пользователя. Принимает данные о пользователе,
-    проверяет, существует ли такой пользователь, верно ли введен пароль.
-    И если все ОК то возвращает токен для последующей аутентификации
-    пользователя.
+    The router for user authentication. Accepts user data,
+    checks if such a user exists and if the password is entered correctly.
+    And if everything is OK, it returns the token for subsequent
+    user authentication.
     """
     token: str = await encode_jwt(user)
     return TokenSchema(access_token=token, token_type="Bearer")
@@ -60,18 +64,20 @@ async def auth_user(
 
 @user_rout.post(
     "/request-password-reset/",
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    responses={403: {"model": ErrorSchema}},
 )
 async def request_password_reset(
         user: UserData = Depends(validate_user_mail)
 ) -> TokenReset:
-    token: str = await encode_jwt(user, expire_timedelta=timedelta(minutes=2))
+    token: str = await encode_jwt(user, expire_timedelta=timedelta(minutes=1))
     return TokenReset(token=token)
 
 
 @user_rout.post(
     "/reset-password/",
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    responses={403: {"model": ErrorSchema}},
 )
 async def reset_password(
     reset_data: ResetPassword,
@@ -79,4 +85,5 @@ async def reset_password(
 ) -> SuccessSchema:
     user: User = await valid_decode_jwt(reset_data.token, session)
     await update_user_password(user.email, reset_data, session)
+    asyncio.create_task(send_email(user.email, SUBJECT, BODY))
     return SuccessSchema(result=True)

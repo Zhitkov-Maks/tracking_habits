@@ -26,3 +26,10 @@ class TokenSchema(BaseModel):
                     "подставлять в headers",
     )
 
+
+class TokenReset(BaseModel):
+    """Схема для возвращения токена."""
+
+    token: str = Field(
+        ..., description="Токен для аутентификации."
+    )
