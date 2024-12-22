@@ -17,13 +17,11 @@ auth = Router()
 bot = Bot(token=BOT_TOKEN)
 
 
-@auth.callback_query(F.data == "login")
-async def input_email(call: CallbackQuery, state: FSMContext) -> None:
+@auth.message(F.text == "/auth")
+async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(LoginState.email)
-    await call.message.answer(
-        text=email, parse_mode="HTML", reply_markup=cancel
-    )
+    await mess.answer(text=email, parse_mode="HTML", reply_markup=cancel)
 
 
 @auth.message(LoginState.email)

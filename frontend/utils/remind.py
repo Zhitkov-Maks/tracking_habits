@@ -7,6 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from api.remind import get_all_users
 from config import BOT_TOKEN, app_schedule, scheduler_ids
+from keyboards.keyboard import main_menu
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -31,7 +32,8 @@ async def send_message_cron(user_chat_id: int):
     try:
         await bot.send_message(
                 user_chat_id,
-                "Не забудьте про отслеживание привычек!!!"
+                "Не забудьте про отслеживание привычек!!!",
+                reply_markup=main_menu
             )
     except TelegramForbiddenError:
         # Если пользователь вдруг удалил бота.

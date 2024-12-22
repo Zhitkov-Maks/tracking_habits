@@ -1,18 +1,20 @@
+from datetime import timedelta
+
 from fastapi import (
     APIRouter,
     Depends,
-    status,
+    status
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.user import create_user
-from crud.utils import validate_auth_user
+from crud.user import create_user, update_user_password
+from crud.utils import validate_auth_user, validate_user_mail, valid_decode_jwt
+from database import User
 from database.conf_db import get_async_session
 from routes.utils import hash_password, encode_jwt
-from schemas.general import ErrorSchema, SuccessSchema, TokenSchema
-from schemas.user import UserData
-
+from schemas.general import ErrorSchema, SuccessSchema, TokenSchema, TokenReset
+from schemas.user import UserData, ResetPassword
 
 user_rout = APIRouter(prefix="/auth", tags=["AUTH"])
 
@@ -54,3 +56,27 @@ async def auth_user(
     """
     token: str = await encode_jwt(user)
     return TokenSchema(access_token=token, token_type="Bearer")
+
+
+@user_rout.post(
+    "/request-password-reset/",
+    status_code=status.HTTP_201_CREATED
+)
+async def request_password_reset(
+        user: UserData = Depends(validate_user_mail)
+) -> TokenReset:
+    token: str = await encode_jwt(user, expire_timedelta=timedelta(minutes=2))
+    return TokenReset(token=token)
+
+
+@user_rout.post(
+    "/reset-password/",
+    status_code=status.HTTP_201_CREATED
+)
+async def reset_password(
+    reset_data: ResetPassword,
+    session: AsyncSession = Depends(get_async_session),
+) -> SuccessSchema:
+    user: User = await valid_decode_jwt(reset_data.token, session)
+    await update_user_password(user.email, reset_data, session)
+    return SuccessSchema(result=True)

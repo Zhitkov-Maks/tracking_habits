@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
 from api.remind import add_time_remind, remove_time
 from handlers.decorator_handlers import decorator_errors
@@ -20,16 +20,14 @@ from utils.remind import (
 remind: Router = Router()
 
 
-@remind.callback_query(F.data == "remind")
-async def start_work_to_remind(call: CallbackQuery, state: FSMContext) -> None:
+@remind.message(F.text == "/remind")
+async def start_work_to_remind(mess: Message, state: FSMContext) -> None:
     """
     A command handler for working with reminders.
     Shows a menu for selecting an action.
     """
     await state.set_state(RemindState.start)
-    await call.message.answer(
-        text="Выберите действие", reply_markup=remind_button
-    )
+    await mess.answer(text="Выберите действие", reply_markup=remind_button)
 
 
 @remind.callback_query(RemindState.start, F.data == "remove")

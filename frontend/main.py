@@ -52,11 +52,11 @@ async def handler_main(message: Message, state: FSMContext) -> None:
     await message.answer(text="Меню", reply_markup=main_menu)
 
 
-@dp.callback_query(F.data == "guide")
-async def handler_help(call: types.CallbackQuery, state: FSMContext) -> None:
+@dp.message(F.text == "/guide")
+async def handler_help(mess: Message, state: FSMContext) -> None:
     """Shows detailed information about the work of the bot."""
     await state.clear()
-    await call.message.answer(text=guide, reply_markup=main_menu)
+    await mess.answer(text=guide, reply_markup=main_menu)
 
 
 async def main():

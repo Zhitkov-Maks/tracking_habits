@@ -18,16 +18,11 @@ register_route = Router()
 bot = Bot(token=BOT_TOKEN)
 
 
-@register_route.callback_query(F.data == "registration")
-async def input_email(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
+@register_route.message(F.text == "/register")
+async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(RegisterState.email)
-    await call.message.answer(
-        text=email, parse_mode="HTML", reply_markup=cancel
-    )
+    await mess.answer(text=email, parse_mode="HTML", reply_markup=cancel)
 
 
 @register_route.message(RegisterState.email)

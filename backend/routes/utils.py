@@ -43,7 +43,7 @@ async def encode_jwt(
         "exp": expire,
     }
 
-    encoded = jwt.encode(
+    encoded: str = jwt.encode(
         to_encode,
         private_key,
         algorithm=algorithm,
