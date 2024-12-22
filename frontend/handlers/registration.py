@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery, Message
 
 from api.auth import registration, login_user
 from config import BOT_TOKEN
-from loader import email, password, success_registration
+from loader import enter_email, password, success_registration
 from keyboards.keyboard import main_menu, cancel
 from states.register import RegisterState
 from utils.register import create_data, is_valid_email, is_valid_password
@@ -22,7 +22,7 @@ bot = Bot(token=BOT_TOKEN)
 async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(RegisterState.email)
-    await mess.answer(text=email, parse_mode="HTML", reply_markup=cancel)
+    await mess.answer(text=enter_email, parse_mode="HTML", reply_markup=cancel)
 
 
 @register_route.message(RegisterState.email)
@@ -42,7 +42,7 @@ async def input_password(
     else:
         text: str = "Ваш email не соответствует требованиям! "
         await mess.answer(
-            text=text + email, parse_mode="HTML", reply_markup=cancel
+            text=text + enter_email, parse_mode="HTML", reply_markup=cancel
         )
 
 
@@ -59,6 +59,7 @@ async def final_registration(
         email: str = (await state.get_data())["email"]
         data: Dict[str, str] = await create_data(email, message.text)
         result: str | None = await registration(data)
+
         # If the request is successful, None will be returned to us
         if result is None:
             await login_user(data, message.from_user.id)
@@ -71,4 +72,3 @@ async def final_registration(
         await message.answer(
             text=text + password, parse_mode="HTML", reply_markup=cancel
         )
-    await state.clear()

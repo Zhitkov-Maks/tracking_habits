@@ -13,6 +13,7 @@ from handlers.edit import edit_rout
 from handlers.detail import detail
 from handlers.login import auth
 from handlers.registration import register_route
+from handlers.reset_password import reset
 from handlers.tracking import track
 from utils.remind import create_scheduler_all
 from keyboards.keyboard import main_menu
@@ -30,6 +31,7 @@ dp.include_router(edit_rout)
 dp.include_router(track)
 dp.include_router(arch)
 dp.include_router(remind)
+dp.include_router(reset)
 
 
 @dp.message(CommandStart())

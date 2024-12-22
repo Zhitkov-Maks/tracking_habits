@@ -3,11 +3,12 @@ from typing import Dict
 
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 
 from api.auth import login_user
 from config import BOT_TOKEN
-from loader import email, password, success_auth
+from keyboards.reset import generate_inline_keyboard_reset
+from loader import enter_email, password, success_auth
 from keyboards.keyboard import main_menu, cancel
 from states.login import LoginState
 from utils.register import create_data, is_valid_email, is_valid_password
@@ -21,7 +22,7 @@ bot = Bot(token=BOT_TOKEN)
 async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(LoginState.email)
-    await mess.answer(text=email, parse_mode="HTML", reply_markup=cancel)
+    await mess.answer(text=enter_email, parse_mode="HTML", reply_markup=cancel)
 
 
 @auth.message(LoginState.email)
@@ -40,7 +41,7 @@ async def input_password(mess: Message, state: FSMContext) -> None:
     else:
         text: str = "Ваш email не соответствует требованиям! "
         await mess.answer(
-            text=text + email, parse_mode="HTML", reply_markup=cancel
+            text=text + enter_email, parse_mode="HTML", reply_markup=cancel
         )
 
 
@@ -57,7 +58,9 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
         if result is None:
             await message.answer(success_auth, reply_markup=main_menu)
         else:
-            await message.answer(result, reply_markup=main_menu)
+            await message.answer(
+                result, reply_markup=await generate_inline_keyboard_reset()
+            )
 
     else:
         text: str = "Ваш пароль не соответствует требованиям! "

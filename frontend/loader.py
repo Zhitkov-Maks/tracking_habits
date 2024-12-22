@@ -33,7 +33,7 @@ guide = (
 )
 
 
-email: str = hbold("Введите ваш email.")
+enter_email: str = hbold("Введите ваш email.")
 
 password: str = (hbold('Введите пароль.')  +
                  "\nПароль должен быть не короче 5 символов и содержать "
