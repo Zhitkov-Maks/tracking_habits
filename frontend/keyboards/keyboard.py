@@ -1,7 +1,9 @@
+from typing import List
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-menu_bot = [
+menu_bot: List[List[InlineKeyboardButton]] = [
         [
             InlineKeyboardButton(
                 text="Добавить привычку",
@@ -14,44 +16,24 @@ menu_bot = [
         ],
         [
             InlineKeyboardButton(
-                text="Архив",
+                text="Открыть архив",
                 callback_data="show_archive"
-            ),
-            InlineKeyboardButton(
-                text="Авторизация",
-                callback_data="login"
             )
-        ],
-        [
-            InlineKeyboardButton(
-                text="Регистрация",
-                callback_data="registration"
-            ),
-            InlineKeyboardButton(
-                text="Напоминание",
-                callback_data="remind"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text="Гайд по работе с ботом",
-                callback_data="guide"
-            )
-        ],
+        ]
     ]
 
-cancel_button = [
+cancel_button: List[List[InlineKeyboardButton]] = [
     [InlineKeyboardButton(text="Отмена", callback_data="main")]
 ]
 
-confirm_button = [
+confirm_button: List[List[InlineKeyboardButton]] = [
     [
         InlineKeyboardButton(text="Да", callback_data="yes"),
         InlineKeyboardButton(text="Нет", callback_data="main")
     ]
 ]
 
-choice_remind = [
+choice_remind: List[List[InlineKeyboardButton]] = [
     [
         InlineKeyboardButton(text="Добавить", callback_data="add"),
         InlineKeyboardButton(text="Удалить", callback_data="remove"),

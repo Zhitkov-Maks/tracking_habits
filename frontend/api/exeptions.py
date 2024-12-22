@@ -1,4 +1,0 @@
-
-
-class DateValidationError(ValueError):
-    pass

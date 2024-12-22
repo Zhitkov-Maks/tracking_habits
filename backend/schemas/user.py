@@ -1,17 +1,23 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from pydantic import Field
 
 
 class UserData(BaseModel):
     """
     Схема для отправки данных пользователя на сервер.
-    Username и user_chat_id берутся из данных о пользователе в телеграм.
-    Пользователь идентифицируется по user_chat_id, так как он является
-    уникальным для каждого пользователя телеграмм.
+    Пользователь идентифицируется по email, так как он является
+    уникальным для каждого пользователя.
     """
-
-    username: str = Field(..., description="Ваш username из телеграмм.")
-    user_chat_id: int = Field(..., description="Чат ай ди из телеграмм.")
+    email: EmailStr = Field(..., description="User's email.")
     password: str = Field(
-        ..., min_length=4, description="Пароль который ввел пользователь."
+        ..., min_length=4, description="User's password."
     )
+
+
+class Email(BaseModel):
+    email: str
+
+
+class ResetPassword(BaseModel):
+    new_password: str
+    token: str

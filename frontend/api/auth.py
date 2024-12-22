@@ -1,25 +1,32 @@
+from typing import Tuple, Dict
+
 from api.client import Client
 from config import register_url, login_url
 from utils.login import update_jwt_token
 
 
-async def registration(data: dict) -> None:
+async def registration(data: Dict[str, str]) -> None:
     """
-    Вызов клиента для регистрации пользователя.
-    :param data: Словарь с данными пользователя.
-    :return dict: Словарь с токеном.
+    Request for user registration.
+    :param data: Dictionary with user data.
     """
     client: Client = Client(register_url, data)
-    await client.post()
+    status_code, response = await client.post()
+    if status_code != 201:
+        return response.get("detail").get("descr")
 
 
-async def login_user(data: dict, user_id: int) -> None:
+async def login_user(data: Dict[str, str], user_id: int) -> None:
     """
-    Вызов клиента для аутентификации.
-    :param data: Словарь с данными пользователю
-    :param user_id: ID пользователя.
-    :return None:
+    The function sends a request for authentication, in case of a
+    successful request, we must return a token, which we will
+    substitute in all requests in the future.
+    :param data: Dictionary with user data.
+    :param user_id: ID user.
     """
     client: Client = Client(url=login_url, data=data)
-    response: dict = await client.post()
-    await update_jwt_token(response, user_id)
+    status_code, response = await client.post()
+    if status_code != 200:
+        return response.get("detail").get("descr")
+    else:
+        await update_jwt_token(response, user_id)

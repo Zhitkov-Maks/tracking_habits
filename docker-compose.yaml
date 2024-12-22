@@ -29,7 +29,7 @@ services:
     volumes:
       - ./logs:/usr/logs
 
-    restart: on-failure
+    restart: always
     depends_on:
       - app
 

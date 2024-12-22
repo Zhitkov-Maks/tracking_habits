@@ -1,14 +1,13 @@
-from typing import List
+from typing import Dict, List
 
 from aiogram import BaseMiddleware, Bot, Dispatcher
 from aiogram.exceptions import TelegramForbiddenError
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiohttp import ClientError
 from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from api.remind import get_all_users
 from config import BOT_TOKEN, app_schedule, scheduler_ids
+from keyboards.keyboard import main_menu
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -25,43 +24,27 @@ class SchedulerMiddleware(BaseMiddleware):
         return await handler(event, data)
 
 
-async def create_time() -> InlineKeyboardMarkup:
-    """
-    Создает инлайн клавиатуру для выбора часа для уведомления.
-    :return InlineKeyboardMarkup: Возвращает клавиатуру.
-    """
-    inline_time: List[List[InlineKeyboardButton]] = []
-    for time in range(0, 24, 6):
-        inline_time.append(
-            [InlineKeyboardButton(text=f"{time + i}", callback_data=str(time+i))
-            for i in range(6)
-        ])
-    inline_time.append(
-        [InlineKeyboardButton(text="Я передумал", callback_data="main")]
-    )
-    return InlineKeyboardMarkup(inline_keyboard=inline_time)
-
-
 async def send_message_cron(user_chat_id: int):
     """
-    Отправляет сообщения в нужный чат.
-    :param user_chat_id: Идентификатор чата куда посылать оповещение.
+    Sends messages to the desired chat.
+    :param user_chat_id: The ID of the chat where to send the notification.
     """
     try:
         await bot.send_message(
                 user_chat_id,
-                "Не забудьте про отслеживание привычек!!!"
+                "Не забудьте про отслеживание привычек!!!",
+                reply_markup=main_menu
             )
     except TelegramForbiddenError:
         # Если пользователь вдруг удалил бота.
-        pass
+        await remove_scheduler_job(user_chat_id)
 
 
 async def get_or_create_scheduler() -> AsyncIOScheduler:
     """
-    Функция создает или получает уже созданный экземпляр планировщика
-    уведомлений.
-    :return AsyncIOScheduler: Экземпляр планировщика.
+    The function creates or receives an already created instance
+    of the scheduler notifications.
+    :return AsyncIOScheduler: An instance of the scheduler.
     """
     if app_schedule.get("scheduler") is None:
         scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
@@ -77,10 +60,10 @@ async def get_or_create_scheduler() -> AsyncIOScheduler:
 
 async def add_send_message(user_chat_id: int, time: int) -> None:
     """
-    Добавляем в scheduler задачи.
-    :param user_chat_id: Идентификатор чата куда посылать сообщение.
-    :param time: Время выполнения напоминания.
-    :return AsyncIOScheduler: Экземпляр планировщика.
+    Adding tasks to the scheduler.
+    :param user_chat_id: The ID of the chat where to send the message.
+    :param time: The time when the reminder was completed.
+    :return AsyncIOScheduler: An instance of the scheduler.
     """
     scheduler: AsyncIOScheduler = await get_or_create_scheduler()
     schedule_obj: Job = scheduler.add_job(
@@ -95,22 +78,19 @@ async def add_send_message(user_chat_id: int, time: int) -> None:
 
 async def create_scheduler_all() -> None:
     """
-    Создаем расписание для отправки уведомлений.
+    Creating a schedule for sending notifications.
     :return: None
     """
-    try:
-        result: dict = await get_all_users()
+    result: Dict[str, List[Dict[str, int]]] | None = await get_all_users()
+    if result:
         for user in result.get("users"):
             await add_send_message(user.get("user_chat_id"), user.get("time"))
-    except ClientError:
-        pass
 
 
 async def remove_scheduler_job(user_chat_id: int) -> None:
     """
-    Удаляет из планировщика задачу, чтобы затем добавить заново.
-    :param user_chat_id: Идентификатор пользователя для получения ID scheduler.
-    :return None:
+    Deletes a task from the scheduler in order to add it again.
+    :param user_chat_id: The user ID to get the scheduler ID.
     """
     scheduler: AsyncIOScheduler = await get_or_create_scheduler()
     schedule_id: str = scheduler_ids.get(user_chat_id)

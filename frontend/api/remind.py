@@ -1,45 +1,49 @@
+from http.client import HTTPException
+from typing import Dict, List
+
 from api.client import Client
 from config import remind_url
 from utils.create import create_header
 
 
-async def add_time_remind(data: dict, update, user_id) -> None:
+async def add_time_remind(data: dict, update: bool, user_id: int) -> None:
     """
-    Функция для создания записи с настройками напоминания.
-    :param data: Данные для сохранения.
-    :param update: Проверка изменяем запись или создаем.
-    :param user_id: Идентификатор пользователя телеграмм.
-    :return None:
+    A function for creating a reminder.
+    :param data: Data for the save request.
+    :param update: Checking changing the record or creating.
+    :param user_id: The telegram user ID.
     """
     client: Client = Client(url=remind_url, data=data)
-    client.header.update(
-        {"Authorization": await create_header(user_id)}
-    )
+    client.header.update(Authorization=await create_header(user_id))
     if not update:
-        await client.post()
+        status_code, response = await client.post()
     else:
-        await client.patch()
+        status_code, response = await client.patch()
+
+    if status_code not in (200, 201):
+        raise HTTPException(response.get("detail").get("descr"))
 
 
 async def remove_time(user_id: int) -> None:
     """
-    Запрос для удаления настроек получения уведомлений.
-    :param user_id: Идентификатор пользователя для получения токена.
-    :return None:
+    Request to delete notification.
+    :param user_id: The ID of the user to receive the token.
     """
     client: Client = Client(url=remind_url)
-    client.header.update(
-        {"Authorization": await create_header(user_id)}
-    )
-    await client.delete()
+    client.header.update(Authorization=await create_header(user_id))
+    status_code, response = await client.delete()
+    if status_code != 200:
+        raise HTTPException(response.get("detail").get("descr"))
 
 
-async def get_all_users() -> dict:
+async def get_all_users() -> Dict[str, List[Dict[str, int]]]:
     """
-    Получает список с user_chat_id и временем для уведомлений.
-    Нужно для запуска напоминаний всех пользователей.
-    :return dict: Возвращает словарь со списком пользователей у которых
-        есть настройки для уведомлений.
+    Retrieves a list with user_chat_id and time for notifications.
+    It is necessary to start reminders for all users.
+    :return dict: Returns a dictionary with a list of users who have
+                    there are settings for notifications.
     """
     client: Client = Client(url=remind_url)
-    return await client.get()
+    status_code, response = await client.get()
+    if status_code == 200:
+        return response

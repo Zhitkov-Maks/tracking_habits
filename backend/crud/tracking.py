@@ -121,7 +121,7 @@ async def patch_habit_tracking(
     if tracking is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"result": False, "description": "Запись не найдена."},
+            detail={"result": False, "descr": "Запись не найдена."},
         )
     tracking.done = data.done
     await session.commit()

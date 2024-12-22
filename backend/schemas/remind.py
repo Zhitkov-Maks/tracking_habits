@@ -8,6 +8,7 @@ class RemindSchema(BaseModel):
         ...,
         description="Время(целое число от 0 до 23), для работы appscheduler"
     )
+    user_chat_id: int = Field(..., description="Id пользователя телеграм")
 
 
 

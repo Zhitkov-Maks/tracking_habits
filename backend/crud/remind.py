@@ -32,10 +32,12 @@ async def add_user_time(
     remind: Remind = Remind(
         user_id=user.id,
         time=data.time,
+        user_chat_id=data.user_chat_id
     )
     try:
         session.add(remind)
         await session.commit()
+        await session.close()
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -99,7 +101,7 @@ async def get_settings_all(session: AsyncSession) -> Sequence:
     """
     try:
         sql: TextClause = text(
-            'SELECT us.user_chat_id, rm.time FROM users as us INNER JOIN '
+            'SELECT rm.user_chat_id, rm.time FROM users as us INNER JOIN '
             'reminds as rm on (us.id = rm.user_id)'
         )
         results: Result = await session.execute(sql)

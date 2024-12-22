@@ -1,48 +1,31 @@
 from dataclasses import dataclass
+from typing import Tuple, Dict, List
 
 import aiohttp
-from aiohttp.client_exceptions import ClientError
-
-from api.exeptions import DateValidationError
-from http import HTTPStatus as status
 
 
 @dataclass
 class Client:
     """
-    Клиент для работы с tracking api. Нужен, чтобы убрать повторяющийся код.
+    A class for server requests, implemented to reduce the amount
+    of repetitive code.
     """
     url: str
     data: dict | None = None
     header = {"Content-Type": "application/json"}
 
-    async def post(self) -> dict:
-        """Метод для POST запросов."""
+    async def post(self) -> Tuple[int, dict]:
+        """A method for implementing post requests."""
         async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(60)
-        ) as client:
+                timeout=aiohttp.ClientTimeout(60)) as client:
             async with client.post(
-                url=self.url,
-                json=self.data,
-                headers=self.header
+                    url=self.url, json=self.data, headers=self.header
             ) as response:
-
                 data: dict = await response.json()
+                return response.status, data
 
-                if (response.status == status.CREATED or
-                    response.status == status.OK):
-                    return data
-
-                elif response.status == status.BAD_REQUEST:
-                    message: str = data.get("detail").get("descr")
-                    raise DateValidationError(message)
-
-                else:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
-
-    async def get(self) -> dict:
-        """Метод для GET запросов."""
+    async def get(self) -> Tuple[int, Dict[str, List[Dict[str, int]]]]:
+        """A method for implementing get requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
@@ -51,64 +34,37 @@ class Client:
                     headers=self.header
             ) as response:
 
-                data: dict = await response.json()
+                data: Dict[str, List[Dict[str, int]]] = await response.json()
+                return response.status, data
 
-                if response.status == status.OK:
-                    return data
-
-                else:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
-
-    async def delete(self) -> None:
-        """Метод для DELETE запросов."""
+    async def delete(self) -> Tuple[int, dict]:
+        """A method for implementing delete requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
             async with client.delete(
-                    url=self.url,
-                    headers=self.header
-            ) as response:
-
+                    url=self.url, headers=self.header) as response:
                 data: dict = await response.json()
+                return response.status, data
 
-                if response.status != status.OK:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
-
-    async def patch(self) -> None:
-        """Метод для PATCH запросов."""
+    async def patch(self) -> Tuple[int, dict]:
+        """A method for implementing patch requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
             async with client.patch(
-                    url=self.url,
-                    json=self.data,
-                    headers=self.header
+                    url=self.url, json=self.data, headers=self.header
             ) as response:
-
                 data: dict = await response.json()
+                return response.status, data
 
-                if response.status != status.OK:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
-
-    async def put(self) -> dict:
-        """Метод для PUT запросов."""
+    async def put(self) -> Tuple[int, dict]:
+        """A method for implementing put requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
         ) as client:
             async with client.put(
-                url=self.url,
-                json=self.data,
-                headers=self.header
+                url=self.url, json=self.data, headers=self.header
             ) as response:
-
                 data: dict = await response.json()
-
-                if response.status == status.OK:
-                    return data
-
-                else:
-                    message: str = data.get("detail").get("descr")
-                    raise ClientError(message)
+                return response.status, data

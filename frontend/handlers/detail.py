@@ -1,98 +1,71 @@
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
-from aiohttp import ClientError
 
-from api.get import (
+from api.get_habit import (
     get_list_habits,
     get_full_info,
     archive_habit
 )
 from config import BOT_TOKEN
+from keyboards.archive import generate_inline_habits_list
+from keyboards.detail import gen_habit_keyword
 from keyboards.keyboard import main_menu, confirm
 from states.add import HabitState
-from utils.habits import generate_inline_habits_list, \
-    generate_message_answer, gen_habit_keyword
+from utils.habits import generate_message_answer, get_base_data_habit
+from handlers.decorator_handlers import decorator_errors
+from loader import mark_as_archive, archived
 
-detail = Router()
-bot = Bot(token=BOT_TOKEN)
+detail: Router = Router()
+bot: Bot = Bot(token=BOT_TOKEN)
 
 
 @detail.callback_query(F.data == "show_habits")
-async def output_list_habits(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Обработчик для показа отслеживаемых привычек."""
-    try:
-        result: dict = await get_list_habits(
-            call.from_user.id, is_active=1
-        )
-        keyword: InlineKeyboardMarkup = \
-            await generate_inline_habits_list(result.get("data"))
+@decorator_errors
+async def output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
+    """Shows a list of active habits for today."""
+    result: dict = await get_list_habits(call.from_user.id, is_active=1)
+    keyword: InlineKeyboardMarkup = await generate_inline_habits_list(
+        result.get("data")
+    )
 
-        await state.set_state(HabitState.show)
-        await call.message.answer(
-            text="Список ваших актуальных привычек",
-            reply_markup=keyword
-        )
-    except (ClientError, KeyError) as err:
-        await call.message.answer(
-            text=str(err),
-            reply_markup=main_menu
-        )
-
-
-@detail.callback_query(HabitState.show, F.data.isdigit())
-async def detail_info_habit(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Показывает подробную информацию о привычке."""
-    response: dict = await get_full_info(int(call.data), call.from_user.id)
-    text: str = await generate_message_answer(response)
-
-    await state.update_data(id=call.data)
-    await state.set_state(HabitState.action)
-    keyword: InlineKeyboardMarkup = await gen_habit_keyword()
-
+    await state.set_state(HabitState.show)
     await call.message.answer(
-        text=text,
-        parse_mode="HTML",
+        text="Список ваших актуальных привычек",
         reply_markup=keyword
     )
 
 
-@detail.callback_query(HabitState.action, F.data == "archive")
-async def habit_to_archive_confirm(
-    call: CallbackQuery,
-) -> None:
-    """Подтверждение добавления привычки в архив."""
+@detail.callback_query(HabitState.show, F.data.isdigit())
+@decorator_errors
+async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
+    """Shows detailed information about the habit."""
+    response: dict = await get_full_info(int(call.data), call.from_user.id)
+    text: str = await generate_message_answer(response)
+
+    title, body, days = await get_base_data_habit(response)
+    await state.update_data(
+        id=call.data, title=title, body=body, number_of_days=days
+    )
+    await state.set_state(HabitState.action)
+
+    keyword: InlineKeyboardMarkup = await gen_habit_keyword()
     await call.message.answer(
-        text="Привычка будет помечена как архивная и не будет отображаться "
-             "в активных привычках. "
-             "Нажмите да чтобы продолжить или нет чтобы отменить действие.",
-        reply_markup=confirm
+        text=text, parse_mode="HTML", reply_markup=keyword
     )
 
 
+@detail.callback_query(HabitState.action, F.data == "archive")
+async def habit_to_archive_confirm(call: CallbackQuery) -> None:
+    """Confirmation of adding a habit to the archive."""
+    await call.message.answer(text=mark_as_archive, reply_markup=confirm)
+
+
 @detail.callback_query(HabitState.action, F.data == "yes")
-async def habit_to_archive(
-    call: CallbackQuery,
-    state: FSMContext
-) -> None:
-    """Добавление привычки в архив."""
+@decorator_errors
+async def habit_to_archive(call: CallbackQuery, state: FSMContext) -> None:
+    """Adding a habit to the archive."""
     data: dict = await state.get_data()
-    try:
-        await archive_habit(
-            int(data.get("id")), call.from_user.id, is_active=False
-        )
-        await call.message.answer(
-            text="Привычка была помечена как выполнена и не будет "
-                 "отображаться в списке активных привычек..",
-            reply_markup=main_menu
-        )
-        await state.clear()
-    except (ClientError, KeyError) as err:
-        await state.clear()
-        await call.message.answer(str(err))
+    await archive_habit(int(data.get("id")), call.from_user.id, is_active=False)
+    await call.message.answer(text=archived, reply_markup=main_menu)
+    await state.clear()
