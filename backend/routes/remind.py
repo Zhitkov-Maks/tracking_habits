@@ -22,7 +22,7 @@ remind = APIRouter(prefix="/remind", tags=["REMIND"])
 @remind.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    responses={409: {"model": ErrorSchema}},
+    responses={409: {"model": ErrorSchema}, 403: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def add_user_remind_database(
@@ -30,7 +30,7 @@ async def add_user_remind_database(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
-    """Роут добавляет напоминание."""
+    """The method is designed to add a reminder."""
     user: User = await valid_decode_jwt(token.credentials, session)
     await add_user_time(data, user, session)
     return SuccessSchema(result=True)
@@ -39,7 +39,7 @@ async def add_user_remind_database(
 @remind.patch(
     "/",
     status_code=status.HTTP_200_OK,
-    responses={404: {"model": ErrorSchema}},
+    responses={404: {"model": ErrorSchema}, 403: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def update_user_time(
@@ -47,6 +47,7 @@ async def update_user_time(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
+    """The method is designed to update the reminder time."""
     user: User = await valid_decode_jwt(token.credentials, session)
     await upgrade_time(data, user, session)
     return SuccessSchema(result=True)
@@ -55,12 +56,14 @@ async def update_user_time(
 @remind.delete(
     "/",
     status_code=status.HTTP_200_OK,
+    responses={404: {"model": ErrorSchema}, 403: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
-async def update_user_time(
+async def remove_user_time(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
+    """The method is designed to delete the reminder."""
     user: User = await valid_decode_jwt(token.credentials, session)
     await remove_time(user, session)
     return SuccessSchema(result=True)
@@ -69,9 +72,14 @@ async def update_user_time(
 @remind.get(
     "/",
     status_code=status.HTTP_200_OK,
+    responses={403: {"model": ErrorSchema}},
     response_model=GetRemindSchemaAll,
 )
 async def get_settings_time(
     session: AsyncSession = Depends(get_async_session)
 ) -> GetRemindSchemaAll:
+    """
+    This method is used to get a list of users to whom you need
+    to send notifications.
+     """
     return GetRemindSchemaAll(users=await get_settings_all(session))

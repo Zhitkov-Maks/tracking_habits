@@ -31,13 +31,7 @@ async def registration_user_rout(
         user: UserData,
         session: AsyncSession = Depends(get_async_session)
 ) -> SuccessSchema:
-    """
-    The router for registering the user on the server.
-    Processes incoming user data if everything is entered
-    if correct, it saves the user to the database.
-    :param user: Json with email and password.
-    :return SuccessSchema: Json with successful request completion.
-    """
+    """This method is used to register a user on the server."""
     user.password = await hash_password(user.password)
     await create_user(session, user.model_dump())
     return SuccessSchema(result=True)
@@ -52,12 +46,7 @@ async def registration_user_rout(
 async def auth_user(
     user: UserData = Depends(validate_auth_user),
 ) -> TokenSchema:
-    """
-    The router for user authentication. Accepts user data,
-    checks if such a user exists and if the password is entered correctly.
-    And if everything is OK, it returns the token for subsequent
-    user authentication.
-    """
+    """The method is designed to authenticate the user and issue him a token."""
     token: str = await encode_jwt(user)
     return TokenSchema(access_token=token, token_type="Bearer")
 
@@ -70,6 +59,7 @@ async def auth_user(
 async def request_password_reset(
         user: UserData = Depends(validate_user_mail)
 ) -> TokenReset:
+    """The method is designed to issue a password reset token."""
     token: str = await encode_jwt(user, expire_timedelta=timedelta(minutes=1))
     return TokenReset(token=token)
 
@@ -83,6 +73,10 @@ async def reset_password(
     reset_data: ResetPassword,
     session: AsyncSession = Depends(get_async_session),
 ) -> SuccessSchema:
+    """
+    The method is designed to change the user's password and
+    email him.
+    """
     user: User = await valid_decode_jwt(reset_data.token, session)
     await update_user_password(user.email, reset_data, session)
     asyncio.create_task(send_email(user.email, SUBJECT, BODY))
