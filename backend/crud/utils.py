@@ -15,10 +15,10 @@ async def validate_auth_user(
     session: AsyncSession = Depends(get_async_session)
 ) -> User:
     """
-    Проверка существования пользователя в базе.
-    :param login: Данные о пользователе(chat_id, username, password).
-    :param session: AsyncSession
-    :return User: Возвращает экземпляр пользователя.
+    Verifying the user's existence in the database.
+    :param login: User information (email, password).
+    :param session: A session for database queries.
+    :return User: Returns an instance of the user.
     """
     user: User = await get_user_by_email(session, login.email)
     hash_pass: str = await hash_password(login.password)
@@ -36,10 +36,11 @@ async def validate_user_mail(
     session: AsyncSession = Depends(get_async_session)
 ) -> User:
     """
-    Проверка существования пользователя в базе.
+    Checking the email's existence in the database is needed to
+    reset the password.
     :param email: User's email.
-    :param session: AsyncSession
-    :return User: Возвращает экземпляр пользователя.
+    :param session: A session for database queries.
+    :return User: Returns an instance of the user.
     """
     user: User = await get_user_by_email(session, email.email)
     if not user:
@@ -58,7 +59,7 @@ async def validate_decode_user(
     """
     Проверка существования пользователя в базе.
     :param login: Данные о пользователе(chat_id, username, password).
-    :param session: AsyncSession
+    :param session: A session for database queries.
     :return User: Возвращает экземпляр пользователя.
     """
     user: User = await get_user_by_email(session, login.email)
@@ -73,14 +74,15 @@ async def validate_decode_user(
 
 async def valid_decode_jwt(token: str, session: AsyncSession) -> User:
     """
-    Отправляет токен на валидацию и получение пользователя.
-    :param token: Переданный токен.
-    :param session: AsyncSession
-    :return User: Возвращает экземпляр пользователя.
+    Sends the token for validation and receipt of the user.
+    :param token: The transferred token.
+    :param session: A session for database queries.
+    :return User: Returns an instance of the user.
     """
     try:
         data_user: dict = await decode_jwt(token)
         return await validate_decode_user(UserData(**data_user), session)
+
     except (DecodeError, ExpiredSignatureError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

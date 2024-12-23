@@ -12,12 +12,12 @@ async def check_count_days(
     session: AsyncSession
 ) -> bool | None:
     """
-    Функция проверяет сколько дней было не выполнено, и если
-    количество таких дней больше трех, то удаляет все отметки о выполнении.
-    Тем самым предлагая начать заново.
-    :param habit: Привычка у которой проверяем количество дней о выполнении.
-        Нужен для изменения дат.
-    :param session: AsyncSession для запросов к бд.
+    The function checks how many days were not completed.
+    If the number of such days is more than three, it deletes all
+    the marks about the completion. Thus offering to start anew.
+    :param habit: A habit that checks the number of days it has been completed.
+                    It is needed for changing dates.
+    :param session:
     """
     stmt: Select = select(func.count(Tracking.id)).where(
         Tracking.habit_id == habit.id, Tracking.done == false()
@@ -38,10 +38,10 @@ async def add_days_for_tracking(
     session: AsyncSession
 ) -> None:
     """
-    Изменяет дату окончания привычки на 1 день, если пришла
-    отметка о невыполнении.
-    :param habit_id: ID привычки.
-    :param session: AsyncSession для запросов к бд.
+    Changes the end date of the habit by 1 day if received
+    a mark of non-fulfillment.
+    :param habit_id: The ID of the habit.
+    :param session: A session for database queries.
     """
     habit: Habit | None = await session.get(Habit, habit_id)
     check: bool | None = await check_count_days(habit, session)
@@ -55,10 +55,10 @@ async def subtract_days_tracking(
     session: AsyncSession
 ) -> None:
     """
-    Изменяет дату окончания привычки на -1 день, если пришла
-    отметка о выполнении привычки, которая была помечена как не выполнена.
-    :param habit_id: ID привычки.
-    :param session: AsyncSession для запросов к бд.
+    Changes the end date of the habit by -1 day, if received
+    a note about the completion of a habit that was marked as not completed.
+    :param habit_id:
+    :param session: A session for database queries.
     """
     habit: Habit | None = await session.get(Habit, habit_id)
 
@@ -74,11 +74,13 @@ async def correct_tracking(
     patch=False
 ) -> None:
     """
-    Проверяет нужно ли добавить или отнять дни к дате окончания отслеживания.
-    :param done: Выполнена или не выполнена привычка
-    :param habit_id: ID привычки.
-    :param session: AsyncSession для запросов к бд.
-    :param patch: Нужен если запрос пришел на изменение уже отмеченного дня.
+    Checks whether it is necessary to add or subtract days
+    to the tracking end date.
+    :param done: Is the habit fulfilled or not fulfilled.
+    :param habit_id:
+    :param session: A session for database queries.
+    :param patch: It is needed if a request has been received
+                    to change an already marked day.
     """
     if not done:
         await add_days_for_tracking(habit_id, session)
@@ -92,9 +94,10 @@ async def check_count_days_done(
     session: AsyncSession
 ) -> None:
     """
-    Проверяет не выполнено ли количество дней для отслеживания.
-    :param habit_id: ID привычки.
-    :param session: AsyncSession для запросов к бд.
+    Checking whether the condition for the number of days
+    to track has been met.
+    :param habit_id: The ID of the habit.
+    :param session: A session for database queries.
     """
     habit: Habit | None = await session.get(Habit, habit_id)
     stmt: Select = select(func.count(Tracking.id)).where(

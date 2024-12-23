@@ -1,4 +1,5 @@
 from datetime import datetime as dt, timedelta
+from typing import List
 
 from fastapi import HTTPException
 from sqlalchemy import (
@@ -24,10 +25,10 @@ async def add_tracking_for_habit(
     session: AsyncSession
 ) -> None:
     """
-    Добавляет отслеживание за день в базу данных.
-    :param habit_id: ID привычки.
-    :param data: Данные об отслеживании(Выполнено/Не выполнено)
-    :param session: AsyncSession
+    Adds daily tracking to the database.
+    :param habit_id: The ID of the habit.
+    :param data: Tracking data(Completed/Not completed).
+    :param session: A session for database queries.
     """
     try:
         tracking: Tracking = Tracking(
@@ -35,6 +36,7 @@ async def add_tracking_for_habit(
         )
         session.add(tracking)
         await session.commit()
+
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -51,8 +53,8 @@ async def delete_all_habit_tracking(
 ) -> None:
     """
     Удаляет всё отслеживание у конкретной привычки
-    :param habit_id: ID Habit
-    :param session: AsyncSession
+    :param habit_id: The ID of the habit.
+    :param session: A session for database queries.
     """
     stmt = delete(Tracking).where(Tracking.habit_id == habit_id)
     await session.execute(stmt)
@@ -62,12 +64,11 @@ async def delete_all_habit_tracking(
 async def tracking_for_seven_days(
     habit_id: int,
     session: AsyncSession
-) -> list:
+) -> List[Tracking]:
     """
-    Возвращает данные об отслеживании конкретной привычки за последние дни.
-    :param habit_id: ID Habit
-        выполненных дней и невыполненных дней.
-    :param session: AsyncSession
+    Returns data about tracking a specific habit over the past few days.
+    :param habit_id: The ID of the habit.
+    :param session: A session for database queries.
     """
     seven_days = (dt.now() - timedelta(days=7)).date()
     stmt: Select = (
@@ -88,11 +89,11 @@ async def tracking_done_by_habit_id(
     session: AsyncSession
 ) -> int:
     """
-    Возвращает данные об отслеживании конкретной привычки.
-    :param habit_id: ID Habit
-    :param done: True или False для получения количества
-        выполненных дней и невыполненных дней.
-    :param session: AsyncSession
+    Returns data about tracking a specific habit.
+    :param habit_id: The ID of the habit.
+    :param done: True or False to get the quantity
+        completed days and unfulfilled days.
+    :param session: A session for database queries.
     """
     stmt: Select = select(func.count(Tracking.id)).filter(
         Tracking.habit_id == habit_id, Tracking.done == done
@@ -106,10 +107,10 @@ async def patch_habit_tracking(
     session: AsyncSession
 ) -> None:
     """
-    Меняет статус выполнения привычки на текущий день.
-    :param habit_id: ID Habit
-    :param data: Данные для обновления статуса выполнения отслеживания.
-    :param session: AsyncSession
+    Changes the status of the habit for the current day.
+    :param habit_id: The ID of the habit.
+    :param data: Data for updating the tracking status.
+    :param session: A session for database queries.
     """
     stmt: Select = (
         select(Tracking)
@@ -133,11 +134,10 @@ async def check_valid_date(
     session: AsyncSession
 ) -> None:
     """
-    Проверяет не является ли пришедшая дата меньше даты начала
-    отслеживания привычки..
-    :param habit_id: ID Habit
-    :param data: Данные для обновления статуса выполнения отслеживания.
-    :param session: AsyncSession
+    Checking for the correctness of the date for the tracking mark.
+    :param habit_id: The ID of the habit.
+    :param data: Data for updating the tracking status.
+    :param session: A session for database queries.
     """
     habit: Habit | None = await session.get(Habit, habit_id)
     if habit.start_date > dt.date(data.date):

@@ -16,11 +16,12 @@ async def change_habit_is_active(
     session: AsyncSession
 ) -> None:
     """
-    Изменяет статус привычки. Если идет восстановление из архива, то
-    удаляется все предыдущее отслеживание, и меняется дата начала и окончания.
-    :param habit_id: ID привычки
-    :param data: Донные для изменения статуса привычки.
-    :param session: AsyncSession
+    Changes the status of the habit. If there is a recovery from the archive,
+    then all previous tracking is deleted, and the start and
+    end dates are changed.
+    :param habit_id: The ID of the habit.
+    :param data: Data for changing the status of a habit.
+    :param session: A session for database queries.
     """
     habit: Habit | None = await session.get(Habit, habit_id)
     if habit is None:
@@ -48,10 +49,10 @@ async def update_habit(
     session: AsyncSession
 ) -> None:
     """
-    Изменяет все данные о привычке.
-    :param habit_id: ID Habit
-    :param data: Донные для обновления привычки.
-    :param session: AsyncSession
+    Changes all the data about the habit.
+    :param habit_id: The ID of the habit.
+    :param data: Data for habit updates.
+    :param session: A session for database queries.
     """
     habit: Habit | None = await session.get(Habit, habit_id)
     if habit is None:
@@ -74,9 +75,9 @@ async def delete_habit_by_id(
     session: AsyncSession
 ) -> None:
     """
-    Удаляет привычку из базу данных.
-    :param habit_id: ID Habit
-    :param session: AsyncSession
+    Deletes a habit from the database.
+    :param habit_id: The ID of the habit.
+    :param session: A session for database queries.
     """
     habit: Habit | None = await session.get(Habit, habit_id)
     if habit is None:
@@ -96,10 +97,10 @@ async def habit_by_id(
     session: AsyncSession
 ) -> Habit:
     """
-    Получаем привычку по ее идентификатору.
-    :param habit_id: ID habit's
-    :param session: AsyncSession
-    :return Habit: Возвращает привычку.
+    We get a habit by its identifier.
+    :param habit_id: The ID of the habit.
+    :param session: A session for database queries.
+    :return Habit: Brings back the habit.
     """
     stmt: Select = select(Habit).where(Habit.id == habit_id)
     habit: Habit | None = await session.scalar(stmt)
@@ -121,10 +122,10 @@ async def write_habit(
     session: AsyncSession
 ) -> None:
     """
-    Добавляет привычку в базу данных.
-    :param data: Данные о привычке для записи в бд
-    :param user: Экземпляр User
-    :param session: AsyncSession
+    Adds a habit to the database.
+    :param data: Habit data to be recorded in the database
+    :param user: User Instance.
+    :param session: A session for database queries.
     """
     end_date: datetime.date = (dt.now().date() +
                                timedelta(days=data.number_of_days - 1))
@@ -144,11 +145,11 @@ async def get_habits_by_user(
     session: AsyncSession, user: User, is_active: bool
 ) -> ScalarResult[Habit]:
     """
-    Возвращает список привычек для конкретного пользователя.
-    :param session: AsyncSession
-    :param user: Экземпляр User.
-    :param is_active: Показать активные или уже неактивные привычки.
-    :return ScalarResult[Habit]: Возвращает список привычек пользователя.
+    Returns a list of habits for a specific user.
+    :param session: A session for database queries.
+    :param user: User Instance.
+    :param is_active: Show active or already inactive habits.
+    :return ScalarResult[Habit]: Returns a list of the user's habits.
     """
     active: True_ | False_ = true() if is_active else false()
     stmt = (

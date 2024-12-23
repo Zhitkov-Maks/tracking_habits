@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 from fastapi import HTTPException
 from sqlalchemy import select, Select, Update, update
@@ -11,11 +11,11 @@ from routes.utils import hash_password
 from schemas.user import ResetPassword
 
 
-async def create_user(session: AsyncSession, user: dict) -> None:
+async def create_user(session: AsyncSession, user: Dict[str, str]) -> None:
     """
-    Создает пользователя в базе данных.
-    :param user: Словарь с данными о пользователе.
-    :param session: AsyncSession
+    Creates a user in the database.
+    :param user: A dictionary with user data.
+    :param session: A session for database queries.
     """
     user: User = User(**user)
     try:
@@ -37,9 +37,9 @@ async def get_user_by_email(
     email: str,
 ) -> User:
     """
-    Находит пользователя по id телеграмм и его username.
+    Finds the user by email.
     :param email: User's email.
-    :param session: AsyncSession
+    :param session: A session for database queries.
     """
     stmt: Select[Tuple[User]] = select(User).where(User.email == email)
     return await session.scalar(stmt)
@@ -50,6 +50,12 @@ async def update_user_password(
     reset_password: ResetPassword,
     session: AsyncSession
 ) -> None:
+    """
+    A function for updating the user's password.
+    :param email: User's email.
+    :param reset_password: A new password to save.
+    :param session: A session for database queries.
+    """
     password = await hash_password(reset_password.new_password)
     stmt: Update = (
         update(User)
