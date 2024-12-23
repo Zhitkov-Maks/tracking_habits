@@ -57,10 +57,10 @@ async def validate_decode_user(
     session: AsyncSession = Depends(get_async_session)
 ) -> User:
     """
-    Проверка существования пользователя в базе.
-    :param login: Данные о пользователе(chat_id, username, password).
+    Verifying the user's existence in the database.
+    :param login: User information (email, password).
     :param session: A session for database queries.
-    :return User: Возвращает экземпляр пользователя.
+    :return User: Returns an instance of the user.
     """
     user: User = await get_user_by_email(session, login.email)
     if not user or user.password != login.password:
