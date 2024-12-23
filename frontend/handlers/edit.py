@@ -118,6 +118,7 @@ async def partial_update_save(callback: CallbackQuery, state: FSMContext) -> Non
 
     response: dict = await get_full_info(data.get("id"), callback.from_user.id)
     text: str = await generate_message_answer(response)
+    await state.set_state(HabitState.action)
     await callback.message.answer(
         text=text, parse_mode="HTML", reply_markup=await gen_habit_keyword()
     )
@@ -168,6 +169,7 @@ async def full_create_and_record_db(mess: Message,state: FSMContext) -> None:
 
     # Открываем привычку с обновленными данными.
     response: dict = await get_full_info(data.get("id"), mess.from_user.id)
+    await state.set_state(HabitState.action)
     text: str = await generate_message_answer(response)
     await mess.answer(
         text=text, parse_mode="HTML", reply_markup=await gen_habit_keyword()

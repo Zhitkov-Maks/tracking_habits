@@ -16,7 +16,7 @@ async def get_token_for_reset(email: str) -> Dict[str, str]:
     client: Client = Client(url=reset_url, data={"email": email})
     status_code, response = await client.post()
     if status_code != 201:
-        return response.get("detail").get("descr")
+        raise HTTPException(response.get("detail").get("descr"))
     return response
 
 
