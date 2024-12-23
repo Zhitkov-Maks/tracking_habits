@@ -11,8 +11,8 @@ class SuccessSchema(BaseModel):
     )
 
 
-class ErrorSchema(BaseModel):
-    """The response scheme if the request ended with some kind of error."""
+class Error(BaseModel):
+    """The schema is an object with a description of the error."""
 
     result: bool = Field(
         ...,
@@ -22,6 +22,14 @@ class ErrorSchema(BaseModel):
     descr: str = Field(
         ...,
         description="A small clarification of what caused the error."
+    )
+
+
+class ErrorSchema(BaseModel):
+    """The response scheme if the request ended with some kind of error."""
+    detail: Error = Field(
+        ...,
+        description="An object with errors."
     )
 
 
