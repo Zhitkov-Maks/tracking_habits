@@ -5,106 +5,112 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class ChangeIsActiveSchema(BaseModel):
-    """Схема для изменения активности привычки."""
+    """A scheme for changing the activity of a habit."""
 
-    is_active: bool = Field(..., description="True или False")
+    is_active: bool = Field(..., description="True or False")
 
 
 class HabitSchema(BaseModel):
-    """Схема для добавления новой привычки для отслеживания."""
+    """A scheme for adding a new habit."""
 
     title: str = Field(
         ...,
-        min_length=3,
-        description="Краткое название привычки"
+        min_length=1,
+        description="Short name of the habit"
     )
     body: str = Field(
         ...,
-        min_length=10,
-        description="Подробное описание, что вы хотите сделать пользователь и "
-        "с какой целью.",
+        min_length=1,
+        description="A detailed description of the new habit. "
+                    "Why, why does he want this?",
     )
     number_of_days: int = Field(
         ...,
-        description="Количество дней, в течении которых пользователь "
-        "хочет отслеживать привычку.",
+        description="The number of days during which the user wants "
+                    "to track the habit.",
     )
 
 
 class FullHabitSchema(HabitSchema):
-    id: int = Field(..., description="ID habit's")
+    """A scheme with all the data about the habit."""
+    id: int = Field(..., description="The ID of the habit.")
 
 
 class ListHabitsSchema(BaseModel):
-    """Список активных привычек пользователя."""
+    """A list of the user's habits."""
 
     data: List[FullHabitSchema] = Field(
         ...,
-        description="Объект со списком привычек."
+        description="An object with a list of habits."
     )
 
 
 class AddTrackSchema(BaseModel):
+    """A scheme for adding tracking to a habit."""
     done: bool = Field(
         ...,
-        description="Выполнено или не выполнено "
-        "отслеживание привычки за какой-то день.",
+        description="Habit tracking been completed or not completed "
+                    "for a given day.",
     )
     date: datetime = None
 
 
 class Tracking(BaseModel):
-    """Схема для отправки данных об отслеживании привычки."""
+    """A scheme for sending data about tracking habits."""
 
     model_config = ConfigDict(from_attributes=True)
     done: bool = Field(
         ...,
-        description="Выполнено или не выполнено "
-        "отслеживание привычки за какой-то день.",
+        description="Has habit tracking been completed or not completed "
+                    "for a given day.",
     )
     date: datetime = None
-    habit_id: int = Field(..., description="ID привычки")
-    id: int = Field(..., description="ID tracking")
+    habit_id: int = Field(..., description="The ID of the habit.")
+    id: int = Field(..., description="The ID of the Tracking.")
 
 
 class FullTracking(BaseModel):
-    """
-    Схема для отправки отслеживаний с выполненными датами и невыполненными.
-    """
+    """The scheme for sending the tracking report."""
 
-    done: int
-    not_done: int
+    done: int = Field(
+        ...,
+        description="The number of completed days."
+    )
+    not_done: int = Field(
+        ...,
+        description="The number of days not completed."
+    )
     all: List[Tracking] = Field(
-        ..., description="Отчет за последнюю неделю."
+        ..., description="The report for the last week."
     )
 
 
 class HabitFull(BaseModel):
     """
-    Схема с полной информацией о привычке. Куда входят
-    выполненные дни и невыполненные дни.
+    A scheme with full information about the habit. Where included
+    completed days and unfulfilled days.
     """
 
     title: str = Field(
         ...,
-        min_length=3,
-        description="Краткое название привычки."
+        min_length=1,
+        description="The short name of the habit."
     )
     body: str = Field(
         ...,
-        min_length=10,
-        description="Подробное описание, что вы хотите сделать пользователь и "
-        "с какой целью.",
+        min_length=1,
+        description="A detailed description of the habit. "
+                    "Why, why does he want this?",
     )
     number_of_days: int = Field(
         ...,
-        description="Количество дней, в течении которых пользователь "
-        "хочет отслеживать привычку.",
+        description="The number of days during which the user wants "
+                    "to track the habit.",
     )
     start_date: datetime = None
     end_date: datetime = None
-    is_active: bool
+    is_active: bool = Field(..., description="True or False")
     tracking: FullTracking = Field(
         ...,
-        description="Объект с отслеживанием дней."
+        description="An object with tracking days."
     )

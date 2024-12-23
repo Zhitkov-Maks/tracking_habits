@@ -4,9 +4,9 @@ from pydantic import Field
 
 class UserData(BaseModel):
     """
-    Схема для отправки данных пользователя на сервер.
-    Пользователь идентифицируется по email, так как он является
-    уникальным для каждого пользователя.
+    A scheme for sending user data to the server.
+    The user is identified by email, as it is
+    unique for each user.
     """
     email: EmailStr = Field(..., description="User's email.")
     password: str = Field(
@@ -15,9 +15,14 @@ class UserData(BaseModel):
 
 
 class Email(BaseModel):
-    email: str
+    email: EmailStr = Field(..., description="User's email.")
 
 
 class ResetPassword(BaseModel):
-    new_password: str
-    token: str
+    password: str = Field(
+        ..., min_length=4, description="The user's new password."
+    )
+    token: str = Field(
+        ..., description="A token for authenticating the user when "
+                         "the password is reset."
+    )
