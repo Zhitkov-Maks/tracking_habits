@@ -26,7 +26,7 @@ async def change_habit_is_active(
     habit: Habit | None = await session.get(Habit, habit_id)
     if habit is None:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail={
                 "result": False,
                 "description": "Привычка не найдена, возможно она уже удалена.",
