@@ -12,6 +12,7 @@ from keyboards.archive import generate_inline_habits_list
 from keyboards.detail import gen_habit_keyword
 from keyboards.keyboard import main_menu, confirm
 from states.add import HabitState
+from states.archive import ArchiveState
 from utils.habits import generate_message_answer, get_base_data_habit
 from handlers.decorator_handlers import decorator_errors
 from loader import mark_as_archive, archived
@@ -24,12 +25,63 @@ bot: Bot = Bot(token=BOT_TOKEN)
 @decorator_errors
 async def output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
     """Shows a list of active habits for today."""
-    result: dict = await get_list_habits(call.from_user.id, is_active=1)
+    result: dict = await get_list_habits(
+        call.from_user.id, page=1, is_active=1)
     keyword: InlineKeyboardMarkup = await generate_inline_habits_list(
-        result.get("data")
+        result.get("data"), page=1
+    )
+    await state.update_data(page=1, is_active=1)
+    await state.set_state(HabitState.show)
+    await call.message.answer(
+        text="Список ваших актуальных привычек",
+        reply_markup=keyword
     )
 
-    await state.set_state(HabitState.show)
+
+@detail.callback_query(F.data == "next_page")
+@decorator_errors
+async def next_output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
+    """Shows a list of active habits for today."""
+    page: int = (await state.get_data()).get("page")
+    is_active: int = (await state.get_data()).get("is_active")
+
+    result: dict = await get_list_habits(
+        call.from_user.id, page=page+1, is_active=is_active
+    )
+    keyword: InlineKeyboardMarkup = await generate_inline_habits_list(
+        result.get("data"), page + 1
+    )
+    await state.update_data(page=page+1)
+
+    if is_active:
+        await state.set_state(HabitState.show)
+    else:
+        await state.set_state(ArchiveState.show)
+
+    await call.message.answer(
+        text="Список ваших актуальных привычек",
+        reply_markup=keyword
+    )
+
+
+@detail.callback_query(F.data == "prev_page")
+@decorator_errors
+async def prev_output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
+    """Shows a list of active habits for today."""
+    page: int = (await state.get_data()).get("page")
+    is_active: int = (await state.get_data()).get("is_active")
+
+    result: dict = await get_list_habits(
+        call.from_user.id, page=page-1, is_active=is_active
+    )
+    keyword: InlineKeyboardMarkup = await generate_inline_habits_list(
+        result.get("data"), page - 1
+    )
+    await state.update_data(page=page-1)
+    if is_active:
+        await state.set_state(HabitState.show)
+    else:
+        await state.set_state(ArchiveState.show)
     await call.message.answer(
         text="Список ваших актуальных привычек",
         reply_markup=keyword

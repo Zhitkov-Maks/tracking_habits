@@ -25,15 +25,16 @@ arch: Router = Router()
 @decorator_errors
 async def archive_list_habits(call: CallbackQuery, state: FSMContext) -> None:
     """Shows archived habits"""
-    result: dict = await get_list_habits(call.from_user.id, is_active=0)
+    result: dict = await get_list_habits(call.from_user.id, page=1, is_active=0)
     keyword: InlineKeyboardMarkup = \
-        await generate_inline_habits_list(result.get("data"))
+        await generate_inline_habits_list(result.get("data"), page=1)
 
     if len(result.get("data")) != 0:
         text: str = "Список ваших привычек из архива."
     else:
         text: str = "У вас нет архивированных привычек."
 
+    await state.update_data(page=1, is_active=0)
     await state.set_state(ArchiveState.show)
     await call.message.answer(text=text, reply_markup=keyword)
 
@@ -47,7 +48,6 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
 
     await state.update_data(id=call.data)
     await state.set_state(ArchiveState.action)
-
     keyword: InlineKeyboardMarkup = await gen_habit_keyword_archive()
     await call.message.answer(
         text=text, parse_mode="HTML", reply_markup=keyword

@@ -23,6 +23,9 @@ BODY = ("Ваш пароль был успешно изменен. Если эт
 SUBJECT = "Changed PASSWORD"
 
 
+PAGE_SIZE = 10
+
+
 class AuthJWT(BaseModel):
     private_key_path: Path = BASE_DIR / "certs" / "jwt-private.pem"
     public_key_path: Path = BASE_DIR / "certs" / "jwt-public.pem"

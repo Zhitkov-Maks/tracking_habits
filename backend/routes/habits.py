@@ -57,13 +57,14 @@ async def create_habits(
 )
 async def get_list_habits(
     is_active: int,
+    page: int,
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> dict:
     """The method is designed to get a list of active or inactive habits."""
     user: User = await valid_decode_jwt(token.credentials, session)
     return {
-        "data": (await get_habits_by_user(session, user, bool(is_active)))
+        "data": (await get_habits_by_user(session, user, bool(is_active), page))
         .unique()
         .all()
     }
@@ -146,7 +147,7 @@ async def patch_habits_data(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
-    """The method is designed to measure the activity of a habit."""
+    """This method is designed to change habit's is_active ."""
     await valid_decode_jwt(token.credentials, session)
     await change_habit_is_active(habit_id, data, session)
     return SuccessSchema(result=True)
