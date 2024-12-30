@@ -42,6 +42,7 @@ async def output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
 @decorator_errors
 async def next_output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
     """Shows a list of active habits for today."""
+    await call.message.delete_reply_markup()
     page: int = (await state.get_data()).get("page")
     is_active: int = (await state.get_data()).get("is_active")
 
@@ -58,8 +59,7 @@ async def next_output_list_habits(call: CallbackQuery, state: FSMContext) -> Non
     else:
         await state.set_state(ArchiveState.show)
 
-    await call.message.answer(
-        text="Список ваших актуальных привычек",
+    await call.message.edit_reply_markup(
         reply_markup=keyword
     )
 
@@ -82,8 +82,8 @@ async def prev_output_list_habits(call: CallbackQuery, state: FSMContext) -> Non
         await state.set_state(HabitState.show)
     else:
         await state.set_state(ArchiveState.show)
-    await call.message.answer(
-        text="Список ваших актуальных привычек",
+
+    await call.message.edit_reply_markup(
         reply_markup=keyword
     )
 

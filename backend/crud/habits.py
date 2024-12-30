@@ -5,7 +5,6 @@ from sqlalchemy import select, ScalarResult, true, false, True_, False_, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from config import PAGE_SIZE
 from crud.tracking import delete_all_habit_tracking
 from database import Habit, User
 from schemas.habits import HabitSchema, ChangeIsActiveSchema
@@ -143,10 +142,15 @@ async def write_habit(
 
 
 async def get_habits_by_user(
-    session: AsyncSession, user: User, is_active: bool, page: int
+    session: AsyncSession,
+    user: User,
+    is_active: bool,
+    page: int,
+    page_size: int
 ) -> ScalarResult[Habit]:
     """
     Returns a list of habits for a specific user.
+    :param page_size: Page size for the response.
     :param session: A session for database queries.
     :param user: User Instance.
     :param is_active: Show active or already inactive habits.
@@ -154,11 +158,11 @@ async def get_habits_by_user(
     :return ScalarResult[Habit]: Returns a list of the user's habits.
     """
     active: True_ | False_ = true() if is_active else false()
-    start: int = (page - 1) * PAGE_SIZE
+    start: int = (page - 1) * page_size
     stmt = (
         select(Habit)
             .where(
         Habit.user_id == user.id, Habit.is_active == active
-        ).limit(PAGE_SIZE + 1).offset(start)
+        ).limit(page_size + 1).offset(start)
     )
     return await session.scalars(stmt)

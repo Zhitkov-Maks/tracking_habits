@@ -58,13 +58,16 @@ async def create_habits(
 async def get_list_habits(
     is_active: int,
     page: int,
+    page_size: int,
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> dict:
     """The method is designed to get a list of active or inactive habits."""
     user: User = await valid_decode_jwt(token.credentials, session)
     return {
-        "data": (await get_habits_by_user(session, user, bool(is_active), page))
+        "data": (
+            await get_habits_by_user(
+                session, user, bool(is_active), page, page_size))
         .unique()
         .all()
     }
