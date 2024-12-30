@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict
 
 from aiogram import Router, F
@@ -10,6 +11,7 @@ from handlers.decorator_handlers import decorator_errors
 from keyboards.keyboard import cancel, main_menu
 from loader import password
 from states.reset import ResetPassword
+from utils.common import remove_message_after_delay
 from utils.register import is_valid_email, is_valid_password
 
 reset: Router = Router()
@@ -40,6 +42,7 @@ async def send_request_for_reset(message: Message, state: FSMContext) -> None:
     which is valid for 1 minute.
     """
     email: str = message.text
+    asyncio.create_task(remove_message_after_delay(5, message))
     is_valid: bool = is_valid_email(email)
     if is_valid:
         token: Dict[str, str] = await get_token_for_reset(email)
@@ -61,6 +64,7 @@ async def send_request_for_reset(message: Message, state: FSMContext) -> None:
 async def reset_password_query(message: Message, state: FSMContext) -> None:
     """Sends a new password to change the user's password."""
     new_password: str = message.text
+    asyncio.create_task(remove_message_after_delay(5, message))
     is_valid: bool = is_valid_password(new_password)
     if is_valid:
         data: Dict[str, str] = await state.get_data()

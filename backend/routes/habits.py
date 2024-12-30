@@ -35,6 +35,7 @@ jwt_token = HTTPBearer()
 @habits_router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
+    responses={403: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def create_habits(
@@ -42,7 +43,7 @@ async def create_habits(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
-    """Роут обрабатывающий создание новой привычки."""
+    """The method is designed to add a new habit."""
     user: User = await valid_decode_jwt(token.credentials, session)
     await write_habit(data, user, session)
     return SuccessSchema(result=True)
@@ -51,20 +52,22 @@ async def create_habits(
 @habits_router.get(
     "/",
     status_code=status.HTTP_200_OK,
+    responses={403: {"model": ErrorSchema}},
     response_model=ListHabitsSchema,
 )
 async def get_list_habits(
     is_active: int,
+    page: int,
+    page_size: int,
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> dict:
-    """
-    Роут возвращает список с
-    привычками у конкретного пользователя.
-    """
+    """The method is designed to get a list of active or inactive habits."""
     user: User = await valid_decode_jwt(token.credentials, session)
     return {
-        "data": (await get_habits_by_user(session, user, bool(is_active)))
+        "data": (
+            await get_habits_by_user(
+                session, user, bool(is_active), page, page_size))
         .unique()
         .all()
     }
@@ -74,13 +77,14 @@ async def get_list_habits(
     "/{habit_id}/",
     status_code=status.HTTP_200_OK,
     response_model=HabitFull,
+    responses={403: {"model": ErrorSchema}, 404: {"model": ErrorSchema}},
 )
 async def get_habits_by_id(
     habit_id: int,
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> HabitFull:
-    """Роут возвращает полную информацию о привычке."""
+    """The method is designed to get complete information about the habit."""
     await valid_decode_jwt(token.credentials, session)
     habit: Habit = await habit_by_id(habit_id, session)
 
@@ -102,7 +106,7 @@ async def get_habits_by_id(
 @habits_router.delete(
     "/{habit_id}/",
     status_code=status.HTTP_200_OK,
-    responses={403: {"model": ErrorSchema}},
+    responses={403: {"model": ErrorSchema}, 404: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def delete_habits_track(
@@ -110,7 +114,7 @@ async def delete_habits_track(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
-    """Роут удаляет выбранную привычку."""
+    """This method is designed to remove a habit by id."""
     await valid_decode_jwt(token.credentials, session)
     await delete_habit_by_id(habit_id, session)
     return SuccessSchema(result=True)
@@ -119,6 +123,7 @@ async def delete_habits_track(
 @habits_router.put(
     "/{habit_id}/",
     status_code=status.HTTP_200_OK,
+    responses={403: {"model": ErrorSchema}, 404: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def update_habits_data(
@@ -127,10 +132,7 @@ async def update_habits_data(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
-    """
-    Роут изменяет такие данные как название, описание и
-    количество дней для отслеживания.
-    """
+    """The method is designed to change habits."""
     await valid_decode_jwt(token.credentials, session)
     await update_habit(habit_id, data, session)
     return SuccessSchema(result=True)
@@ -139,6 +141,7 @@ async def update_habits_data(
 @habits_router.patch(
     "/{habit_id}/",
     status_code=status.HTTP_200_OK,
+    responses={403: {"model": ErrorSchema}, 404: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def patch_habits_data(
@@ -147,7 +150,7 @@ async def patch_habits_data(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
-    """Роут изменяет активность привычки."""
+    """This method is designed to change habit's is_active ."""
     await valid_decode_jwt(token.credentials, session)
     await change_habit_is_active(habit_id, data, session)
     return SuccessSchema(result=True)

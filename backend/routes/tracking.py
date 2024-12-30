@@ -21,7 +21,10 @@ track_rout = APIRouter(prefix="/tracking", tags=["TRACKING"])
 @track_rout.post(
     "/{habit_id}/",
     status_code=status.HTTP_201_CREATED,
-    responses={409: {"model": ErrorSchema}, 400: {"model": ErrorSchema}},
+    responses={
+        400: {"model": ErrorSchema},
+        403: {"model": ErrorSchema},
+        409: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def add_habits_track(
@@ -30,7 +33,10 @@ async def add_habits_track(
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
-    """Роут добавляет отслеживание привычки."""
+    """
+    The method is intended to add a mark of completion for the
+    transferred day.
+    """
     await valid_decode_jwt(token.credentials, session)
     await check_valid_date(data, habit_id, session)
     await add_tracking_for_habit(habit_id, data, session)
@@ -43,6 +49,10 @@ async def add_habits_track(
 @track_rout.patch(
     "/{habit_id}/",
     status_code=status.HTTP_200_OK,
+    responses={
+        400: {"model": ErrorSchema},
+        403: {"model": ErrorSchema},
+        404: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
 async def add_habits_track(
@@ -52,8 +62,8 @@ async def add_habits_track(
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> SuccessSchema:
     """
-    Роут изменяет выполнение отслеживания. Например, не
-    выполнено на выполнено.
+    The method is intended to change the completion
+    mark for the transferred day.
     """
     await valid_decode_jwt(token.credentials, session)
     await check_valid_date(data, habit_id, session)

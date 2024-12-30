@@ -9,7 +9,7 @@ from sqlalchemy import (
     Result,
     Delete,
 )
-from sqlalchemy.exc import IntegrityError, ProgrammingError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -23,11 +23,10 @@ async def add_user_time(
     session: AsyncSession
 ) -> None:
     """
-    Добавляет настройки для уведомлений.
-    :param data: Новое время уведомлений.
-    :param user: Пользователь у которого нужно обновить время.
-    :param session: Сессия для работы с бд.
-    :return None:
+    Adds settings for notifications, implemented for telegram users.
+    :param data: New notification time.
+    :param user: The user who needs to update the time.
+    :param session: A session for database queries.
     """
     remind: Remind = Remind(
         user_id=user.id,
@@ -38,6 +37,7 @@ async def add_user_time(
         session.add(remind)
         await session.commit()
         await session.close()
+
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -54,11 +54,10 @@ async def upgrade_time(
     session: AsyncSession
 ) -> None:
     """
-    Обновляет время уведомлений.
-    :param data: Новое время уведомлений.
-    :param user: Пользователь у которого нужно обновить время.
-    :param session: Сессия для работы с бд.
-    :return None:
+    Updates the notification time.
+    :param data: New notification time.
+    :param user: The user who needs to update the time.
+    :param session: A session for database queries.
     """
     stmt: Select = select(Remind).filter(Remind.user_id == user.id)
     remind: Remind = await session.scalar(stmt)
@@ -79,10 +78,9 @@ async def remove_time(
     session: AsyncSession
 ) -> None:
     """
-    Удаляет настройки уведомлений.
-    :param user: Пользователь которому нужно удалить настройки.
-    :param session: Сессия для работы с бд.
-    :return None:
+    Deletes notification settings.
+    :param user: The user who needs to delete the settings.
+    :param session: A session for database queries.
     """
     stmt: Delete = delete(Remind).where(Remind.user_id == user.id)
     await session.execute(stmt)
@@ -91,26 +89,15 @@ async def remove_time(
 
 async def get_settings_all(session: AsyncSession) -> Sequence:
     """
-    Функция возвращает список пользователей у которых имеются настройки
-    для уведомлений. Код обернут в try except по причине того что при первом
-    запуске проекта база еще не создана, а у нас сразу выполняется запрос
-    на получение пользователей у которых настроено уведомление и приложение
-    падает с ошибкой.
-    :param session: AsyncSession
-    :return Sequence: Список пользователей и время для показа уведомлений.
+    The function returns a list of users who have settings.
+    for notifications.
+    :param session: A session for database queries.
+    :return Sequence: The list of users and the time for displaying
+                        notifications.
     """
-    try:
-        sql: TextClause = text(
-            'SELECT rm.user_chat_id, rm.time FROM users as us INNER JOIN '
-            'reminds as rm on (us.id = rm.user_id)'
-        )
-        results: Result = await session.execute(sql)
-        return results.all()
-    except ProgrammingError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={
-                "result": False,
-                "descr": "Записей еще не создано.",
-            },
-        )
+    sql: TextClause = text(
+        'SELECT rm.user_chat_id, rm.time FROM users as us INNER JOIN '
+        'reminds as rm on (us.id = rm.user_id)'
+    )
+    results: Result = await session.execute(sql)
+    return results.all()

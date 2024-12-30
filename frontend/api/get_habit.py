@@ -1,21 +1,26 @@
 from http.client import HTTPException
 from api.client import Client
 from utils.create import create_header
-from config import habit_url
+from config import habit_url, PAGE_SIZE
 
 
-async def get_list_habits(user_id: int,is_active: int = 1) -> dict:
+async def get_list_habits(
+    user_id: int,
+    page: int,
+    is_active: int = 1
+) -> dict:
     """
     Request for a getting list of habits.
     :param user_id: ID user.
     :param is_active: It is needed to show either habits
                         from the archive or active.
+    :param page: The page you need to display.
     :return dict: A dictionary with a list of habits.
     """
-    url: str = habit_url + f"?is_active={is_active}"
+    url: str = habit_url + f"?is_active={is_active}&page={page}&page_size={PAGE_SIZE}"
     client: Client = Client(url=url)
     client.header.update(Authorization=await create_header(user_id))
-    status_code, response= await client.get()
+    status_code, response = await client.get()
 
     if status_code == 200:
         return response

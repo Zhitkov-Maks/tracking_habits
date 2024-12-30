@@ -16,7 +16,7 @@ async def get_token_for_reset(email: str) -> Dict[str, str]:
     client: Client = Client(url=reset_url, data={"email": email})
     status_code, response = await client.post()
     if status_code != 201:
-        return response.get("detail").get("descr")
+        raise HTTPException(response.get("detail").get("descr"))
     return response
 
 
@@ -29,7 +29,7 @@ async def query_for_reset_password(token: str, new_password: str) -> None:
     :param new_password: New password to change.
     :return: None.
     """
-    data = {"new_password": new_password, "token": token}
+    data = {"password": new_password, "token": token}
     client: Client = Client(
         url=reset_password_url,
         data=data
