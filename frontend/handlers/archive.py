@@ -39,7 +39,7 @@ async def archive_list_habits(call: CallbackQuery, state: FSMContext) -> None:
     await call.message.answer(text=text, reply_markup=keyword)
 
 
-@arch.callback_query(ArchiveState.show)
+@arch.callback_query(ArchiveState.show, F.data.isdigit())
 @decorator_errors
 async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
     """Show detailed information about the habit from the archive."""

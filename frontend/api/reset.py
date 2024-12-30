@@ -29,7 +29,7 @@ async def query_for_reset_password(token: str, new_password: str) -> None:
     :param new_password: New password to change.
     :return: None.
     """
-    data = {"new_password": new_password, "token": token}
+    data = {"password": new_password, "token": token}
     client: Client = Client(
         url=reset_password_url,
         data=data

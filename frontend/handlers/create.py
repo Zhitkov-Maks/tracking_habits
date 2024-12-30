@@ -58,12 +58,3 @@ async def create_and_record_db(mess: Message, state: FSMContext) -> None:
     await request_create_habit(await state.get_data(), mess.from_user.id)
     await mess.answer(text=success_save, reply_markup=main_menu)
     await state.clear()
-
-
-@add.message(AddState.numbers_of_days)
-async def handler_errors(mess: Message) -> None:
-    """Handler if the user suddenly entered a string instead of a number."""
-    await mess.answer(
-        text="Ошибка ввода, нужно было ввести число, попробуйте сначала.",
-        reply_markup=main_menu
-    )
