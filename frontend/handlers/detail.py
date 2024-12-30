@@ -30,10 +30,16 @@ async def output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
     keyword: InlineKeyboardMarkup = await generate_inline_habits_list(
         result.get("data"), page=1
     )
+
+    if len(result.get("data")) != 0:
+        text: str = "Список ваших актуальных привычек"
+    else:
+        text: str = "У вас нет активных привычек."
+
     await state.update_data(page=1, is_active=1)
     await state.set_state(HabitState.show)
     await call.message.answer(
-        text="Список ваших актуальных привычек",
+        text=text,
         reply_markup=keyword
     )
 
@@ -78,6 +84,7 @@ async def prev_output_list_habits(call: CallbackQuery, state: FSMContext) -> Non
         result.get("data"), page - 1
     )
     await state.update_data(page=page-1)
+
     if is_active:
         await state.set_state(HabitState.show)
     else:
