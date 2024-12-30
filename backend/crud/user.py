@@ -56,7 +56,7 @@ async def update_user_password(
     :param reset_password: A new password to save.
     :param session: A session for database queries.
     """
-    password = await hash_password(reset_password.new_password)
+    password = await hash_password(reset_password.password)
     stmt: Update = (
         update(User)
         .where(User.email == email)
