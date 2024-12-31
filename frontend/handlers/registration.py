@@ -66,6 +66,7 @@ async def final_registration(
             await message.answer(success_registration, reply_markup=main_menu)
         else:
             await message.answer(result, reply_markup=main_menu)
+        await state.clear()
 
     else:
         text: str = "Ваш пароль не соответствует требованиям! "

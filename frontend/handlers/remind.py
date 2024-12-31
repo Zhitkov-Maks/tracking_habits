@@ -92,3 +92,4 @@ async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
         show_alert=True
     )
     await call.message.answer(text="Меню", reply_markup=main_menu)
+    await state.clear()
