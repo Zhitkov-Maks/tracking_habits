@@ -1,4 +1,4 @@
-# TRACKING HABITS BOT VERSION 0.1.1
+# TRACKING HABITS BOT VERSION 1.1.1
 
 Телеграмм бот для отслеживания привычек.
 
@@ -15,7 +15,6 @@
 
 ### Технологический стек
 - PostgreSQL;
-
 - SQLAlchemy;
 - Alembic;
 - Aiogram;
@@ -38,12 +37,10 @@
 
 
 ```shell
-# Generate an RSA private key, of size 2048
 openssl genrsa -out jwt-private.pem 2048
 ```
 
 ```shell
-# Extract the public key from the key pair, which can be used in a certificate
 openssl rsa -in jwt-private.pem -outform PEM -pubout -out jwt-public.pem
 ```
 
@@ -58,12 +55,4 @@ openssl rsa -in jwt-private.pem -outform PEM -pubout -out jwt-public.pem
 docker compose up -d
 ```
 
-- Далее нужно применить миграции для создания таблиц в бд, для этого нужно перейти в контейнер 
-tracking_app(docker ps посмотреть ID контейнера и docker exec -it <ID docker container> sh) и 
-выполнить команду:
-
-```commandline
-alembic upgrade head
-```
-
-- Приложение готово к работе.
+Миграции будут применены автоматически и приложение должно запуститься и работать.
