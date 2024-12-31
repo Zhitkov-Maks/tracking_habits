@@ -61,6 +61,7 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
             await message.answer(
                 result, reply_markup=await generate_inline_keyboard_reset()
             )
+        await state.clear()
 
     else:
         text: str = "Ваш пароль не соответствует требованиям! "

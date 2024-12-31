@@ -95,9 +95,7 @@ async def get_settings_all(session: AsyncSession) -> Sequence:
     :return Sequence: The list of users and the time for displaying
                         notifications.
     """
-    sql: TextClause = text(
-        'SELECT rm.user_chat_id, rm.time FROM users as us INNER JOIN '
-        'reminds as rm on (us.id = rm.user_id)'
-    )
-    results: Result = await session.execute(sql)
+    stmt = select(Remind.user_chat_id, Remind.time)
+
+    results: Result = await session.execute(stmt)
     return results.all()

@@ -73,6 +73,7 @@ async def reset_password_query(message: Message, state: FSMContext) -> None:
                                   "Теперь вы можете войти в свой аккаунт.",
                              reply_markup=main_menu
                              )
+        await state.clear()
     else:
         text: str = "Ваш пароль не соответствует требованиям! "
         await message.answer(
