@@ -17,6 +17,5 @@ async def invalid_message_text(message: Message, state: FSMContext):
 
 
 @invalid_router.callback_query(F.data)
-async def invalid_callback(callback: CallbackQuery, state: FSMContext) -> None:
-    await state.clear()
+async def invalid_callback(callback: CallbackQuery) -> None:
     await callback.answer(text="I can't show you anything. Sorry!")
