@@ -1,13 +1,13 @@
+from typing import List, Tuple
+
 from fastapi import HTTPException
 from sqlalchemy import (
     delete,
     Select,
     select,
-    Sequence,
-    text,
-    TextClause,
     Result,
     Delete,
+    Sequence
 )
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -60,7 +60,7 @@ async def upgrade_time(
     :param session: A session for database queries.
     """
     stmt: Select = select(Remind).filter(Remind.user_id == user.id)
-    remind: Remind = await session.scalar(stmt)
+    remind: Remind | None = await session.scalar(stmt)
     if remind is not None:
         remind.time = data.time
         await session.commit()

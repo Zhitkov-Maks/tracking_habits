@@ -16,7 +16,7 @@ from routes.habits import jwt_token
 from schemas.general import SuccessSchema, ErrorSchema
 from schemas.remind import RemindSchema, GetRemindSchemaAll
 
-remind = APIRouter(prefix="/remind", tags=["REMIND"])
+remind = APIRouter(prefix="/reminds", tags=["REMIND"])
 
 
 @remind.post(

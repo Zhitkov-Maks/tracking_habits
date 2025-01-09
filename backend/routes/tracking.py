@@ -15,11 +15,11 @@ from routes.habits import jwt_token
 from schemas.habits import AddTrackSchema
 from schemas.general import SuccessSchema, ErrorSchema
 
-track_rout = APIRouter(prefix="/tracking", tags=["TRACKING"])
+track_rout = APIRouter(prefix="/habits", tags=["TRACKING"])
 
 
 @track_rout.post(
-    "/{habit_id}/",
+    "/{habit_id}/tracking/",
     status_code=status.HTTP_201_CREATED,
     responses={
         400: {"model": ErrorSchema},
@@ -47,7 +47,7 @@ async def add_habits_track(
 
 
 @track_rout.patch(
-    "/{habit_id}/",
+    "/{habit_id}/tracking/",
     status_code=status.HTTP_200_OK,
     responses={
         400: {"model": ErrorSchema},
@@ -55,7 +55,7 @@ async def add_habits_track(
         404: {"model": ErrorSchema}},
     response_model=SuccessSchema,
 )
-async def add_habits_track(
+async def change_habits_track(
     habit_id: int,
     data: AddTrackSchema,
     session: AsyncSession = Depends(get_async_session),
