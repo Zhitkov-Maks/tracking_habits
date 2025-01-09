@@ -58,7 +58,7 @@ async def create_habits(
 async def get_list_habits(
     is_active: int,
     page: int,
-    page_size: int,
+    page_size: int = 10,
     session: AsyncSession = Depends(get_async_session),
     token: HTTPAuthorizationCredentials = Security(jwt_token),
 ) -> dict:
