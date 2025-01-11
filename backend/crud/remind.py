@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 from fastapi import HTTPException
 from sqlalchemy import (
     delete,

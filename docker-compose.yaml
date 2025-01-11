@@ -21,7 +21,7 @@ services:
       - BOT_TOKEN=${TOKEN}
 
     env_file:
-      - .env
+      - ./.env
 
     ports:
       - "443:443"

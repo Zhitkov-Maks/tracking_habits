@@ -12,7 +12,7 @@ login_url: str = API_ADDRESS + BASE_URL + "auth/login/"
 reset_url: str = API_ADDRESS + BASE_URL + "auth/request-password-reset/"
 reset_password_url: str = API_ADDRESS + BASE_URL + "auth/reset-password/"
 habit_url: str = API_ADDRESS + BASE_URL + "habits/"
-tracking_url: str = habit_url + "/{habit_id}/tracking/"
+tracking_url: str = habit_url + "{habit_id}/tracking/"
 remind_url: str = API_ADDRESS + BASE_URL + "reminds/"
 
 jwt_token_data: Dict[int, str] = {}
