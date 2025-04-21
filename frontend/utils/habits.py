@@ -76,18 +76,17 @@ async def generate_message_answer(data: dict) -> str:
         f"Дата окончания: {hbold(data.get("end_date")[:10])}\n"
         f"Успешных дней: {hbold(count_days[0])}\n"
         f"Не успешных дней: {hbold(count_days[1])}\n"
-        f"{hbold('Отметки за последние 7 дней:')
-        if len(data.get('tracking').get('all')) > 0
-        else "Отметки за последние 7 дней отсутствуют."}\n"
+        f"{hbold('Отметки за последние 7 дней:') if len(
+            data.get('tracking').get('all')) > 0 else
+            "Отметки за последние 7 дней отсутствуют."}\n"
         f"{report_sevent_days}"
         f"Осталось дней: {hbold(count_days[2])} "
         f"дней.\n"
-        f"{hbold('Привычка успешно выполнена и помещена в архив.')
-        if count_days[0] == data.get("number_of_days") else ''}\n"
+        f"{hbold('Привычка успешно выполнена и помещена в архив.') if (
+            count_days[0] == data.get("number_of_days")) else ''}\n"
         f"{hbold('Внимание. У вас уже есть три пометки о невыполнении, '
                  'еще одна отметка - данные об отслеживании обнуляться, и '
-                 'вам придется начинать сначала!')
-        if count_days[1] == 3 else ''}"
+                 'вам придется начинать сначала!') if count_days[1] == 3 else ''}"
     )
 
 

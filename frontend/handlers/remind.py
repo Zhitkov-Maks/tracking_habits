@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery
 
 from api.remind import add_time_remind, remove_time
 from handlers.decorator_handlers import decorator_errors
@@ -16,18 +16,21 @@ from utils.remind import (
     add_send_message,
     remove_scheduler_job
 )
+from loader import menu_remind, choice_hour
 
 remind: Router = Router()
 
 
-@remind.message(F.text == "/remind")
-async def start_work_to_remind(mess: Message, state: FSMContext) -> None:
+@remind.callback_query(F.data == "remind")
+async def start_work_to_remind(call: CallbackQuery, state: FSMContext) -> None:
     """
     A command handler for working with reminders.
     Shows a menu for selecting an action.
     """
     await state.set_state(RemindState.start)
-    await mess.answer(text="Выберите действие", reply_markup=remind_button)
+    await call.message.edit_text(
+        text=menu_remind, reply_markup=remind_button
+    )
 
 
 @remind.callback_query(RemindState.start, F.data == "remove")
@@ -39,7 +42,7 @@ async def confirm_to_remove_remind(
     Shows the menu for confirmation.
     """
     await state.set_state(RemindState.confirm)
-    await call.message.answer(text="Вы уверены?", reply_markup=confirm)
+    await call.message.edit_text(text="Вы уверены?", reply_markup=confirm)
 
 
 @remind.callback_query(RemindState.confirm, F.data == "yes")
@@ -48,8 +51,9 @@ async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
     """The handler for deleting the reminder."""
     await remove_time(call.from_user.id)
     await remove_scheduler_job(call.from_user.id)
-    await call.message.answer(
-        text="Напоминание было удалено.", reply_markup=main_menu
+    await call.answer(text="Напоминание удалено", show_alert=True)
+    await call.message.edit_text(
+        text="Меню!", reply_markup=main_menu
     )
     await state.clear()
 
@@ -68,9 +72,8 @@ async def add_remind(call: CallbackQuery, state: FSMContext) -> None:
     else:
         await state.update_data(update=False)
 
-    await call.message.answer(
-        text="Выберите в какой час вам напомнить о "
-             "необходимости сделать запись.",
+    await call.message.edit_text(
+        text=choice_hour,
         reply_markup=await create_time()
     )
 

@@ -3,8 +3,19 @@ from typing import Dict, List
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from utils.tracking import days_ago
 
-weekdays: tuple = ("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс",)
+
+weekdays: tuple = (
+    "Понедельник",
+    "Вторник",
+    "Среда",
+    "Четверг",
+    "Пятница",
+    "Суббота",
+    "Воскресение",
+)
+
 
 async def get_weekdays() -> dict:
     """
@@ -14,56 +25,54 @@ async def get_weekdays() -> dict:
                     and the value is a tuple with the date and day of the week.
     """
     today: datetime.date = datetime.now().date()
-    days: Dict[int, tuple] = {}
+    days: list = []
     for i in range(7):
         curr_date = today - timedelta(days=i)
-        days.update({i: (
+        days.append((
             f"{str(curr_date)[8:10]}.{str(curr_date)[5:7]}",
             weekdays[curr_date.weekday()]
-        )})
+        ))
     return days
 
 
-async def inline_choice_calendar() -> InlineKeyboardMarkup:
+async def inline_choice_calendar(
+    seven_days: list[dict]
+) -> InlineKeyboardMarkup:
     """
     Generates a keyboard with dates to mark the completion/non-fulfillment.
     :return InlineKeyboardMarkup: A keyboard with dates.
     """
     days: dict = await get_weekdays()
-    inline_choice = [
+    if len(seven_days) == 0:
+        seven_days.append({})
+    
+    inline_choice: list[list] = []
+    for key, value, day in zip(days_ago.keys(), days, seven_days):
+        mark_day = day.get("done")
+        if mark_day:
+            mark = "✅"
+        else:
+            mark = "❌"
+        inline_choice.append(
+            [
+                InlineKeyboardButton(
+                    text=f"{value[0]} -|- {value[1]} -|- {mark}",
+                    callback_data=key
+                )
+            ]
+        )
+    inline_choice.append(
         [
             InlineKeyboardButton(
-                text=str(days[0][0]) + f"({days[0][1]})",
-                callback_data="zero"
+                text="Меню",
+                callback_data="main"
             ),
             InlineKeyboardButton(
-                text=str(days[1][0]) + f"({days[1][1]})",
-                callback_data="one"
-            ),
-            InlineKeyboardButton(
-                text=str(days[2][0]) + f"({days[2][1]})",
-                callback_data="two"
-            ),
-            InlineKeyboardButton(
-                text=str(days[3][0]) + f"({days[3][1]})",
-                callback_data="three"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text=str(days[4][0]) + f"({days[4][1]})",
-                callback_data="four"
-            ),
-            InlineKeyboardButton(
-                text=str(days[5][0]) + f"({days[5][1]})",
-                callback_data="five"
-            ),
-            InlineKeyboardButton(
-                text=str(days[6][0]) + f"({days[6][1]})",
-                callback_data="six"
-            ),
+                text="🔙",
+                callback_data="show_habits"
+            )
         ]
-    ]
+    )
     return InlineKeyboardMarkup(inline_keyboard=inline_choice)
 
 
@@ -81,7 +90,7 @@ async def inline_done_not_done() -> InlineKeyboardMarkup:
                 text="❌", callback_data="not_done"
             ),
             InlineKeyboardButton(
-                text="Отмена", callback_data="main"
+                text="🔙", callback_data="show_habits"
             ),
         ]
     ]

@@ -18,7 +18,7 @@ from handlers.tracking import track
 from handlers.invalid_handler import invalid_router
 from utils.remind import create_scheduler_all
 from keyboards.keyboard import main_menu
-from loader import greeting, guide
+from loader import greeting, guide, options
 from handlers.create import add
 
 
@@ -43,14 +43,14 @@ async def greeting_handler(message: types.Message) -> None:
 
 
 @dp.callback_query(F.data == "main")
-async def handler_main(call: CallbackQuery, state: FSMContext) -> None:
+async def handler_main_button(call: CallbackQuery, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
     await call.message.answer(text="Меню", reply_markup=main_menu)
 
 
 @dp.message(F.text == "/main")
-async def handler_main(message: Message, state: FSMContext) -> None:
+async def handler_main_command(message: Message, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
     await message.answer(text="Меню", reply_markup=main_menu)
@@ -61,6 +61,14 @@ async def handler_help(mess: Message, state: FSMContext) -> None:
     """Shows detailed information about the work of the bot."""
     await state.clear()
     await mess.answer(text=guide, reply_markup=main_menu)
+
+
+@dp.callback_query(F.data == "show_comands")
+async def show_all_comands(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.message.edit_text(
+        text=options,
+        replay_markup=main_menu
+    )
 
 
 async def main():
