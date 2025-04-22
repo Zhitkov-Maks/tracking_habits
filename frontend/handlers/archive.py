@@ -8,7 +8,13 @@ from api.get_habit import (
     get_list_habits,
     archive_habit
 )
-from loader import delete_habit_message
+from loader import (
+    delete_habit_message,
+    archive_list,
+    not_archive_list,
+    success_remove,
+    recovery_text
+)
 from handlers.decorator_handlers import decorator_errors
 from keyboards.archive import (
     generate_inline_habits_list,
@@ -25,18 +31,21 @@ arch: Router = Router()
 @decorator_errors
 async def archive_list_habits(call: CallbackQuery, state: FSMContext) -> None:
     """Shows archived habits"""
-    result: dict = await get_list_habits(call.from_user.id, page=1, is_active=0)
+    page: int = (await state.get_data()).get("page", 1)
+    result: dict = await get_list_habits(
+        call.from_user.id, page=page, is_active=0
+    )
     keyword: InlineKeyboardMarkup = \
-        await generate_inline_habits_list(result.get("data"), page=1)
+        await generate_inline_habits_list(result.get("data"), page=page)
 
     if len(result.get("data")) != 0:
-        text: str = "Список ваших привычек из архива."
+        text: str = archive_list
     else:
-        text: str = "У вас нет архивированных привычек."
+        text: str = not_archive_list
 
-    await state.update_data(page=1, is_active=0)
+    await state.update_data(page=page, is_active=0)
     await state.set_state(ArchiveState.show)
-    await call.message.answer(text=text, reply_markup=keyword)
+    await call.message.edit_text(text=text, reply_markup=keyword)
 
 
 @arch.callback_query(ArchiveState.show, F.data.isdigit())
@@ -49,8 +58,10 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(id=call.data)
     await state.set_state(ArchiveState.action)
     keyword: InlineKeyboardMarkup = await gen_habit_keyword_archive()
-    await call.message.answer(
-        text=text, parse_mode="HTML", reply_markup=keyword
+    await call.message.edit_text(
+        text=text,
+        parse_mode="HTML",
+        reply_markup=keyword
     )
 
 
@@ -60,17 +71,22 @@ async def delete_habit_by_id(call: CallbackQuery) -> None:
     Confirmation of the habit deletion. Shows the keyboard
     with the choice is yes or no.
     """
-    await call.message.answer(text=delete_habit_message, reply_markup=confirm)
+    await call.message.edit_text(
+        text=delete_habit_message,
+        reply_markup=confirm
+    )
 
 
 @arch.callback_query(ArchiveState.action, F.data == "yes")
 @decorator_errors
-async def delete_habit_by_id(call: CallbackQuery, state: FSMContext) -> None:
+async def confirm_delete_habit_by_id(
+    call: CallbackQuery, state: FSMContext
+) -> None:
     """Confirmation of permanent removal of the habit."""
     data: dict = await state.get_data()
     await delete_habit(int(data.get("id")), call.from_user.id)
-    await call.message.answer(
-        text="Привычка была удалена, без возможности восстановления.",
+    await call.message.edit_text(
+        text=success_remove,
         reply_markup=main_menu
     )
     await state.clear()
@@ -82,9 +98,8 @@ async def habit_to_un_archive(call: CallbackQuery, state: FSMContext) -> None:
     """Returning a habit from the archive for tracking."""
     data: dict = await state.get_data()
     await archive_habit(int(data.get("id")), call.from_user.id, is_active=True)
-    await call.message.answer(
-        text="Привычка была помечена как активная и будет "
-             "отображаться в списке активных привычек.",
+    await call.message.edit_text(
+        text=recovery_text,
         reply_markup=main_menu
     )
     await state.clear()

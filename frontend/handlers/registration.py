@@ -7,7 +7,13 @@ from aiogram.types import CallbackQuery, Message
 
 from api.auth import registration, login_user
 from config import BOT_TOKEN
-from loader import enter_email, password, success_registration
+from loader import (
+    enter_email,
+    password,
+    success_registration,
+    invalid_email,
+    invalid_pass
+)
 from keyboards.keyboard import main_menu, cancel
 from states.register import RegisterState
 from utils.register import create_data, is_valid_email, is_valid_password
@@ -40,9 +46,9 @@ async def input_password(
             text=password, parse_mode="HTML", reply_markup=cancel
         )
     else:
-        text: str = "Ваш email не соответствует требованиям! "
         await mess.answer(
-            text=text + enter_email, parse_mode="HTML", reply_markup=cancel
+            text=invalid_email + enter_email,
+            parse_mode="HTML", reply_markup=cancel
         )
 
 
@@ -69,7 +75,7 @@ async def final_registration(
         await state.clear()
 
     else:
-        text: str = "Ваш пароль не соответствует требованиям! "
         await message.answer(
-            text=text + password, parse_mode="HTML", reply_markup=cancel
+            text=invalid_pass + password,
+            parse_mode="HTML", reply_markup=cancel
         )

@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime
-from typing import Dict, List
+from typing import List
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -35,28 +35,18 @@ async def get_weekdays() -> dict:
     return days
 
 
-async def inline_choice_calendar(
-    seven_days: list[dict]
-) -> InlineKeyboardMarkup:
+async def inline_choice_calendar() -> InlineKeyboardMarkup:
     """
     Generates a keyboard with dates to mark the completion/non-fulfillment.
     :return InlineKeyboardMarkup: A keyboard with dates.
     """
     days: dict = await get_weekdays()
-    if len(seven_days) == 0:
-        seven_days.append({})
-    
     inline_choice: list[list] = []
-    for key, value, day in zip(days_ago.keys(), days, seven_days):
-        mark_day = day.get("done")
-        if mark_day:
-            mark = "✅"
-        else:
-            mark = "❌"
+    for key, value in zip(days_ago.keys(), days):
         inline_choice.append(
             [
                 InlineKeyboardButton(
-                    text=f"{value[0]} -|- {value[1]} -|- {mark}",
+                    text=f"{value[0]} -|- {value[1]}",
                     callback_data=key
                 )
             ]
@@ -69,7 +59,7 @@ async def inline_choice_calendar(
             ),
             InlineKeyboardButton(
                 text="🔙",
-                callback_data="show_habits"
+                callback_data="show_detail"
             )
         ]
     )
@@ -90,7 +80,7 @@ async def inline_done_not_done() -> InlineKeyboardMarkup:
                 text="❌", callback_data="not_done"
             ),
             InlineKeyboardButton(
-                text="🔙", callback_data="show_habits"
+                text="🔙", callback_data="show_detail"
             ),
         ]
     ]

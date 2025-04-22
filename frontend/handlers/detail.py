@@ -15,7 +15,12 @@ from states.add import HabitState
 from states.archive import ArchiveState
 from utils.habits import generate_message_answer, get_base_data_habit
 from handlers.decorator_handlers import decorator_errors
-from loader import mark_as_archive, archived
+from loader import (
+    mark_as_archive,
+    archived,
+    active_list,
+    not_active_list
+)
 
 detail: Router = Router()
 bot: Bot = Bot(token=BOT_TOKEN)
@@ -35,13 +40,13 @@ async def output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
     )
 
     if len(result.get("data")) != 0:
-        text: str = "Список ваших актуальных привычек"
+        text: str = active_list
     else:
-        text: str = "У вас нет активных привычек."
+        text: str = not_active_list
 
-    await state.update_data(page=1, is_active=1)
+    await state.update_data(page=page, is_active=1)
     await state.set_state(HabitState.show)
-    await call.message.answer(
+    await call.message.edit_text(
         text=text,
         reply_markup=keyword
     )
@@ -86,20 +91,37 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
     """Shows detailed information about the habit."""
     response: dict = await get_full_info(int(call.data), call.from_user.id)
     text: str = await generate_message_answer(response)
-    seven_days = response.get("tracking", {}).get("all", "")
     title, body, days = await get_base_data_habit(response)
     await state.update_data(
         id=call.data,
         title=title,
         body=body,
-        number_of_days=days,
-        seven_days=seven_days
+        number_of_days=days
     )
     await state.set_state(HabitState.action)
 
     keyword: InlineKeyboardMarkup = await gen_habit_keyword()
-    await call.message.answer(
-        text=text, parse_mode="HTML", reply_markup=keyword
+    await call.message.edit_text(
+        text=text,
+        parse_mode="HTML",
+        reply_markup=keyword
+    )
+
+
+@detail.callback_query(F.data == "show_detail")
+async def show_detail_habit(call: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    id_: int = data.get("id")
+    response: dict = await get_full_info(id_, call.from_user.id)
+    text: str = await generate_message_answer(response)
+    title, body, days = await get_base_data_habit(response)
+    keyword: InlineKeyboardMarkup = await gen_habit_keyword()
+
+    await state.set_state(HabitState.action)
+    await call.message.edit_text(
+        text=text,
+        parse_mode="HTML",
+        reply_markup=keyword
     )
 
 
@@ -118,5 +140,5 @@ async def habit_to_archive(call: CallbackQuery, state: FSMContext) -> None:
         int(data.get("id")),
         call.from_user.id, is_active=False
     )
-    await call.message.answer(text=archived, reply_markup=main_menu)
+    await call.message.edit_text(text=archived, reply_markup=main_menu)
     await state.clear()

@@ -16,7 +16,7 @@ from utils.remind import (
     add_send_message,
     remove_scheduler_job
 )
-from loader import menu_remind, choice_hour
+from loader import menu_remind, choice_hour, menu_bot
 
 remind: Router = Router()
 
@@ -53,7 +53,7 @@ async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
     await remove_scheduler_job(call.from_user.id)
     await call.answer(text="Напоминание удалено", show_alert=True)
     await call.message.edit_text(
-        text="Меню!", reply_markup=main_menu
+        text=menu_bot, reply_markup=main_menu
     )
     await state.clear()
 
@@ -94,5 +94,5 @@ async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
         f"Напоминание {'добавлено.' if not update else 'изменено'}",
         show_alert=True
     )
-    await call.message.answer(text="Меню", reply_markup=main_menu)
+    await call.message.answer(text=menu_bot, reply_markup=main_menu)
     await state.clear()

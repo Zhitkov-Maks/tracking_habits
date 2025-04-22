@@ -20,6 +20,7 @@ from utils.remind import create_scheduler_all
 from keyboards.keyboard import main_menu
 from loader import greeting, guide, options
 from handlers.create import add
+from loader import menu_bot
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -46,14 +47,20 @@ async def greeting_handler(message: types.Message) -> None:
 async def handler_main_button(call: CallbackQuery, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
-    await call.message.answer(text="Меню", reply_markup=main_menu)
+    await call.message.answer(
+        text=menu_bot,
+        reply_markup=main_menu
+    )
 
 
 @dp.message(F.text == "/main")
 async def handler_main_command(message: Message, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
-    await message.answer(text="Меню", reply_markup=main_menu)
+    await message.answer(
+        text=menu_bot,
+        reply_markup=main_menu
+    )
 
 
 @dp.message(F.text == "/guide")

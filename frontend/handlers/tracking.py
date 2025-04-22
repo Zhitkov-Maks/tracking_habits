@@ -27,11 +27,10 @@ async def choice_date(call: CallbackQuery, state: FSMContext) -> None:
     Processes the command about the need to mark the habit,
     gets a keyboard to show possible days to mark.
     """
-    data: list[dict] = (await state.get_data())["seven_days"]
-    keyword: InlineKeyboardMarkup = await inline_choice_calendar(data)
+    keyword: InlineKeyboardMarkup = await inline_choice_calendar()
     await state.set_state(HabitState.done)
     await call.message.edit_text(
-        text="Выберите дату для отметки о выполнении.", reply_markup=keyword
+        text="Выберите день:", reply_markup=keyword
     )
 
 
@@ -46,7 +45,7 @@ async def choice_done(call: CallbackQuery, state: FSMContext) -> None:
 
     await state.update_data(date=date)
     await state.set_state(HabitState.date)
-    await call.message.answer(
+    await call.message.edit_text(
         text="Выберите:\n"
         "✅ - если выпорлнили\n"
         "❌ - если не выполнили.",
@@ -73,7 +72,7 @@ async def mark_tracking_habit_done(
         result: Dict[str, str] = \
             await get_full_info(data.get("id"), call.from_user.id)
         await state.set_state(HabitState.action)
-        await call.message.answer(
+        await call.message.edit_text(
             text=await generate_message_answer(result),
             parse_mode="HTML",
             reply_markup=await gen_habit_keyword()
@@ -81,7 +80,7 @@ async def mark_tracking_habit_done(
 
     else:
         await state.set_state(HabitState.confirm)
-        await call.message.answer(
+        await call.message.edit_text(
             text=response + "\nХотите изменить запись?",
             reply_markup=confirm
         )
@@ -96,10 +95,8 @@ async def mark_tracking_habit_update(
     data: dict = await state.get_data()
     await habit_tracking_mark_update(data, call.from_user.id)
     response: dict = await get_full_info(data.get("id"), call.from_user.id)
-    seven_days = response.get("tracking", {}).get("all", "")
-    await state.update_data(seven_days=seven_days)
     await state.set_state(HabitState.action)
-    await call.message.answer(
+    await call.message.edit_text(
         text=await generate_message_answer(response),
         parse_mode="HTML",
         reply_markup=await gen_habit_keyword()

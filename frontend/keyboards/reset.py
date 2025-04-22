@@ -10,8 +10,14 @@ async def generate_inline_keyboard_reset() -> InlineKeyboardMarkup:
     """
     inline_reset: List[List[InlineKeyboardButton]] = [
         [
-            InlineKeyboardButton(text="Сброс пароля", callback_data="reset"),
-            InlineKeyboardButton(text="Выйти в меню", callback_data="main")
+            InlineKeyboardButton(
+                text="Сброс пароля",
+                callback_data="reset"
+            ),
+            InlineKeyboardButton(
+                text="Выйти в меню",
+                callback_data="main"
+            )
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_reset)
