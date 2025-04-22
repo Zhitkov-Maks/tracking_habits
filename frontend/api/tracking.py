@@ -67,4 +67,4 @@ async def habit_clean_all_tracking(habit_id: int, user_id: int) -> None:
     client.header.update(Authorization=await create_header(user_id))
     status_code, response = await client.delete()
     if status_code != 200:
-        raise  HTTPException(response.get("detail").get("descr"))
+        raise HTTPException(response.get("detail").get("descr"))

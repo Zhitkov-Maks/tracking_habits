@@ -20,7 +20,6 @@ async def get_token_for_reset(email: str) -> Dict[str, str]:
     return response
 
 
-
 async def query_for_reset_password(token: str, new_password: str) -> None:
     """
     A function for sending a password change request.
