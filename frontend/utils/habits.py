@@ -3,6 +3,8 @@ from typing import Dict, List, Tuple
 
 from aiogram.utils.markdown import hbold, hitalic
 
+from loader import to_archive, warning
+
 month_dict: Dict[int, str] = {
     1: "Января",
     2: "Февраля",
@@ -49,7 +51,8 @@ async def generate_message_seven_days(data: List[Dict[str, str]]) -> str:
     for item in data:
         date: int = int(item.get('date')[5:7])
         mess += (
-            f"|   Дата: {hbold(item.get('date')[8:10])} {month_dict.get(date)} - "
+            f"|   Дата: "
+            f"{hbold(item.get('date')[8:10])} {month_dict.get(date)} - "
             f"{'✅' if item.get('done') else '❌'}   |\n")
         mess += f"{40 * '-'}\n"
     return mess
@@ -68,25 +71,27 @@ async def generate_message_answer(data: dict) -> str:
     )
     return (
         f"{hbold(data.get("title"))}\n"
-        f"{70 * '-'}\n"
+        f"{40 * '-'}\n"
         f"{hitalic(data.get("body"))}\n"
-        f"{70 * '-'}\n"
+        f"{40 * '-'}\n"
         f"Дней отслеживать: {hbold(data.get("number_of_days"))}\n"
         f"Дата начала: {hbold(data.get("start_date")[:10])}\n"
         f"Дата окончания: {hbold(data.get("end_date")[:10])}\n"
         f"Успешных дней: {hbold(count_days[0])}\n"
         f"Не успешных дней: {hbold(count_days[1])}\n"
+
         f"{hbold('Отметки за последние 7 дней:') if len(
             data.get('tracking').get('all')) > 0 else
             "Отметки за последние 7 дней отсутствуют."}\n"
+
         f"{report_sevent_days}"
-        f"Осталось дней: {hbold(count_days[2])} "
-        f"дней.\n"
-        f"{hbold('Привычка успешно выполнена и помещена в архив.') if (
-            count_days[0] == data.get("number_of_days")) else ''}\n"
-        f"{hbold('Внимание. У вас уже есть три пометки о невыполнении, '
-                 'еще одна отметка - данные об отслеживании обнуляться, и '
-                 'вам придется начинать сначала!') if count_days[1] == 3 else ''}"
+        f"Осталось дней: {hbold(count_days[2])}.\n"
+
+        f"{hbold(to_archive) if (
+            count_days[0] == data.get("number_of_days")
+        ) else ''}\n"
+
+        f"{hbold(warning) if count_days[1] == 3 else ''}"
     )
 
 
