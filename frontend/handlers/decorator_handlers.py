@@ -29,7 +29,9 @@ def decorator_errors(func: Callable[P, T]) -> Callable[P, T]:
             await func(arg, state)
 
         except KeyError:
-            await bot.send_message(arg.from_user.id, not_auth, reply_markup=main_menu)
+            await bot.send_message(
+                arg.from_user.id, not_auth, reply_markup=main_menu
+            )
 
         except HTTPException as err:
             await bot.send_message(

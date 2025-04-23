@@ -10,11 +10,11 @@ async def gen_habit_keyword() -> InlineKeyboardMarkup:
     inline_actions = [
         [
             InlineKeyboardButton(
-                text="В архив",
+                text="👉 архив",
                 callback_data="archive"
             ),
             InlineKeyboardButton(
-                text="Отметить",
+                text="✔️",
                 callback_data="mark"
             ),
             InlineKeyboardButton(
@@ -24,11 +24,11 @@ async def gen_habit_keyword() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(
-            text="Редактировать",
-            callback_data="edit"
-        ),
+                text="📝",
+                callback_data="edit"
+            ),
             InlineKeyboardButton(
-                text="Список привычек",
+                text="🔙",
                 callback_data="show_habits"
             ),
         ]

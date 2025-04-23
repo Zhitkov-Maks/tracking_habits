@@ -6,21 +6,36 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 menu_bot: List[List[InlineKeyboardButton]] = [
         [
             InlineKeyboardButton(
-                text="Добавить привычку",
-                callback_data="create"
-            ),
-             InlineKeyboardButton(
-                 text="Показать привычки",
-                 callback_data="show_habits"
+                text="Активные привычки",
+                callback_data="show_habits"
             )
         ],
         [
             InlineKeyboardButton(
-                text="Открыть архив",
+                text="Архив 👉 🗄.",
                 callback_data="show_archive"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="👀",
+                callback_data="show_comands"
+            ),
+            InlineKeyboardButton(
+                text="➕",
+                callback_data="create"
+            ),
+            InlineKeyboardButton(
+                text="🔄",
+                callback_data="main"
+            ),
+            InlineKeyboardButton(
+                text="💤",
+                callback_data="remind"
             )
         ]
     ]
+
 
 cancel_button: List[List[InlineKeyboardButton]] = [
     [InlineKeyboardButton(text="Отмена", callback_data="main")]

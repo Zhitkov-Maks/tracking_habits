@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple, Dict, List
+from typing import Tuple
 
 import aiohttp
 
@@ -24,7 +24,7 @@ class Client:
                 data: dict = await response.json()
                 return response.status, data
 
-    async def get(self) -> Tuple[int, Dict[str, List[Dict[str, int]] | Dict[str, str]]]:
+    async def get(self) -> Tuple[int, dict]:
         """A method for implementing get requests."""
         async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(60)
@@ -34,7 +34,7 @@ class Client:
                     headers=self.header
             ) as response:
 
-                data: Dict[str, List[Dict[str, int]] | Dict[str, str]] = await response.json()
+                data: dict = await response.json()
                 return response.status, data
 
     async def delete(self) -> Tuple[int, dict]:

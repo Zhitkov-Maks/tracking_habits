@@ -11,10 +11,13 @@ async def create_time() -> InlineKeyboardMarkup:
     inline_time: List[List[InlineKeyboardButton]] = []
     for time in range(0, 24, 6):
         inline_time.append(
-            [InlineKeyboardButton(text=f"{time + i}", callback_data=str(time+i))
-            for i in range(6)
-        ])
+            [
+                InlineKeyboardButton(
+                    text=f"{time + i}",
+                    callback_data=str(time+i)) for i in range(6)
+            ]
+            )
     inline_time.append(
-        [InlineKeyboardButton(text="Я передумал", callback_data="main")]
+        [InlineKeyboardButton(text="Отмена", callback_data="main")]
     )
     return InlineKeyboardMarkup(inline_keyboard=inline_time)

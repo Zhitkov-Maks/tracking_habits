@@ -17,7 +17,8 @@ async def get_list_habits(
     :param page: The page you need to display.
     :return dict: A dictionary with a list of habits.
     """
-    url: str = habit_url + f"?is_active={is_active}&page={page}&page_size={PAGE_SIZE}"
+    url: str = habit_url + (f"?is_active={is_active}&page={page}&"
+                            f"page_size={PAGE_SIZE}")
     client: Client = Client(url=url)
     client.header.update(Authorization=await create_header(user_id))
     status_code, response = await client.get()

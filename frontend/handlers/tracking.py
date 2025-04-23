@@ -29,8 +29,8 @@ async def choice_date(call: CallbackQuery, state: FSMContext) -> None:
     """
     keyword: InlineKeyboardMarkup = await inline_choice_calendar()
     await state.set_state(HabitState.done)
-    await call.message.answer(
-        text="Выберите дату для отметки о выполнении.", reply_markup=keyword
+    await call.message.edit_text(
+        text="Выберите день:", reply_markup=keyword
     )
 
 
@@ -45,8 +45,12 @@ async def choice_done(call: CallbackQuery, state: FSMContext) -> None:
 
     await state.update_data(date=date)
     await state.set_state(HabitState.date)
-    await call.message.answer(
-        text="Выберите выполнено/не выполнено", reply_markup=keyword)
+    await call.message.edit_text(
+        text="Выберите:\n"
+        "✅ - если выпорлнили\n"
+        "❌ - если не выполнили.",
+        reply_markup=keyword
+    )
 
 
 @track.callback_query(HabitState.date, F.data.in_(["done", "not_done"]))
@@ -56,7 +60,8 @@ async def mark_tracking_habit_done(
 ) -> None:
     """
     Processes the executed/not executed commands.
-    Calls the function to save the mark in the database. If everything went well,
+    Calls the function to save the mark in the database.
+    If everything went well,
     it also re-shows the current habit.
     """
     await state.update_data(done=call.data)
@@ -67,7 +72,7 @@ async def mark_tracking_habit_done(
         result: Dict[str, str] = \
             await get_full_info(data.get("id"), call.from_user.id)
         await state.set_state(HabitState.action)
-        await call.message.answer(
+        await call.message.edit_text(
             text=await generate_message_answer(result),
             parse_mode="HTML",
             reply_markup=await gen_habit_keyword()
@@ -75,8 +80,8 @@ async def mark_tracking_habit_done(
 
     else:
         await state.set_state(HabitState.confirm)
-        await call.message.answer(
-            text=response + f"\nХотите изменить запись?",
+        await call.message.edit_text(
+            text=response + "\nХотите изменить запись?",
             reply_markup=confirm
         )
 
@@ -90,9 +95,8 @@ async def mark_tracking_habit_update(
     data: dict = await state.get_data()
     await habit_tracking_mark_update(data, call.from_user.id)
     response: dict = await get_full_info(data.get("id"), call.from_user.id)
-
     await state.set_state(HabitState.action)
-    await call.message.answer(
+    await call.message.edit_text(
         text=await generate_message_answer(response),
         parse_mode="HTML",
         reply_markup=await gen_habit_keyword()

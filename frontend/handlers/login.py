@@ -8,7 +8,13 @@ from aiogram.types import Message
 from api.auth import login_user
 from config import BOT_TOKEN
 from keyboards.reset import generate_inline_keyboard_reset
-from loader import enter_email, password, success_auth
+from loader import (
+    enter_email,
+    password,
+    success_auth,
+    invalid_email,
+    invalid_pass
+)
 from keyboards.keyboard import main_menu, cancel
 from states.login import LoginState
 from utils.register import create_data, is_valid_email, is_valid_password
@@ -39,7 +45,7 @@ async def input_password(mess: Message, state: FSMContext) -> None:
         )
 
     else:
-        text: str = "Ваш email не соответствует требованиям! "
+        text: str = invalid_email
         await mess.answer(
             text=text + enter_email, parse_mode="HTML", reply_markup=cancel
         )
@@ -64,7 +70,7 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
         await state.clear()
 
     else:
-        text: str = "Ваш пароль не соответствует требованиям! "
+        text: str = invalid_pass
         await message.answer(
             text=text + password, parse_mode="HTML", reply_markup=cancel
         )
