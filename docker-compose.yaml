@@ -26,9 +26,6 @@ services:
     ports:
       - "443:443"
 
-    volumes:
-      - ./logs:/usr/logs
-
     restart: always
     depends_on:
       - app
