@@ -71,6 +71,7 @@ async def upgrade_time(
             },
         )
 
+
 async def remove_time(
     user: User,
     session: AsyncSession

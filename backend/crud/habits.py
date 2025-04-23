@@ -29,7 +29,8 @@ async def change_habit_is_active(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
                 "result": False,
-                "description": "Привычка не найдена, возможно она уже удалена.",
+                "description": "Привычка не найдена, "
+                "возможно она уже удалена.",
             },
         )
     habit.is_active = data.is_active
@@ -60,7 +61,8 @@ async def update_habit(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
                 "result": False,
-                "description": "Привычка не найдена, возможно она уже удалена.",
+                "description": "Привычка не найдена, "
+                "возможно она уже удалена.",
             },
         )
     habit.title = data.title
@@ -160,9 +162,8 @@ async def get_habits_by_user(
     active: True_ | False_ = true() if is_active else false()
     start: int = (page - 1) * page_size
     stmt = (
-        select(Habit)
-            .where(
-        Habit.user_id == user.id, Habit.is_active == active
+        select(Habit).where(
+            Habit.user_id == user.id, Habit.is_active == active
         ).limit(page_size + 1).offset(start)
     )
     return await session.scalars(stmt)
