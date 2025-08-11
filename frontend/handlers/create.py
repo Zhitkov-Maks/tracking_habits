@@ -1,18 +1,19 @@
-from aiogram import Router, F
+from aiogram import F, Router
+from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from aiogram.enums import ParseMode
 
 from api.create import request_create_habit
+from handlers.decorator_handlers import decorator_errors
 from keyboards.keyboard import cancel, main_menu
 from loader import (
-    success_save,
-    create_title,
     create_body,
-    create_number_of_days
+    create_number_of_days,
+    create_title,
+    success_save
 )
 from states.add import AddState
-from handlers.decorator_handlers import decorator_errors
+from utils.common import append_to_session
 
 add: Router = Router()
 
@@ -21,9 +22,12 @@ add: Router = Router()
 async def input_name_habits(call: CallbackQuery, state: FSMContext) -> None:
     """The handler asks the user for the name of the habit."""
     await state.set_state(AddState.title)
-    await call.message.edit_text(
-        text=create_title, parse_mode="HTML", reply_markup=cancel
+    send_message = await call.message.answer(
+        text=create_title,
+        parse_mode="HTML",
+        reply_markup=cancel
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @add.message(AddState.title)
@@ -31,11 +35,12 @@ async def input_describe_habits(mess: Message, state: FSMContext) -> None:
     """The handler asks the user for a description of the habit."""
     await state.update_data(title=mess.text)
     await state.set_state(AddState.describe)
-    await mess.answer(
+    send_message = await mess.answer(
         text=create_body,
         parse_mode=ParseMode.HTML,
         reply_markup=cancel
     )
+    await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @add.message(AddState.describe)
@@ -43,11 +48,12 @@ async def input_numbers_days(mess: Message, state: FSMContext) -> None:
     """The handler asks the user for the number of days to track."""
     await state.update_data(body=mess.text)
     await state.set_state(AddState.numbers_of_days)
-    await mess.answer(
+    send_message = await mess.answer(
         text=create_number_of_days,
         reply_markup=cancel,
         parse_mode="HTML"
     )
+    await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @add.message(AddState.numbers_of_days, F.text.isdigit())
@@ -56,5 +62,10 @@ async def create_and_record_db(mess: Message, state: FSMContext) -> None:
     """The handler sends all the entered data for saving.."""
     await state.update_data(number_of_days=mess.text)
     await request_create_habit(await state.get_data(), mess.from_user.id)
-    await mess.answer(text=success_save, reply_markup=main_menu)
+    send_message = await mess.answer(
+        text=success_save,
+        reply_markup=main_menu,
+        parse_mode="HTML"
+    )
     await state.clear()
+    await append_to_session(mess.from_user.id, [mess, send_message])

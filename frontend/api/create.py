@@ -18,4 +18,4 @@ async def request_create_habit(data: Dict[str, str], user_id: int) -> None:
     client.header.update(Authorization=await create_header(user_id))
     status_code, response = await client.post()
     if status_code != 201:
-        raise HTTPException(response.get("detail").get("descr"))
+        raise HTTPException(response.get("detail", {}).get("descr"))

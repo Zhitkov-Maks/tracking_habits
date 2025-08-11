@@ -1,24 +1,28 @@
 import asyncio
 from typing import Dict
 
-from aiogram import Router, F, Bot
+from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
-
+from aiogram.types import CallbackQuery, Message
 from api.auth import login_user
 from config import BOT_TOKEN
+from keyboards.keyboard import cancel, main_menu
 from keyboards.reset import generate_inline_keyboard_reset
 from loader import (
     enter_email,
-    password,
-    success_auth,
     invalid_email,
-    invalid_pass
+    invalid_pass,
+    password,
+    success_auth
 )
-from keyboards.keyboard import main_menu, cancel
 from states.login import LoginState
+from utils.common import (
+    append_to_session,
+    delete_sessions,
+    remove_message_after_delay,
+    delete_jwt_token
+)
 from utils.register import create_data, is_valid_email, is_valid_password
-from utils.common import remove_message_after_delay
 
 auth = Router()
 bot = Bot(token=BOT_TOKEN)
@@ -28,7 +32,12 @@ bot = Bot(token=BOT_TOKEN)
 async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(LoginState.email)
-    await mess.answer(text=enter_email, parse_mode="HTML", reply_markup=cancel)
+    send_message = await mess.answer(
+        text=enter_email,
+        parse_mode="HTML",
+        reply_markup=cancel
+    )
+    await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @auth.message(LoginState.email)
@@ -40,15 +49,18 @@ async def input_password(mess: Message, state: FSMContext) -> None:
     if valid:
         await state.update_data(email=mess.text)
         await state.set_state(LoginState.password)
-        await mess.answer(
+        send_message = await mess.answer(
             text=password, parse_mode="HTML", reply_markup=cancel
         )
 
     else:
         text: str = invalid_email
-        await mess.answer(
-            text=text + enter_email, parse_mode="HTML", reply_markup=cancel
+        send_message = await mess.answer(
+            text=text + enter_email,
+            parse_mode="HTML",
+            reply_markup=cancel
         )
+    await append_to_session(mess.from_user.id, [send_message])
 
 
 @auth.message(LoginState.password)
@@ -62,15 +74,26 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
         data: Dict[str, str] = await create_data(email, message.text)
         result: str | None = await login_user(data, message.from_user.id)
         if result is None:
-            await message.answer(success_auth, reply_markup=main_menu)
+            send_message = await message.answer(
+                success_auth,
+                reply_markup=main_menu,
+                parse_mode="HTML"
+            )
         else:
-            await message.answer(
+            send_message = await message.answer(
                 result, reply_markup=await generate_inline_keyboard_reset()
             )
         await state.clear()
 
     else:
         text: str = invalid_pass
-        await message.answer(
+        send_message = await message.answer(
             text=text + password, parse_mode="HTML", reply_markup=cancel
         )
+    await append_to_session(message.from_user.id, [send_message])
+
+
+@auth.callback_query(F.data == "clear_history")
+async def clean_messages(callback: CallbackQuery):
+    await delete_sessions(callback.from_user.id)
+    await delete_jwt_token(callback.from_user.id)

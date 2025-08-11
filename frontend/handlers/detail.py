@@ -1,26 +1,17 @@
-from aiogram import Router, F, Bot
+from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
-
-from api.get_habit import (
-    get_list_habits,
-    get_full_info,
-    archive_habit
-)
+from api.get_habit import archive_habit, get_full_info, get_list_habits
 from config import BOT_TOKEN
+from handlers.decorator_handlers import decorator_errors
 from keyboards.archive import generate_inline_habits_list
 from keyboards.detail import gen_habit_keyword
-from keyboards.keyboard import main_menu, confirm
+from keyboards.keyboard import confirm, main_menu
+from loader import active_list, archived, mark_as_archive, not_active_list
 from states.add import HabitState
 from states.archive import ArchiveState
+from utils.common import append_to_session
 from utils.habits import generate_message_answer, get_base_data_habit
-from handlers.decorator_handlers import decorator_errors
-from loader import (
-    mark_as_archive,
-    archived,
-    active_list,
-    not_active_list
-)
 
 detail: Router = Router()
 bot: Bot = Bot(token=BOT_TOKEN)
@@ -31,25 +22,27 @@ bot: Bot = Bot(token=BOT_TOKEN)
 async def output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
     """Shows a list of active habits for today."""
     page: int = (await state.get_data()).get("page", 1)
-    result: dict = await get_list_habits(
+    result: dict[str, list] = await get_list_habits(
         call.from_user.id, page=page, is_active=1
     )
 
     keyword: InlineKeyboardMarkup = await generate_inline_habits_list(
-        result.get("data"), page=page
+        result.get("data", []), page=page
     )
 
-    if len(result.get("data")) != 0:
+    if len(result.get("data", [])) != 0:
         text: str = active_list
     else:
         text: str = not_active_list
 
     await state.update_data(page=page, is_active=1)
     await state.set_state(HabitState.show)
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text=text,
-        reply_markup=keyword
+        reply_markup=keyword,
+        parse_mode="HTML"
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(F.data.in_(["next_page", "prev_page"]))
@@ -71,7 +64,7 @@ async def next_output_list_habits(
         call.from_user.id, page=page, is_active=is_active
     )
     keyword: InlineKeyboardMarkup = await generate_inline_habits_list(
-        result.get("data"), page
+        result.get("data", []), page
     )
     await state.update_data(page=page)
 
@@ -80,9 +73,10 @@ async def next_output_list_habits(
     else:
         await state.set_state(ArchiveState.show)
 
-    await call.message.edit_reply_markup(
+    send_message = await call.message.edit_reply_markup(
         reply_markup=keyword
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(HabitState.show, F.data.isdigit())
@@ -101,11 +95,12 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(HabitState.action)
 
     keyword: InlineKeyboardMarkup = await gen_habit_keyword()
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text=text,
         parse_mode="HTML",
         reply_markup=keyword
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(F.data == "show_detail")
@@ -118,17 +113,22 @@ async def show_detail_habit(call: CallbackQuery, state: FSMContext):
     keyword: InlineKeyboardMarkup = await gen_habit_keyword()
 
     await state.set_state(HabitState.action)
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text=text,
         parse_mode="HTML",
         reply_markup=keyword
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(HabitState.action, F.data == "archive")
 async def habit_to_archive_confirm(call: CallbackQuery) -> None:
     """Confirmation of adding a habit to the archive."""
-    await call.message.answer(text=mark_as_archive, reply_markup=confirm)
+    send_message = await call.message.answer(
+        text=mark_as_archive,
+        reply_markup=confirm
+    )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(HabitState.action, F.data == "yes")
@@ -137,8 +137,12 @@ async def habit_to_archive(call: CallbackQuery, state: FSMContext) -> None:
     """Adding a habit to the archive."""
     data: dict = await state.get_data()
     await archive_habit(
-        int(data.get("id")),
+        int(data.get("id", 0)),
         call.from_user.id, is_active=False
     )
-    await call.message.edit_text(text=archived, reply_markup=main_menu)
+    send_message = await call.message.edit_text(
+        text=archived,
+        reply_markup=main_menu
+    )
     await state.clear()
+    await append_to_session(call.from_user.id, [call, send_message])

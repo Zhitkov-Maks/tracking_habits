@@ -1,27 +1,25 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-
 from config import BOT_TOKEN
-from handlers.remind import remind
 from handlers.archive import arch
-from handlers.edit import edit_rout
+from handlers.create import add
 from handlers.detail import detail
+from handlers.edit import edit_rout
+from handlers.invalid_handler import invalid_router
 from handlers.login import auth
 from handlers.registration import register_route
+from handlers.remind import remind
 from handlers.reset_password import reset
 from handlers.tracking import track
-from handlers.invalid_handler import invalid_router
-from utils.remind import create_scheduler_all
 from keyboards.keyboard import main_menu
-from loader import greeting, guide, options
-from handlers.create import add
-from loader import menu_bot
-
+from loader import greeting, guide, menu_bot, options
+from utils.remind import create_scheduler_all
+from utils.common import append_to_session
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -40,6 +38,7 @@ dp.include_router(invalid_router)
 @dp.message(CommandStart())
 async def greeting_handler(message: types.Message) -> None:
     """Welcome Handler."""
+    await append_to_session(message.from_user.id, [message])
     await message.answer(text=greeting, reply_markup=main_menu)
 
 
@@ -47,35 +46,41 @@ async def greeting_handler(message: types.Message) -> None:
 async def handler_main_button(call: CallbackQuery, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
-    await call.message.answer(
+    send_message = await call.message.answer(
         text=menu_bot,
-        reply_markup=main_menu
+        reply_markup=main_menu,
+        parse_mode="HTML"
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @dp.message(F.text == "/main")
 async def handler_main_command(message: Message, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
-    await message.answer(
+    send_message = await message.answer(
         text=menu_bot,
-        reply_markup=main_menu
+        reply_markup=main_menu,
+        parse_mode="HTML"
     )
+    await append_to_session(message.from_user.id, [message, send_message])
 
 
 @dp.message(F.text == "/guide")
 async def handler_help(mess: Message, state: FSMContext) -> None:
     """Shows detailed information about the work of the bot."""
     await state.clear()
-    await mess.answer(text=guide, reply_markup=main_menu)
+    send_message = await mess.answer(text=guide, reply_markup=main_menu)
+    await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @dp.callback_query(F.data == "show_comands")
 async def show_all_comands(callback: CallbackQuery, state: FSMContext) -> None:
-    await callback.message.edit_text(
+    send_message = await callback.message.edit_text(
         text=options,
         replay_markup=main_menu
     )
+    await append_to_session(callback.from_user.id, [callback, send_message])
 
 
 async def main():

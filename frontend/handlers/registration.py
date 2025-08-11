@@ -3,7 +3,7 @@ from typing import Dict
 
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 
 from api.auth import registration, login_user
 from config import BOT_TOKEN
@@ -17,7 +17,7 @@ from loader import (
 from keyboards.keyboard import main_menu, cancel
 from states.register import RegisterState
 from utils.register import create_data, is_valid_email, is_valid_password
-from utils.common import remove_message_after_delay
+from utils.common import remove_message_after_delay, append_to_session
 
 
 register_route = Router()
@@ -28,7 +28,12 @@ bot = Bot(token=BOT_TOKEN)
 async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(RegisterState.email)
-    await mess.answer(text=enter_email, parse_mode="HTML", reply_markup=cancel)
+    send_message = await mess.answer(
+        text=enter_email,
+        parse_mode="HTML",
+        reply_markup=cancel
+    )
+    await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @register_route.message(RegisterState.email)
@@ -42,14 +47,15 @@ async def input_password(
     if valid:
         await state.update_data(email=mess.text)
         await state.set_state(RegisterState.password)
-        await mess.answer(
+        send_message = await mess.answer(
             text=password, parse_mode="HTML", reply_markup=cancel
         )
     else:
-        await mess.answer(
+        send_message = await mess.answer(
             text=invalid_email + enter_email,
             parse_mode="HTML", reply_markup=cancel
         )
+    await append_to_session(mess.from_user.id, [send_message])
 
 
 @register_route.message(RegisterState.password)
@@ -69,13 +75,18 @@ async def final_registration(
         # If the request is successful, None will be returned to us
         if result is None:
             await login_user(data, message.from_user.id)
-            await message.answer(success_registration, reply_markup=main_menu)
+            send_message = await message.answer(
+                success_registration,
+                reply_markup=main_menu,
+                parse_mode="HTML"
+            )
         else:
-            await message.answer(result, reply_markup=main_menu)
+            send_message = await message.answer(result, reply_markup=main_menu)
         await state.clear()
 
     else:
-        await message.answer(
+        send_message = await message.answer(
             text=invalid_pass + password,
             parse_mode="HTML", reply_markup=cancel
         )
+    await append_to_session(message.from_user.id, [send_message])
