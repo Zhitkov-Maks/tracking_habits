@@ -1,9 +1,10 @@
 from functools import wraps
-from typing import TypeVar, ParamSpec, Callable
+from typing import Coroutine, TypeVar, Callable, Any
 from http.client import HTTPException
 
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, CallbackQuery as CQ
 
 from config import BOT_TOKEN
 from keyboards.keyboard import main_menu
@@ -14,15 +15,16 @@ bot = Bot(token=BOT_TOKEN)
 
 
 T = TypeVar("T")
-P = ParamSpec("P")
 
 
-def decorator_errors(func: Callable[P, T]) -> Callable[P, T]:
+def decorator_errors(
+    func: Callable[[Message | CQ, FSMContext], Coroutine[Any, Any, T]]
+) -> Callable[[Message | CQ, FSMContext], Coroutine[Any, Any, None]]:
     """
     A decorator for the callback and message processing function.
     """
     @wraps(func)
-    async def wrapper(arg: P, state: FSMContext) -> None:
+    async def wrapper(arg: Message | CQ, state: FSMContext) -> None:
         """
         Wrapper for error handling when executing a function
         """
@@ -40,4 +42,5 @@ def decorator_errors(func: Callable[P, T]) -> Callable[P, T]:
                 arg.from_user.id, text=str(err), reply_markup=main_menu
             )
             await append_to_session(arg.from_user.id, [send_message])
+
     return wrapper
