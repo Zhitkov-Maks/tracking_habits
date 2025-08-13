@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from config import BOT_TOKEN
 from keyboards.keyboard import main_menu
 from loader import not_auth
+from utils.common import append_to_session
 
 bot = Bot(token=BOT_TOKEN)
 
@@ -29,12 +30,14 @@ def decorator_errors(func: Callable[P, T]) -> Callable[P, T]:
             await func(arg, state)
 
         except KeyError:
-            await bot.send_message(
+            send_message = await bot.send_message(
                 arg.from_user.id, not_auth, reply_markup=main_menu
             )
+            await append_to_session(arg.from_user.id, [send_message])
 
         except HTTPException as err:
-            await bot.send_message(
+            send_message = await bot.send_message(
                 arg.from_user.id, text=str(err), reply_markup=main_menu
             )
+            await append_to_session(arg.from_user.id, [send_message])
     return wrapper
