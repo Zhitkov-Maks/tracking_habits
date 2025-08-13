@@ -2,16 +2,13 @@ from functools import wraps
 from typing import Coroutine, TypeVar, Callable, Any
 from http.client import HTTPException
 
-from aiogram import Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery as CQ
 
-from config import BOT_TOKEN
+from config import WORKER_BOT
 from keyboards.keyboard import main_menu
 from loader import not_auth
 from utils.common import append_to_session
-
-bot = Bot(token=BOT_TOKEN)
 
 
 T = TypeVar("T")
@@ -32,13 +29,13 @@ def decorator_errors(
             await func(arg, state)
 
         except KeyError:
-            send_message = await bot.send_message(
+            send_message = await WORKER_BOT.send_message(
                 arg.from_user.id, not_auth, reply_markup=main_menu
             )
             await append_to_session(arg.from_user.id, [send_message])
 
         except HTTPException as err:
-            send_message = await bot.send_message(
+            send_message = await WORKER_BOT.send_message(
                 arg.from_user.id, text=str(err), reply_markup=main_menu
             )
             await append_to_session(arg.from_user.id, [send_message])
