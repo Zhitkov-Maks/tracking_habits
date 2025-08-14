@@ -1,7 +1,8 @@
 from http.client import HTTPException
+
 from api.client import Client
+from config import PAGE_SIZE, habit_url
 from utils.create import create_header
-from config import habit_url, PAGE_SIZE
 
 
 async def get_list_habits(
@@ -26,10 +27,10 @@ async def get_list_habits(
     if status_code == 200:
         return response
     else:
-        raise HTTPException(response.get("detail").get("descr"))
+        raise HTTPException(response.get("detail", {}).get("descr"))
 
 
-async def get_full_info(habit_id: int, user_id: int) -> dict | tuple:
+async def get_full_info(habit_id: int, user_id: int) -> dict:
     """
     Request for getting full information about a particular habit.
     :param habit_id: ID habit.
@@ -44,7 +45,7 @@ async def get_full_info(habit_id: int, user_id: int) -> dict | tuple:
     if status_code == 200:
         return response
     else:
-        raise HTTPException(response.get("detail").get("descr"))
+        raise HTTPException(response.get("detail", {}).get("descr"))
 
 
 async def delete_habit(habit_id: int, user_id: int) -> None:
