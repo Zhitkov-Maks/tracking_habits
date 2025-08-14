@@ -1,11 +1,8 @@
 import asyncio
 from aiogram.exceptions import TelegramBadRequest
-from aiogram import Bot
 
 from aiogram.types import Message, CallbackQuery
 from config import user_sessions, jwt_token_data, WORKER_BOT
-from loader import clear_history
-from keyboards.keyboard import main_menu
 
 
 async def remove_message_after_delay(delay: int, message: Message):
@@ -20,7 +17,9 @@ async def remove_message_after_delay(delay: int, message: Message):
     await message.delete()
 
 
-async def append_to_session(user_id, messages: list[Message]) -> None:
+async def append_to_session(
+    user_id: int, messages: list[Message | CallbackQuery]
+) -> None:
     """
     A function for adding messages that we will delete when we
     click on the clear button.
@@ -32,11 +31,10 @@ async def append_to_session(user_id, messages: list[Message]) -> None:
         if isinstance(mess, Message):
             user_sessions[user_id].add((mess.chat.id, mess.message_id))
 
-        if isinstance(mess, CallbackQuery):
+        if isinstance(mess, CallbackQuery) and mess.message is not None:
             user_sessions[user_id].add(
                 (mess.message.chat.id, mess.message.message_id)
             )
-    WORKER_BOT.send_message(user_id, clear_history, main_menu)
 
 
 async def delete_jwt_token(user_id: int) -> None:
@@ -57,7 +55,7 @@ async def delete_sessions(user_id: int) -> None:
 
     :param user_id: ID user.
     """
-    messages: set[Message] = user_sessions.get(user_id, set())
+    messages: set[tuple[int, int]] = user_sessions.get(user_id, set())
     for chat_id, message_id in messages:
         try:
             await WORKER_BOT.delete_message(chat_id, message_id)
