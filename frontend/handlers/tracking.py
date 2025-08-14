@@ -14,9 +14,9 @@ from keyboards.detail import gen_habit_keyword
 from keyboards.keyboard import confirm
 from states.add import HabitState
 from utils.habits import generate_message_answer
-
 from keyboards.tracking import inline_choice_calendar, inline_done_not_done
 from utils.tracking import get_choice_date, days_ago
+from utils.common import append_to_session
 
 track: Router = Router()
 
@@ -29,9 +29,10 @@ async def choice_date(call: CallbackQuery, state: FSMContext) -> None:
     """
     keyword: InlineKeyboardMarkup = await inline_choice_calendar()
     await state.set_state(HabitState.done)
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text="Выберите день:", reply_markup=keyword
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @track.callback_query(HabitState.done, F.data.in_(days_ago))
@@ -45,12 +46,13 @@ async def choice_done(call: CallbackQuery, state: FSMContext) -> None:
 
     await state.update_data(date=date)
     await state.set_state(HabitState.date)
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text="Выберите:\n"
         "✅ - если выпорлнили\n"
         "❌ - если не выполнили.",
         reply_markup=keyword
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @track.callback_query(HabitState.date, F.data.in_(["done", "not_done"]))
@@ -72,7 +74,7 @@ async def mark_tracking_habit_done(
         result: Dict[str, str] = \
             await get_full_info(data.get("id"), call.from_user.id)
         await state.set_state(HabitState.action)
-        await call.message.edit_text(
+        send_message = await call.message.edit_text(
             text=await generate_message_answer(result),
             parse_mode="HTML",
             reply_markup=await gen_habit_keyword()
@@ -80,10 +82,11 @@ async def mark_tracking_habit_done(
 
     else:
         await state.set_state(HabitState.confirm)
-        await call.message.edit_text(
+        send_message = await call.message.edit_text(
             text=response + "\nХотите изменить запись?",
             reply_markup=confirm
         )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @track.callback_query(HabitState.confirm, F.data == "yes")
@@ -96,8 +99,9 @@ async def mark_tracking_habit_update(
     await habit_tracking_mark_update(data, call.from_user.id)
     response: dict = await get_full_info(data.get("id"), call.from_user.id)
     await state.set_state(HabitState.action)
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text=await generate_message_answer(response),
         parse_mode="HTML",
         reply_markup=await gen_habit_keyword()
     )
+    await append_to_session(call.from_user.id, [call, send_message])

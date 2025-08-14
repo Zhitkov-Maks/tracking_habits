@@ -1,11 +1,12 @@
 import asyncio
 from typing import Dict
 
-from aiogram import Bot, F, Router
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from aiogram.utils.markdown import hbold
+
 from api.auth import login_user
-from config import BOT_TOKEN
 from keyboards.keyboard import cancel, main_menu
 from keyboards.reset import generate_inline_keyboard_reset
 from loader import (
@@ -13,7 +14,8 @@ from loader import (
     invalid_email,
     invalid_pass,
     password,
-    success_auth
+    success_auth,
+    clear_history
 )
 from states.login import LoginState
 from utils.common import (
@@ -25,7 +27,6 @@ from utils.common import (
 from utils.register import create_data, is_valid_email, is_valid_password
 
 auth = Router()
-bot = Bot(token=BOT_TOKEN)
 
 
 @auth.message(F.text == "/auth")
@@ -97,3 +98,8 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
 async def clean_messages(callback: CallbackQuery):
     await delete_sessions(callback.from_user.id)
     await delete_jwt_token(callback.from_user.id)
+    await callback.message.answer(
+        text=hbold(clear_history),
+        parse_mode="HTML",
+        replay_markup=main_menu
+    )

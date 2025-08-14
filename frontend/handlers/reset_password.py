@@ -16,7 +16,7 @@ from loader import (
     success_reset
 )
 from states.reset import ResetPassword
-from utils.common import remove_message_after_delay
+from utils.common import remove_message_after_delay, append_to_session
 from utils.register import is_valid_email, is_valid_password
 
 reset: Router = Router()
@@ -26,7 +26,10 @@ reset: Router = Router()
 async def input_email_for_reset(mess: Message, state: FSMContext) -> None:
     """A function for requesting an email to reset the password."""
     await state.set_state(ResetPassword.send_email)
-    await mess.answer(text=enter_email, reply_markup=cancel)
+    send_message = await mess.answer(
+        text=enter_email, reply_markup=cancel
+    )
+    await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @reset.callback_query(F.data == "reset")
@@ -35,7 +38,10 @@ async def input_email_for_reset_callback(
 ) -> None:
     """A function for requesting an email to reset the password."""
     await state.set_state(ResetPassword.send_email)
-    await call.message.edit_text(text=enter_email, reply_markup=cancel)
+    send_message = await call.message.edit_text(
+        text=enter_email, reply_markup=cancel
+    )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @reset.message(ResetPassword.send_email)
@@ -53,15 +59,16 @@ async def send_request_for_reset(message: Message, state: FSMContext) -> None:
         token: Dict[str, str] = await get_token_for_reset(email)
         await state.set_state(ResetPassword.send_token)
         await state.update_data(token=token.get("token"))
-        await message.answer(
+        send_message = await message.answer(
             text=password,
             reply_markup=cancel, parse_mode="HTML")
     else:
-        await message.answer(
+        send_message = await message.answer(
             text=invalid_email + email,
             parse_mode="HTML",
             reply_markup=cancel
         )
+    await append_to_session(message.from_user.id, [message, send_message])
 
 
 @reset.message(ResetPassword.send_token)
@@ -74,11 +81,15 @@ async def reset_password_query(message: Message, state: FSMContext) -> None:
     if is_valid:
         data: Dict[str, str] = await state.get_data()
         await query_for_reset_password(data.get("token"), new_password)
-        await message.answer(text=success_reset, reply_markup=main_menu)
+        send_message = await message.answer(
+            text=success_reset,
+            reply_markup=main_menu
+        )
         await state.clear()
     else:
-        await message.answer(
+        send_message = await message.answer(
             text=invalid_pass + password,
             parse_mode="HTML",
             reply_markup=cancel
         )
+    await append_to_session(message.from_user.id, [message, send_message])

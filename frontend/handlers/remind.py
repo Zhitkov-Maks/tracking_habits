@@ -16,6 +16,7 @@ from utils.remind import (
     add_send_message,
     remove_scheduler_job
 )
+from utils.common import append_to_session
 from loader import menu_remind, choice_hour, menu_bot
 
 remind: Router = Router()
@@ -28,9 +29,10 @@ async def start_work_to_remind(call: CallbackQuery, state: FSMContext) -> None:
     Shows a menu for selecting an action.
     """
     await state.set_state(RemindState.start)
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text=menu_remind, reply_markup=remind_button
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @remind.callback_query(RemindState.start, F.data == "remove")
@@ -42,7 +44,10 @@ async def confirm_to_remove_remind(
     Shows the menu for confirmation.
     """
     await state.set_state(RemindState.confirm)
-    await call.message.edit_text(text="Вы уверены?", reply_markup=confirm)
+    send_message = await call.message.edit_text(
+        text="Вы уверены?", reply_markup=confirm
+    )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @remind.callback_query(RemindState.confirm, F.data == "yes")
@@ -52,10 +57,11 @@ async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
     await remove_time(call.from_user.id)
     await remove_scheduler_job(call.from_user.id)
     await call.answer(text="Напоминание удалено", show_alert=True)
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text=menu_bot, reply_markup=main_menu
     )
     await state.clear()
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @remind.callback_query(RemindState.start, F.data.in_(["add", "change"]))
@@ -72,10 +78,11 @@ async def add_remind(call: CallbackQuery, state: FSMContext) -> None:
     else:
         await state.update_data(update=False)
 
-    await call.message.edit_text(
+    send_message = await call.message.edit_text(
         text=choice_hour,
         reply_markup=await create_time()
     )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @remind.callback_query(RemindState.add, F.data.isdigit())
@@ -94,5 +101,8 @@ async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
         f"Напоминание {'добавлено.' if not update else 'изменено'}",
         show_alert=True
     )
-    await call.message.answer(text=menu_bot, reply_markup=main_menu)
+    send_message = await call.message.answer(
+        text=menu_bot, reply_markup=main_menu
+    )
     await state.clear()
+    await append_to_session(call.from_user.id, [call, send_message])

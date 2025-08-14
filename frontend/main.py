@@ -1,11 +1,11 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher, F, types
+from aiogram import Dispatcher, F, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from config import BOT_TOKEN
+from config import WORKER_BOT
 from handlers.archive import arch
 from handlers.create import add
 from handlers.detail import detail
@@ -21,7 +21,6 @@ from loader import greeting, guide, menu_bot, options
 from utils.remind import create_scheduler_all
 from utils.common import append_to_session
 
-bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 dp.include_router(add)
 dp.include_router(register_route)
@@ -74,13 +73,15 @@ async def handler_help(mess: Message, state: FSMContext) -> None:
     await append_to_session(mess.from_user.id, [mess, send_message])
 
 
-@dp.callback_query(F.data == "show_comands")
-async def show_all_comands(callback: CallbackQuery, state: FSMContext) -> None:
+@dp.callback_query(F.data == "show_commands")
+async def show_all_commands(callback: CallbackQuery, state: FSMContext) -> None:
     send_message = await callback.message.edit_text(
         text=options,
         replay_markup=main_menu
     )
-    await append_to_session(callback.from_user.id, [callback, send_message])
+    await append_to_session(
+        callback.from_user.id, [callback, send_message]
+    )
 
 
 async def main():
@@ -91,7 +92,7 @@ async def main():
     """
     await create_scheduler_all()
     logging.basicConfig(level=logging.DEBUG)
-    await dp.start_polling(bot)
+    await dp.start_polling(WORKER_BOT)
 
 
 if __name__ == "__main__":
