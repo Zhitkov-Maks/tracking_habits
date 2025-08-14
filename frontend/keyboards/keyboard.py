@@ -2,11 +2,10 @@ from typing import List
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-
 menu_bot: List[List[InlineKeyboardButton]] = [
         [
             InlineKeyboardButton(
-                text="Активные привычки",
+                text="В процессе 📈",
                 callback_data="show_habits"
             )
         ],
@@ -19,7 +18,7 @@ menu_bot: List[List[InlineKeyboardButton]] = [
         [
             InlineKeyboardButton(
                 text="👀",
-                callback_data="show_comands"
+                callback_data="show_commands"
             ),
             InlineKeyboardButton(
                 text="➕",
@@ -32,6 +31,12 @@ menu_bot: List[List[InlineKeyboardButton]] = [
             InlineKeyboardButton(
                 text="💤",
                 callback_data="remind"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Выйти и очистить историю.",
+                callback_data="clear_history"
             )
         ]
     ]
