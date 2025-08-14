@@ -1,10 +1,16 @@
+from collections import defaultdict
 from typing import Dict
+
+from aiogram import Bot
 
 from decouple import config
 
-BOT_TOKEN: str = config("TOKEN")
-API_ADDRESS: str = config("API_ADDRESS")
+
+BOT_TOKEN = config("TOKEN")
+API_ADDRESS = config("API_ADDRESS")
 BASE_URL: str = "/api/v1/"
+
+WORKER_BOT = Bot(token=BOT_TOKEN)
 
 
 register_url: str = API_ADDRESS + BASE_URL + "auth/registration/"
@@ -15,8 +21,9 @@ habit_url: str = API_ADDRESS + BASE_URL + "habits/"
 tracking_url: str = habit_url + "{habit_id}/tracking/"
 remind_url: str = API_ADDRESS + BASE_URL + "reminds/"
 
-jwt_token_data: Dict[int, str] = {}
+jwt_token_data: Dict[int, dict] = {}
 app_schedule: dict = {}
 scheduler_ids: dict = {}
+user_sessions: dict[int, set[tuple[int, int]]] = defaultdict(set)
 
 PAGE_SIZE: int = 10
