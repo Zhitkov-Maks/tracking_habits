@@ -51,7 +51,6 @@ async def next_output_list_habits(
     call: CallbackQuery, state: FSMContext
 ) -> None:
     """Shows a list of active habits for today."""
-    await call.message.delete_reply_markup()
     page: int = (await state.get_data()).get("page")
     is_active: int = (await state.get_data()).get("is_active")
 
@@ -126,7 +125,8 @@ async def habit_to_archive_confirm(call: CallbackQuery) -> None:
     """Confirmation of adding a habit to the archive."""
     send_message = await call.message.answer(
         text=mark_as_archive,
-        reply_markup=confirm
+        reply_markup=confirm,
+        parse_mode="HTML"
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
@@ -142,7 +142,8 @@ async def habit_to_archive(call: CallbackQuery, state: FSMContext) -> None:
     )
     send_message = await call.message.edit_text(
         text=archived,
-        reply_markup=main_menu
+        reply_markup=main_menu,
+        parse_mode="HTML"
     )
     await state.clear()
     await append_to_session(call.from_user.id, [call, send_message])
