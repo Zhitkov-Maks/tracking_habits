@@ -45,7 +45,11 @@ async def archive_list_habits(call: CallbackQuery, state: FSMContext) -> None:
 
     await state.update_data(page=page, is_active=0)
     await state.set_state(ArchiveState.show)
-    send_message = await call.message.answer(text=text, reply_markup=keyword)
+    send_message = await call.message.answer(
+        text=text,
+        reply_markup=keyword,
+        parse_mode="HTML"
+    )
     await append_to_session(call.from_user.id, [call, send_message])
 
 
@@ -75,7 +79,8 @@ async def delete_habit_by_id(call: CallbackQuery) -> None:
     """
     send_message = await call.message.answer(
         text=delete_habit_message,
-        reply_markup=confirm
+        reply_markup=confirm,
+        parse_mode="HTML"
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
@@ -90,7 +95,8 @@ async def confirm_delete_habit_by_id(
     await delete_habit(int(data.get("id", 0)), call.from_user.id)
     send_message = await call.message.answer(
         text=success_remove,
-        reply_markup=main_menu
+        reply_markup=main_menu,
+        parse_mode="HTML"
     )
     await state.clear()
     await append_to_session(call.from_user.id, [call, send_message])
@@ -108,7 +114,8 @@ async def habit_to_un_archive(call: CallbackQuery, state: FSMContext) -> None:
     )
     send_message = await call.message.answer(
         text=recovery_text,
-        reply_markup=main_menu
+        reply_markup=main_menu,
+        parse_mode="HTML"
     )
     await state.clear()
     await append_to_session(call.from_user.id, [call, send_message])
