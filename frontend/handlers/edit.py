@@ -38,7 +38,8 @@ async def choosing_upgrade_option(call: CallbackQuery) -> None:
     """Handler for selecting a habit change option."""
     send_message = await call.message.edit_text(
         text=what_edit,
-        reply_markup=await generate_inline_choice_edit()
+        reply_markup=await generate_inline_choice_edit(),
+        parse_mode="HTML"
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
@@ -182,7 +183,8 @@ async def full_edit_habit_number_of_days(
     await state.set_state(FullEditState.numbers_of_days)
     send_message = await mess.answer(
         text=create_number_of_days,
-        reply_markup=cancel
+        reply_markup=cancel,
+        parse_mode="HTML"
     )
     await append_to_session(mess.from_user.id, [mess, send_message])
 
