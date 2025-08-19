@@ -3,18 +3,8 @@ from typing import List
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from utils.tracking import days_ago
 
-
-weekdays: tuple = (
-    "Понедельник",
-    "Вторник",
-    "Среда",
-    "Четверг",
-    "Пятница",
-    "Суббота",
-    "Воскресение",
-)
+weekdays: dict[int, str] = {0: "Сегодня", 1: "Вчера", 2: "Позавчера"}
 
 
 async def get_weekdays() -> dict:
@@ -35,22 +25,33 @@ async def get_weekdays() -> dict:
     return days
 
 
-async def inline_choice_calendar() -> InlineKeyboardMarkup:
+async def inline_choice_calendar(days_ago: int) -> InlineKeyboardMarkup:
     """
     Generates a keyboard with dates to mark the completion/non-fulfillment.
     :return InlineKeyboardMarkup: A keyboard with dates.
     """
-    days: dict = await get_weekdays()
-    inline_choice: list[list] = []
-    for key, value in zip(days_ago.keys(), days):
+    inline_choice: list[list[InlineKeyboardButton]] = []
+    date_for_mark = datetime.now().date() - timedelta(days_ago)
+
+    if days_ago in weekdays:
         inline_choice.append(
             [
                 InlineKeyboardButton(
-                    text=f"{value[0]} -|- {value[1]}",
-                    callback_data=key
+                    text=weekdays[days_ago],
+                    callback_data=str(date_for_mark)
                 )
             ]
         )
+    else:
+        inline_choice.append(
+            [
+                InlineKeyboardButton(
+                    text=str(date_for_mark),
+                    callback_data=str(date_for_mark)
+                )
+            ]
+        )
+
     inline_choice.append(
         [
             InlineKeyboardButton(
@@ -60,9 +61,18 @@ async def inline_choice_calendar() -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text="🔙",
                 callback_data="show_detail"
-            )
+            ),
+            InlineKeyboardButton(
+                text=">>",
+                callback_data="prev_day"
+            ),
         ]
     )
+    if days_ago > 0:
+        inline_choice[1].insert(0, InlineKeyboardButton(
+            text="<<",
+            callback_data="next_day"
+        ))
     return InlineKeyboardMarkup(inline_keyboard=inline_choice)
 
 
