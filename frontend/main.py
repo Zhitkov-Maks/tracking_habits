@@ -18,8 +18,8 @@ from handlers.reset_password import reset
 from handlers.tracking import track
 from keyboards.keyboard import main_menu
 from loader import greeting, guide, menu_bot, options
-from utils.remind import create_scheduler_all
 from utils.common import append_to_session
+from utils.remind import create_scheduler_all
 
 dp = Dispatcher()
 dp.include_router(add)
@@ -38,7 +38,9 @@ dp.include_router(invalid_router)
 async def greeting_handler(message: types.Message) -> None:
     """Welcome Handler."""
     await append_to_session(message.from_user.id, [message])
-    await message.answer(text=greeting, reply_markup=main_menu)
+    await message.answer(
+        text=greeting, reply_markup=main_menu, parse_mode="HTML"
+    )
 
 
 @dp.callback_query(F.data == "main")
