@@ -25,8 +25,8 @@ menu_bot: List[List[InlineKeyboardButton]] = [
                 callback_data="create"
             ),
             InlineKeyboardButton(
-                text="🔄",
-                callback_data="main"
+                text="🔐",
+                callback_data="auth"
             ),
             InlineKeyboardButton(
                 text="💤",
@@ -55,13 +55,10 @@ confirm_button: List[List[InlineKeyboardButton]] = [
 
 choice_remind: List[List[InlineKeyboardButton]] = [
     [
-        InlineKeyboardButton(text="Добавить", callback_data="add"),
-        InlineKeyboardButton(text="Удалить", callback_data="remove"),
-    ],
-    [
-        InlineKeyboardButton(text="Изменить время", callback_data="change"),
-        InlineKeyboardButton(text="Отмена", callback_data="main"),
-
+        InlineKeyboardButton(text="➕", callback_data="add"),
+        InlineKeyboardButton(text="➖", callback_data="remove"),
+        InlineKeyboardButton(text="✏️", callback_data="change"),
+        InlineKeyboardButton(text="🙅‍♂️", callback_data="main"),
     ]
 ]
 
