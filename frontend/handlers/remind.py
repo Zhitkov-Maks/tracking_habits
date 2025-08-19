@@ -30,7 +30,9 @@ async def start_work_to_remind(call: CallbackQuery, state: FSMContext) -> None:
     """
     await state.set_state(RemindState.start)
     send_message = await call.message.edit_text(
-        text=menu_remind, reply_markup=remind_button
+        text=menu_remind,
+        reply_markup=remind_button,
+        parse_mode="HTML"
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
@@ -102,7 +104,7 @@ async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
         show_alert=True
     )
     send_message = await call.message.answer(
-        text=menu_bot, reply_markup=main_menu
+        text=menu_bot, reply_markup=main_menu, parse_mode="HTML"
     )
     await state.clear()
     await append_to_session(call.from_user.id, [call, send_message])
