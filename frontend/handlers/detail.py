@@ -1,8 +1,7 @@
-from aiogram import Bot, F, Router
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from api.get_habit import archive_habit, get_full_info, get_list_habits
-from config import BOT_TOKEN
 from handlers.decorator_handlers import decorator_errors
 from keyboards.archive import generate_inline_habits_list
 from keyboards.detail import gen_habit_keyword
@@ -14,7 +13,6 @@ from utils.common import append_to_session
 from utils.habits import generate_message_answer, get_base_data_habit
 
 detail: Router = Router()
-bot: Bot = Bot(token=BOT_TOKEN)
 
 
 @detail.callback_query(F.data == "show_habits")
