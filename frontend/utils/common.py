@@ -1,7 +1,8 @@
 import asyncio
 from aiogram.exceptions import TelegramBadRequest
+from pathlib import Path
 
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, FSInputFile
 from config import user_sessions, jwt_token_data, WORKER_BOT
 
 
@@ -62,3 +63,15 @@ async def delete_sessions(user_id: int) -> None:
         except TelegramBadRequest:
             # Если сообщение вдруг уже удалено.
             pass
+
+
+async def send_sticker(user_id: int, sticker: str) -> None:
+    sticker_path = Path(__file__).parent.parent.joinpath(
+        "stickers", sticker
+    )
+    input_file = FSInputFile(sticker_path)
+    sticker: Message = await WORKER_BOT.send_sticker(
+        chat_id=user_id,
+        sticker=input_file
+    )
+    asyncio.create_task(remove_message_after_delay(7, sticker))

@@ -16,10 +16,11 @@ from handlers.registration import register_route
 from handlers.remind import remind
 from handlers.reset_password import reset
 from handlers.tracking import track
+from handlers.comments import comment_router
 from keyboards.keyboard import main_menu
 from loader import greeting, guide, menu_bot, options
-from utils.remind import create_scheduler_all
 from utils.common import append_to_session
+from utils.remind import create_scheduler_all
 
 dp = Dispatcher()
 dp.include_router(add)
@@ -31,6 +32,7 @@ dp.include_router(track)
 dp.include_router(arch)
 dp.include_router(remind)
 dp.include_router(reset)
+dp.include_router(comment_router)
 dp.include_router(invalid_router)
 
 
@@ -38,7 +40,9 @@ dp.include_router(invalid_router)
 async def greeting_handler(message: types.Message) -> None:
     """Welcome Handler."""
     await append_to_session(message.from_user.id, [message])
-    await message.answer(text=greeting, reply_markup=main_menu)
+    await message.answer(
+        text=greeting, reply_markup=main_menu, parse_mode="HTML"
+    )
 
 
 @dp.callback_query(F.data == "main")
@@ -69,12 +73,16 @@ async def handler_main_command(message: Message, state: FSMContext) -> None:
 async def handler_help(mess: Message, state: FSMContext) -> None:
     """Shows detailed information about the work of the bot."""
     await state.clear()
-    send_message = await mess.answer(text=guide, reply_markup=main_menu)
+    send_message = await mess.answer(
+        text=guide, reply_markup=main_menu
+    )
     await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @dp.callback_query(F.data == "show_commands")
-async def show_all_commands(callback: CallbackQuery, state: FSMContext) -> None:
+async def show_all_commands(
+    callback: CallbackQuery, state: FSMContext
+) -> None:
     send_message = await callback.message.edit_text(
         text=options,
         replay_markup=main_menu

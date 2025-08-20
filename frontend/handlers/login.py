@@ -1,5 +1,6 @@
 import asyncio
 from typing import Dict
+import random
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -22,11 +23,23 @@ from utils.common import (
     append_to_session,
     delete_sessions,
     remove_message_after_delay,
-    delete_jwt_token
+    delete_jwt_token,
+    send_sticker
 )
 from utils.register import create_data, is_valid_email, is_valid_password
 
 auth = Router()
+
+STICKERS_LIST = [
+    "cheburator.tgs",
+    "hello.tgs",
+    "hi_cat.tgs",
+    "hi_croco.tgs",
+    "hi_fire.tgs",
+    "hI_hi.tgs",
+    "hi_windows.tgs",
+    "HI.tgs"
+]
 
 
 @auth.message(F.text == "/auth")
@@ -39,6 +52,20 @@ async def input_email(mess: Message, state: FSMContext) -> None:
         reply_markup=cancel
     )
     await append_to_session(mess.from_user.id, [mess, send_message])
+
+
+@auth.callback_query(F.data == "auth")
+async def input_email_callback(
+    call: CallbackQuery, state: FSMContext
+) -> None:
+    """The handler for the email request."""
+    await state.set_state(LoginState.email)
+    send_message = await call.message.answer(
+        text=enter_email,
+        parse_mode="HTML",
+        reply_markup=cancel
+    )
+    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @auth.message(LoginState.email)
@@ -75,6 +102,10 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
         data: Dict[str, str] = await create_data(email, message.text)
         result: str | None = await login_user(data, message.from_user.id)
         if result is None:
+            await send_sticker(
+                message.from_user.id,
+                random.choice(STICKERS_LIST)
+            )
             send_message = await message.answer(
                 success_auth,
                 reply_markup=main_menu,
@@ -98,8 +129,9 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
 async def clean_messages(callback: CallbackQuery):
     await delete_sessions(callback.from_user.id)
     await delete_jwt_token(callback.from_user.id)
-    await callback.message.answer(
+    send_message = await callback.message.answer(
         text=hbold(clear_history),
-        parse_mode="HTML",
-        replay_markup=main_menu
+        replay_markup=main_menu,
+        parse_mode="HTML"
     )
+    await remove_message_after_delay(10, send_message)

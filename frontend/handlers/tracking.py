@@ -3,6 +3,7 @@ from typing import Dict
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
+from aiogram.utils.markdown import hbold
 
 from api.get_habit import get_full_info
 from api.tracking import (
@@ -15,7 +16,6 @@ from keyboards.keyboard import confirm
 from states.add import HabitState
 from utils.habits import generate_message_answer
 from keyboards.tracking import inline_choice_calendar, inline_done_not_done
-from utils.tracking import get_choice_date, days_ago
 from utils.common import append_to_session
 
 track: Router = Router()
@@ -27,30 +27,57 @@ async def choice_date(call: CallbackQuery, state: FSMContext) -> None:
     Processes the command about the need to mark the habit,
     gets a keyboard to show possible days to mark.
     """
-    keyword: InlineKeyboardMarkup = await inline_choice_calendar()
+    keyword: InlineKeyboardMarkup = await inline_choice_calendar(days_ago=0)
     await state.set_state(HabitState.done)
+    await state.update_data(days_ago=0)
     send_message = await call.message.edit_text(
-        text="Выберите день:", reply_markup=keyword
+        text=hbold("Выберите день:"),
+        reply_markup=keyword,
+        parse_mode="HTML"
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
 
-@track.callback_query(HabitState.done, F.data.in_(days_ago))
+@track.callback_query(F.data.in_(["next_day", "prev_day"]))
+async def choice_date_prev(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    Processes the command about the need to mark the habit,
+    gets a keyboard to show possible days to mark.
+    """
+    days_ago: int = (await state.get_data()).get("days_ago", 0)
+    if call.data == "prev_day":
+        days_ago += 1
+    else:
+        days_ago -= 1
+        
+    keyword: InlineKeyboardMarkup = await inline_choice_calendar(days_ago)
+    await state.set_state(HabitState.done)
+    await state.update_data(days_ago=days_ago)
+    send_message = await call.message.edit_text(
+        text=hbold("Выберите день:"),
+        reply_markup=keyword,
+        parse_mode="HTML"
+    )
+    await append_to_session(call.from_user.id, [call, send_message])
+
+
+@track.callback_query(HabitState.done)
 async def choice_done(call: CallbackQuery, state: FSMContext) -> None:
     """
     The data handler after entering the date of the mark.
     Gets the keyboard to select completed/not completed.
     """
-    date: str = await get_choice_date(call.data)
     keyword: InlineKeyboardMarkup = await inline_done_not_done()
 
-    await state.update_data(date=date)
+    await state.update_data(date=call.data)
     await state.set_state(HabitState.date)
     send_message = await call.message.edit_text(
-        text="Выберите:\n"
-        "✅ - если выпорлнили\n"
-        "❌ - если не выполнили.",
-        reply_markup=keyword
+        text=hbold(
+            "Выберите:\n"
+            "✅ - если выполнили\n"
+            "❌ - если не выполнили."),
+        reply_markup=keyword,
+        parse_mode="HTML"
     )
     await append_to_session(call.from_user.id, [call, send_message])
 

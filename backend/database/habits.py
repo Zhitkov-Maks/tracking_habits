@@ -8,7 +8,8 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     Date,
-    UniqueConstraint
+    UniqueConstraint,
+    DateTime
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -49,6 +50,10 @@ class Habit(Base):
         cascade="all, delete",
         lazy="select"
     )
+    comments: Mapped[list["Comment"]] = relationship(
+        back_populates="habit",
+        cascade="all, delete-orphan"
+    )
 
     def __str__(self):
         return (f"title={self.title}, "
@@ -77,4 +82,18 @@ class Tracking(Base):
         "Habit",
         back_populates="tracking",
         lazy="select"
+    )
+
+
+class Comment(Base):
+    __tablename__ = 'comments'
+    body: Mapped[str] = mapped_column(String, nullable=False)
+    habit_id: Mapped[int] = mapped_column(
+        ForeignKey('habits.id'), nullable=False
+    )
+    habit: Mapped["Habit"] = relationship(back_populates="comments")
+    created_at: Mapped[dt] = mapped_column(
+        DateTime,
+        default=dt.utcnow,
+        nullable=False
     )

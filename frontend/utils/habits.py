@@ -1,5 +1,4 @@
 from datetime import date
-from datetime import datetime as dt
 from typing import Dict, List, Tuple
 
 from aiogram.utils.markdown import hbold, hitalic
@@ -30,14 +29,11 @@ async def count_days_by_date(
     :param data: Data for forming the response.
     :return tuple: A tuple with three numbers.
     """
-    end_date: date = dt.strptime(
-        data.get("end_date", "")[:10], '%Y-%m-%d'
-    ).date()
-    curr_date: date = dt.now().date()
+    all_days: date = data.get("number_of_days")
 
     count_done: int = data.get("tracking", {}).get("done", 0)
     count_not_done: int = data.get("tracking", {}).get("not_done", 0)
-    days_left: int = (end_date - curr_date).days
+    days_left: int = all_days - count_done
     return count_done, count_not_done, days_left
 
 
@@ -91,18 +87,6 @@ async def generate_message_answer(data: dict) -> str:
 
         f"{hbold(warning) if count_days[1] == 3 else ''}"
     )
-
-
-async def gen_message_done_not_done(data: dict) -> str:
-    """
-    Generating a message to add a mark of completion/non-completion.
-    :param data: Data on completion/non-completion.
-    :return str: Returns the message.
-    """
-    return (f"За дату {hbold(data.get("date"))} была сделана "
-            f"отметка о "
-            f"{'не' if data.get('done') == 'not_done' else ''} "
-            f"выполнении.")
 
 
 async def get_base_data_habit(

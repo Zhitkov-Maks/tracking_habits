@@ -1,3 +1,5 @@
+import random
+
 from aiogram import F, Router
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
@@ -13,9 +15,18 @@ from loader import (
     success_save
 )
 from states.add import AddState
-from utils.common import append_to_session
+from utils.common import append_to_session, send_sticker
 
 add: Router = Router()
+
+STICKERS_LIST = [
+    "done.webp",
+    "done_1.tgs",
+    "done_2.tgs",
+    "done_3.tgs",
+    "done_4.tgs",
+    "done_5.tgs"
+]
 
 
 @add.callback_query(F.data == "create")
@@ -62,6 +73,10 @@ async def create_and_record_db(mess: Message, state: FSMContext) -> None:
     """The handler sends all the entered data for saving.."""
     await state.update_data(number_of_days=mess.text)
     await request_create_habit(await state.get_data(), mess.from_user.id)
+    await send_sticker(
+        mess.from_user.id,
+        random.choice(STICKERS_LIST)
+    )
     send_message = await mess.answer(
         text=success_save,
         reply_markup=main_menu,

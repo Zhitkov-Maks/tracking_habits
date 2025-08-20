@@ -7,7 +7,7 @@ services:
       - "POSTGRES_PASSWORD=${DB_PASS}"
       - "POSTGRES_DB=${DB_NAME}"
     ports:
-      - '5433:5433'
+      - '5433:5432'
     restart: always
     volumes:
       - ./bot_db/:/var/lib/postgresql/data

@@ -1,8 +1,7 @@
-from aiogram import Bot, F, Router
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from api.get_habit import archive_habit, get_full_info, get_list_habits
-from config import BOT_TOKEN
 from handlers.decorator_handlers import decorator_errors
 from keyboards.archive import generate_inline_habits_list
 from keyboards.detail import gen_habit_keyword
@@ -14,7 +13,6 @@ from utils.common import append_to_session
 from utils.habits import generate_message_answer, get_base_data_habit
 
 detail: Router = Router()
-bot: Bot = Bot(token=BOT_TOKEN)
 
 
 @detail.callback_query(F.data == "show_habits")
@@ -51,7 +49,6 @@ async def next_output_list_habits(
     call: CallbackQuery, state: FSMContext
 ) -> None:
     """Shows a list of active habits for today."""
-    await call.message.delete_reply_markup()
     page: int = (await state.get_data()).get("page")
     is_active: int = (await state.get_data()).get("is_active")
 
@@ -126,7 +123,8 @@ async def habit_to_archive_confirm(call: CallbackQuery) -> None:
     """Confirmation of adding a habit to the archive."""
     send_message = await call.message.answer(
         text=mark_as_archive,
-        reply_markup=confirm
+        reply_markup=confirm,
+        parse_mode="HTML"
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
@@ -142,7 +140,8 @@ async def habit_to_archive(call: CallbackQuery, state: FSMContext) -> None:
     )
     send_message = await call.message.edit_text(
         text=archived,
-        reply_markup=main_menu
+        reply_markup=main_menu,
+        parse_mode="HTML"
     )
     await state.clear()
     await append_to_session(call.from_user.id, [call, send_message])
