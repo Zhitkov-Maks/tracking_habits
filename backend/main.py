@@ -5,6 +5,7 @@ from routes.habits import habits_router
 from routes.remind import remind
 from routes.tracking import track_rout
 from routes.user import user_rout
+from routes.comment import comment_rout
 
 
 app = FastAPI(
@@ -23,3 +24,4 @@ app.include_router(user_rout)
 app.include_router(habits_router)
 app.include_router(track_rout)
 app.include_router(remind)
+app.include_router(comment_rout)
