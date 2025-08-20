@@ -28,6 +28,14 @@ async def gen_habit_keyword() -> InlineKeyboardMarkup:
                 callback_data="edit"
             ),
             InlineKeyboardButton(
+                text="➕",
+                callback_data="create_comment"
+            ),
+            InlineKeyboardButton(
+                text="🗒",
+                callback_data="show_comments"
+            ),
+            InlineKeyboardButton(
                 text="🔙",
                 callback_data="show_habits"
             ),
