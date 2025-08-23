@@ -80,7 +80,7 @@ async def valid_decode_jwt(token: str, session: AsyncSession) -> User:
     :return User: Returns an instance of the user.
     """
     try:
-        data_user: dict = await decode_jwt(token)
+        data_user: dict = await decode_jwt(token, session=session)
         return await validate_decode_user(UserData(**data_user), session)
 
     except (DecodeError, ExpiredSignatureError):

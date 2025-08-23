@@ -1,12 +1,13 @@
 from typing import Tuple, Dict
+from datetime import datetime, UTC
 
 from fastapi import HTTPException
-from sqlalchemy import select, Select, Update, update
+from sqlalchemy import select, Select, Update, update, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from database import User
+from database import User, RevokedToken
 from routes.utils import hash_password
 from schemas.user import ResetPassword
 
@@ -63,4 +64,15 @@ async def update_user_password(
         .values(password=password)
     )
     await session.execute(stmt)
+    await session.commit()
+
+
+async def cleanup_expired_tokens(session: AsyncSession) -> None:
+    """
+    Clears expired tokens from the blacklist.
+    Returns the number of deleted tokens.
+    """
+    await session.execute(
+        delete(RevokedToken).where(RevokedToken.expires_at < datetime.now(UTC))
+    )
     await session.commit()

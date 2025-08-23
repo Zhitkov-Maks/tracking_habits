@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from sqlalchemy.ext.asyncio import AsyncSession
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from config import settings
 from routes.habits import habits_router
@@ -6,6 +8,7 @@ from routes.remind import remind
 from routes.tracking import track_rout
 from routes.user import user_rout
 from routes.comment import comment_rout
+from crud.user import cleanup_expired_tokens
 
 
 app = FastAPI(
@@ -25,3 +28,15 @@ app.include_router(habits_router)
 app.include_router(track_rout)
 app.include_router(remind)
 app.include_router(comment_rout)
+
+
+scheduler = BackgroundScheduler()
+
+
+async def scheduled_cleanup():
+    async with AsyncSession() as session:
+        await cleanup_expired_tokens(session)
+
+
+scheduler.add_job(scheduled_cleanup, 'interval', days=1)
+scheduler.start()
