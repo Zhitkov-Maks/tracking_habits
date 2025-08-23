@@ -1,9 +1,29 @@
 import asyncio
 from aiogram.exceptions import TelegramBadRequest
 from pathlib import Path
+from functools import wraps
+from http.client import HTTPException
+from typing import Any, Callable, Coroutine, TypeVar
 
-from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram.types import (
+    Message,
+    CallbackQuery,
+    FSInputFile,
+    InlineKeyboardMarkup
+)
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery as CQ
+
+from keyboards.keyboard import main_menu
+from loader import not_auth
 from config import user_sessions, jwt_token_data, WORKER_BOT
+from api.get_habit import get_full_info
+from utils.habits import generate_message_answer
+from keyboards.detail import gen_habit_keyboard
+from states.add import HabitState
+
+
+T = TypeVar("T")
 
 
 async def remove_message_after_delay(delay: int, message: Message):
@@ -36,6 +56,52 @@ async def append_to_session(
             user_sessions[user_id].add(
                 (mess.message.chat.id, mess.message.message_id)
             )
+
+
+def decorator_errors(
+    func: Callable[[Message | CQ, FSMContext], Coroutine[Any, Any, T]]
+) -> Callable[[Message | CQ, FSMContext], Coroutine[Any, Any, None]]:
+    """
+    A decorator for the callback and message processing function.
+    """
+    @wraps(func)
+    async def wrapper(arg: Message | CQ, state: FSMContext) -> None:
+        """
+        Wrapper for error handling when executing a function
+        """
+        try:
+            await func(arg, state)
+
+        except KeyError:
+            sticker_path = Path(__file__).parent.parent.joinpath(
+                "stickers", "stop_not_auth.tgs"
+            )
+            input_file = FSInputFile(sticker_path)
+            sticker = await WORKER_BOT.send_sticker(
+                chat_id=arg.from_user.id,
+                sticker=input_file
+            )
+            send_message = await WORKER_BOT.send_message(
+                arg.from_user.id,
+                not_auth,
+                parse_mode="HTML",
+                reply_markup=main_menu
+            )
+            await append_to_session(arg.from_user.id, [send_message, sticker])
+
+        except HTTPException as err:
+            send_message = await WORKER_BOT.send_message(
+                arg.from_user.id, text=str(err), reply_markup=main_menu
+            )
+            await append_to_session(arg.from_user.id, [send_message])
+            
+        except Exception as err:
+            send_message = await WORKER_BOT.send_message(
+                arg.from_user.id, text=str(err), reply_markup=main_menu
+            )
+            await append_to_session(arg.from_user.id, [send_message])
+
+    return wrapper
 
 
 async def delete_jwt_token(user_id: int) -> None:
@@ -75,3 +141,20 @@ async def send_sticker(user_id: int, sticker: str) -> None:
         sticker=input_file
     )
     asyncio.create_task(remove_message_after_delay(7, sticker))
+
+
+async def bot_send_message(state: FSMContext, user_id: int):
+    data: dict = await state.get_data()
+    id_: int = data.get("id")
+    response: dict = await get_full_info(id_, user_id)
+    text: str = await generate_message_answer(response)
+    keyboard: InlineKeyboardMarkup = await gen_habit_keyboard()
+
+    await state.set_state(HabitState.action)
+    send_message = await WORKER_BOT.send_message(
+        chat_id=user_id,
+        text=text,
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+    await append_to_session(user_id, [send_message])

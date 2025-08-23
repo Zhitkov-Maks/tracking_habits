@@ -17,7 +17,11 @@ from loader import (
 from keyboards.keyboard import main_menu, cancel
 from states.register import RegisterState
 from utils.register import create_data, is_valid_email, is_valid_password
-from utils.common import remove_message_after_delay, append_to_session
+from utils.common import (
+    remove_message_after_delay,
+    append_to_session,
+    decorator_errors
+)
 
 
 register_route = Router()
@@ -25,6 +29,7 @@ bot = Bot(token=BOT_TOKEN)
 
 
 @register_route.message(F.text == "/register")
+@decorator_errors
 async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(RegisterState.email)
@@ -37,6 +42,7 @@ async def input_email(mess: Message, state: FSMContext) -> None:
 
 
 @register_route.message(RegisterState.email)
+@decorator_errors
 async def input_password(
     mess: Message,
     state: FSMContext
@@ -59,6 +65,7 @@ async def input_password(
 
 
 @register_route.message(RegisterState.password)
+@decorator_errors
 async def final_registration(
     message: Message,
     state: FSMContext

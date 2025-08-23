@@ -35,3 +35,12 @@ async def generate_inline_choice_edit() -> InlineKeyboardMarkup:
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_edit)
+
+
+back_button: List[List[InlineKeyboardButton]] = [
+    [
+        InlineKeyboardButton(text="🔙", callback_data="edit"),
+        InlineKeyboardButton(text="К привычке", callback_data="show_detail"),
+    ]
+]
+edit_button = InlineKeyboardMarkup(inline_keyboard=back_button)

@@ -7,7 +7,6 @@ from api.get_habit import (
     get_full_info,
     get_list_habits
 )
-from handlers.decorator_handlers import decorator_errors
 from keyboards.archive import (
     gen_habit_keyword_archive,
     generate_inline_habits_list
@@ -21,7 +20,7 @@ from loader import (
     success_remove,
 )
 from states.archive import ArchiveState
-from utils.common import append_to_session
+from utils.common import append_to_session, decorator_errors
 from utils.habits import generate_message_answer
 
 arch: Router = Router()
@@ -72,7 +71,10 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @arch.callback_query(ArchiveState.action, F.data == "delete")
-async def delete_habit_by_id(call: CallbackQuery) -> None:
+@decorator_errors
+async def delete_habit_by_id(
+    call: CallbackQuery, state: FSMContext
+) -> None:
     """
     Confirmation of the habit deletion. Shows the keyboard
     with the choice is yes or no.

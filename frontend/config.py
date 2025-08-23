@@ -15,6 +15,7 @@ WORKER_BOT = Bot(token=BOT_TOKEN)
 
 register_url: str = API_ADDRESS + BASE_URL + "auth/registration/"
 login_url: str = API_ADDRESS + BASE_URL + "auth/login/"
+logout_url: str = API_ADDRESS + BASE_URL + "auth/logout/"
 reset_url: str = API_ADDRESS + BASE_URL + "auth/request-password-reset/"
 reset_password_url: str = API_ADDRESS + BASE_URL + "auth/reset-password/"
 habit_url: str = API_ADDRESS + BASE_URL + "habits/"

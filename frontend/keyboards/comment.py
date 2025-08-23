@@ -1,3 +1,4 @@
+from typing import List
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
@@ -33,3 +34,12 @@ async def get_comment_keyboard(
             0, InlineKeyboardButton(text="<<", callback_data="prev_comment")
         )
     return InlineKeyboardMarkup(inline_keyboard=inline_actions)
+
+
+back_button: List[List[InlineKeyboardButton]] = [
+    [
+        InlineKeyboardButton(text="🔙", callback_data="show_comments"),
+        InlineKeyboardButton(text="К привычке", callback_data="show_detail"),
+    ]
+]
+comment_button = InlineKeyboardMarkup(inline_keyboard=back_button)

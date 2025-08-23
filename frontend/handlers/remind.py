@@ -3,7 +3,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from api.remind import add_time_remind, remove_time
-from handlers.decorator_handlers import decorator_errors
 from keyboards.keyboard import (
     remind_button,
     main_menu,
@@ -16,13 +15,14 @@ from utils.remind import (
     add_send_message,
     remove_scheduler_job
 )
-from utils.common import append_to_session
+from utils.common import append_to_session, decorator_errors
 from loader import menu_remind, choice_hour, menu_bot
 
 remind: Router = Router()
 
 
 @remind.callback_query(F.data == "remind")
+@decorator_errors
 async def start_work_to_remind(call: CallbackQuery, state: FSMContext) -> None:
     """
     A command handler for working with reminders.
@@ -38,6 +38,7 @@ async def start_work_to_remind(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @remind.callback_query(RemindState.start, F.data == "remove")
+@decorator_errors
 async def confirm_to_remove_remind(
         call: CallbackQuery, state: FSMContext
 ) -> None:
@@ -67,6 +68,7 @@ async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @remind.callback_query(RemindState.start, F.data.in_(["add", "change"]))
+@decorator_errors
 async def add_remind(call: CallbackQuery, state: FSMContext) -> None:
     """
     A handler for adding or changing the reminder time.

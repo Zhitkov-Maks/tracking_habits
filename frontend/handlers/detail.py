@@ -2,14 +2,13 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from api.get_habit import archive_habit, get_full_info, get_list_habits
-from handlers.decorator_handlers import decorator_errors
 from keyboards.archive import generate_inline_habits_list
-from keyboards.detail import gen_habit_keyword
+from keyboards.detail import gen_habit_keyboard
 from keyboards.keyboard import confirm, main_menu
 from loader import active_list, archived, mark_as_archive, not_active_list
 from states.add import HabitState
 from states.archive import ArchiveState
-from utils.common import append_to_session
+from utils.common import append_to_session, decorator_errors
 from utils.habits import generate_message_answer, get_base_data_habit
 
 detail: Router = Router()
@@ -91,7 +90,7 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
     )
     await state.set_state(HabitState.action)
 
-    keyword: InlineKeyboardMarkup = await gen_habit_keyword()
+    keyword: InlineKeyboardMarkup = await gen_habit_keyboard()
     send_message = await call.message.edit_text(
         text=text,
         parse_mode="HTML",
@@ -101,25 +100,28 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @detail.callback_query(F.data == "show_detail")
+@decorator_errors
 async def show_detail_habit(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     id_: int = data.get("id")
     response: dict = await get_full_info(id_, call.from_user.id)
     text: str = await generate_message_answer(response)
-    title, body, days = await get_base_data_habit(response)
-    keyword: InlineKeyboardMarkup = await gen_habit_keyword()
+    keyboard: InlineKeyboardMarkup = await gen_habit_keyboard()
 
     await state.set_state(HabitState.action)
     send_message = await call.message.edit_text(
         text=text,
         parse_mode="HTML",
-        reply_markup=keyword
+        reply_markup=keyboard
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(HabitState.action, F.data == "archive")
-async def habit_to_archive_confirm(call: CallbackQuery) -> None:
+@decorator_errors
+async def habit_to_archive_confirm(
+    call: CallbackQuery, state: FSMContext
+) -> None:
     """Confirmation of adding a habit to the archive."""
     send_message = await call.message.answer(
         text=mark_as_archive,

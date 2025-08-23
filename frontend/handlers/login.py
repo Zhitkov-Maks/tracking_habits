@@ -8,6 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.markdown import hbold
 
 from api.auth import login_user
+from api.reset import revoke_token
 from keyboards.keyboard import cancel, main_menu
 from keyboards.reset import generate_inline_keyboard_reset
 from loader import (
@@ -21,6 +22,7 @@ from loader import (
 from states.login import LoginState
 from utils.common import (
     append_to_session,
+    decorator_errors,
     delete_sessions,
     remove_message_after_delay,
     delete_jwt_token,
@@ -43,6 +45,7 @@ STICKERS_LIST = [
 
 
 @auth.message(F.text == "/auth")
+@decorator_errors
 async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(LoginState.email)
@@ -55,6 +58,7 @@ async def input_email(mess: Message, state: FSMContext) -> None:
 
 
 @auth.callback_query(F.data == "auth")
+@decorator_errors
 async def input_email_callback(
     call: CallbackQuery, state: FSMContext
 ) -> None:
@@ -69,6 +73,7 @@ async def input_email_callback(
 
 
 @auth.message(LoginState.email)
+@decorator_errors
 async def input_password(mess: Message, state: FSMContext) -> None:
     """The handler for the password request."""
     valid: bool = is_valid_email(mess.text)
@@ -92,6 +97,7 @@ async def input_password(mess: Message, state: FSMContext) -> None:
 
 
 @auth.message(LoginState.password)
+@decorator_errors
 async def final_authentication(message: Message, state: FSMContext) -> None:
     """The handler authenticates the user."""
     valid: bool = is_valid_password(message.text)
@@ -126,7 +132,9 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
 
 
 @auth.callback_query(F.data == "clear_history")
-async def clean_messages(callback: CallbackQuery):
+@decorator_errors
+async def clean_messages(callback: CallbackQuery,  state: FSMContext):
+    await revoke_token(callback.from_user.id)
     await delete_sessions(callback.from_user.id)
     await delete_jwt_token(callback.from_user.id)
     send_message = await callback.message.answer(

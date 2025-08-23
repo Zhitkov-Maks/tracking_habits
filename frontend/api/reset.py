@@ -2,7 +2,8 @@ from http.client import HTTPException
 from typing import Dict
 
 from api.client import Client
-from config import reset_url, reset_password_url
+from config import reset_url, reset_password_url, logout_url
+from utils.create import create_header
 
 
 async def get_token_for_reset(email: str) -> Dict[str, str]:
@@ -35,4 +36,15 @@ async def query_for_reset_password(token: str, new_password: str) -> None:
     )
     status_code, response = await client.post()
     if status_code != 201:
+        raise HTTPException(response.get("detail").get("descr"))
+
+
+async def revoke_token(user_id: int):
+    """
+    A request to revoke the token.
+    """
+    client: Client = Client(url=logout_url)
+    client.header.update(Authorization=await create_header(user_id))
+    status_code, response = await client.post()
+    if status_code != 204:
         raise HTTPException(response.get("detail").get("descr"))

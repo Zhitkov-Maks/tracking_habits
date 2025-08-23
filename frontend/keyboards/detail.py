@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-async def gen_habit_keyword() -> InlineKeyboardMarkup:
+async def gen_habit_keyboard() -> InlineKeyboardMarkup:
     """
     The function generates a keyboard for the action
     according to a specific habit.

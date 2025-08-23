@@ -1,13 +1,16 @@
 import asyncio
-from datetime import timedelta
+from datetime import timedelta, datetime, UTC
 
+import jwt
 from fastapi import (
     APIRouter,
     Depends,
-    status
+    status,
+    Security
 )
-
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 
 from config import SUBJECT, BODY
 from crud.user import create_user, update_user_password
@@ -17,8 +20,10 @@ from database.conf_db import get_async_session
 from routes.utils import hash_password, encode_jwt, send_email
 from schemas.general import ErrorSchema, SuccessSchema, TokenSchema, TokenReset
 from schemas.user import UserData, ResetPassword
+from .utils import revoke_token, decode_jwt
 
 user_rout = APIRouter(prefix="/auth", tags=["AUTH"])
+jwt_token = HTTPBearer()
 
 
 @user_rout.post(
@@ -46,7 +51,10 @@ async def registration_user_rout(
 async def auth_user(
     user: UserData = Depends(validate_auth_user),
 ) -> TokenSchema:
-    """The method is designed to authenticate the user and issue him a token."""
+    """
+    The method is designed to authenticate the
+    user and issue him a token.
+    """
     token: str = await encode_jwt(user)
     return TokenSchema(access_token=token, token_type="Bearer")
 
@@ -81,3 +89,34 @@ async def reset_password(
     await update_user_password(user.email, reset_data, session)
     asyncio.create_task(send_email(user.email, SUBJECT, BODY))
     return SuccessSchema(result=True)
+
+
+@user_rout.post(
+    "/logout/",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={403: {"model": ErrorSchema}},
+)
+async def logout(
+    token: HTTPAuthorizationCredentials = Security(jwt_token),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Revokes the current JWT token.
+    """
+    try:
+        # Decoding the token to get the expiration time.
+        decoded = await decode_jwt(token.credentials, session)
+        expires_at = datetime.fromtimestamp(decoded['exp'], UTC)
+
+        # Adding the token to the blacklist
+        await revoke_token(session, token.credentials, expires_at)
+        return SuccessSchema(result=True)
+
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "result": False,
+                "descr": "Токен не найден.",
+            },
+        )

@@ -7,10 +7,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram import F
 
 from api.edit import request_update_habit
-from api.get_habit import get_full_info
-from handlers.decorator_handlers import decorator_errors
-from keyboards.detail import gen_habit_keyword
-from keyboards.edit import generate_inline_choice_edit
+from keyboards.edit import generate_inline_choice_edit, edit_button
 from keyboards.keyboard import cancel, confirm
 from loader import (
     update_data,
@@ -26,15 +23,16 @@ from loader import (
     create_number_of_days
 )
 from states.edit import FullEditState, PartialEditHabit
-from states.add import HabitState
-from utils.habits import generate_message_answer
-from utils.common import append_to_session
+from utils.common import append_to_session, bot_send_message, decorator_errors
 
 edit_rout = Router()
 
 
-@edit_rout.callback_query(HabitState.action, F.data == "edit")
-async def choosing_upgrade_option(call: CallbackQuery) -> None:
+@edit_rout.callback_query(F.data == "edit")
+@decorator_errors
+async def choosing_upgrade_option(
+    call: CallbackQuery, state: FSMContext
+) -> None:
     """Handler for selecting a habit change option."""
     send_message = await call.message.edit_text(
         text=what_edit,
@@ -45,16 +43,18 @@ async def choosing_upgrade_option(call: CallbackQuery) -> None:
 
 
 @edit_rout.callback_query(F.data == "edit_title")
+@decorator_errors
 async def update_title(callback: CallbackQuery, state: FSMContext) -> None:
     """Handler for entering a new habit name."""
     await state.set_state(PartialEditHabit.title)
     send_message = await callback.message.edit_text(
-        text=new_title, parse_mode="HTML", reply_markup=cancel
+        text=new_title, parse_mode="HTML", reply_markup=edit_button
     )
     await append_to_session(callback.from_user.id, [callback, send_message])
 
 
 @edit_rout.message(PartialEditHabit.title)
+@decorator_errors
 async def partial_update_title(message: Message, state: FSMContext) -> None:
     """
     The handler saves the new habit name and requests approval to save it.
@@ -70,16 +70,18 @@ async def partial_update_title(message: Message, state: FSMContext) -> None:
 
 
 @edit_rout.callback_query(F.data == "edit_body")
+@decorator_errors
 async def update_body(callback: CallbackQuery, state: FSMContext) -> None:
     """Handler for entering a new habit description."""
     await state.set_state(PartialEditHabit.body)
     send_message = await callback.message.edit_text(
-        text=new_body, parse_mode="HTML", reply_markup=cancel
+        text=new_body, parse_mode="HTML", reply_markup=edit_button
     )
     await append_to_session(callback.from_user.id, [callback, send_message])
 
 
 @edit_rout.message(PartialEditHabit.body)
+@decorator_errors
 async def partial_update_body(message: Message, state: FSMContext) -> None:
     """
     The handler saves the new habit description and requests
@@ -96,16 +98,18 @@ async def partial_update_body(message: Message, state: FSMContext) -> None:
 
 
 @edit_rout.callback_query(F.data == "edit_period")
+@decorator_errors
 async def update_period(callback: CallbackQuery, state: FSMContext) -> None:
     """Handler for entering a new habit numbers_of_days."""
     await state.set_state(PartialEditHabit.number_of_days)
     send_message = await callback.message.edit_text(
-        text=new_numbers_of_days, parse_mode="HTML", reply_markup=cancel
+        text=new_numbers_of_days, parse_mode="HTML", reply_markup=edit_button
     )
     await append_to_session(callback.from_user.id, [callback, send_message])
 
 
 @edit_rout.message(PartialEditHabit.number_of_days)
+@decorator_errors
 async def partial_update_number_days(
     message: Message, state: FSMContext
 ) -> None:
@@ -136,30 +140,25 @@ async def partial_update_save(
     await request_update_habit(data, callback.from_user.id)
     await callback.answer(update_data, show_alert=True)
 
-    response: dict = await get_full_info(data["id"], callback.from_user.id)
-    text: str = await generate_message_answer(response)
-    await state.set_state(HabitState.action)
-    send_message = await callback.message.edit_text(
-        text=text,
-        parse_mode="HTML",
-        reply_markup=await gen_habit_keyword()
-    )
-    await append_to_session(callback.from_user.id, [callback, send_message])
+    await bot_send_message(state, callback.from_user.id)
+    await append_to_session(callback.from_user.id, [callback])
 
 
 @edit_rout.callback_query(F.data == "edit_full")
+@decorator_errors
 async def full_edit_habit_title(
     call: CallbackQuery, state: FSMContext
 ) -> None:
     """Entering a new habit name when editing a habit."""
     await state.set_state(FullEditState.title)
     send_message = await call.message.edit_text(
-        text=create_title, parse_mode="HTML", reply_markup=cancel
+        text=create_title, parse_mode="HTML", reply_markup=edit_button
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
 
 @edit_rout.message(FullEditState.title)
+@decorator_errors
 async def full_edit_description_habit(
     mess: Message, state: FSMContext
 ) -> None:
@@ -169,12 +168,13 @@ async def full_edit_description_habit(
     send_message = await mess.answer(
         text=create_body,
         parse_mode=ParseMode.HTML,
-        reply_markup=cancel
+        reply_markup=edit_button
     )
     await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @edit_rout.message(FullEditState.describe)
+@decorator_errors
 async def full_edit_habit_number_of_days(
     mess: Message, state: FSMContext
 ) -> None:
@@ -183,7 +183,7 @@ async def full_edit_habit_number_of_days(
     await state.set_state(FullEditState.numbers_of_days)
     send_message = await mess.answer(
         text=create_number_of_days,
-        reply_markup=cancel,
+        reply_markup=edit_button,
         parse_mode="HTML"
     )
     await append_to_session(mess.from_user.id, [mess, send_message])
@@ -198,11 +198,5 @@ async def full_create_and_record_db(mess: Message, state: FSMContext) -> None:
     await request_update_habit(data, mess.from_user.id)
     await mess.answer(text=update_data)
 
-    # Открываем привычку с обновленными данными.
-    response: dict = await get_full_info(data["id"], mess.from_user.id)
-    await state.set_state(HabitState.action)
-    text: str = await generate_message_answer(response)
-    send_message = await mess.answer(
-        text=text, parse_mode="HTML", reply_markup=await gen_habit_keyword()
-    )
-    await append_to_session(mess.from_user.id, [mess, send_message])
+    await bot_send_message(state, mess.from_user.id)
+    await append_to_session(mess.from_user.id, [mess])

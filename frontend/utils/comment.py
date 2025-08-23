@@ -11,7 +11,7 @@ async def generate_message_answer(
     exists_next_page = False
     list_comments: list[dict] = data.get("data", [])
     if len(list_comments) < 1:
-        return "Коментарий не найден.", exists_next_page, 0
+        return "Коментарии не найдены.", exists_next_page, 0
 
     message += f"Дата: {list_comments[0]["created_at"][:10]}\n"
     message += f"{list_comments[0]["body"]}\n\n"
