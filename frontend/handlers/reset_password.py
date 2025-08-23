@@ -6,7 +6,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 from api.reset import get_token_for_reset, query_for_reset_password
-from handlers.decorator_handlers import decorator_errors
 from keyboards.keyboard import cancel, main_menu
 from loader import (
     password,
@@ -16,13 +15,18 @@ from loader import (
     success_reset
 )
 from states.reset import ResetPassword
-from utils.common import remove_message_after_delay, append_to_session
+from utils.common import (
+    remove_message_after_delay,
+    append_to_session,
+    decorator_errors
+)
 from utils.register import is_valid_email, is_valid_password
 
 reset: Router = Router()
 
 
 @reset.message(F.text == "/reset")
+@decorator_errors
 async def input_email_for_reset(mess: Message, state: FSMContext) -> None:
     """A function for requesting an email to reset the password."""
     await state.set_state(ResetPassword.send_email)
@@ -33,6 +37,7 @@ async def input_email_for_reset(mess: Message, state: FSMContext) -> None:
 
 
 @reset.callback_query(F.data == "reset")
+@decorator_errors
 async def input_email_for_reset_callback(
     call: CallbackQuery, state: FSMContext
 ) -> None:

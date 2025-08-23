@@ -1,27 +1,22 @@
-from typing import Dict
-
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from aiogram.utils.markdown import hbold
 
-from api.get_habit import get_full_info
 from api.tracking import (
     habit_tracking_mark,
     habit_tracking_mark_update
 )
-from handlers.decorator_handlers import decorator_errors
-from keyboards.detail import gen_habit_keyword
 from keyboards.keyboard import confirm
 from states.add import HabitState
-from utils.habits import generate_message_answer
 from keyboards.tracking import inline_choice_calendar, inline_done_not_done
-from utils.common import append_to_session
+from utils.common import append_to_session, bot_send_message, decorator_errors
 
 track: Router = Router()
 
 
 @track.callback_query(HabitState.action, F.data == "mark")
+@decorator_errors
 async def choice_date(call: CallbackQuery, state: FSMContext) -> None:
     """
     Processes the command about the need to mark the habit,
@@ -39,6 +34,7 @@ async def choice_date(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @track.callback_query(F.data.in_(["next_day", "prev_day"]))
+@decorator_errors
 async def choice_date_prev(call: CallbackQuery, state: FSMContext) -> None:
     """
     Processes the command about the need to mark the habit,
@@ -62,6 +58,7 @@ async def choice_date_prev(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @track.callback_query(HabitState.done)
+@decorator_errors
 async def choice_done(call: CallbackQuery, state: FSMContext) -> None:
     """
     The data handler after entering the date of the mark.
@@ -98,22 +95,15 @@ async def mark_tracking_habit_done(
     status, response = await habit_tracking_mark(data, call.from_user.id)
 
     if status in (200, 201):
-        result: Dict[str, str] = \
-            await get_full_info(data.get("id"), call.from_user.id)
-        await state.set_state(HabitState.action)
-        send_message = await call.message.edit_text(
-            text=await generate_message_answer(result),
-            parse_mode="HTML",
-            reply_markup=await gen_habit_keyword()
-        )
-
+        await bot_send_message(state, call.from_user.id)
     else:
         await state.set_state(HabitState.confirm)
         send_message = await call.message.edit_text(
             text=response + "\nХотите изменить запись?",
             reply_markup=confirm
         )
-    await append_to_session(call.from_user.id, [call, send_message])
+        await append_to_session(call.from_user.id, [send_message])
+    await append_to_session(call.from_user.id, [call])
 
 
 @track.callback_query(HabitState.confirm, F.data == "yes")
@@ -124,11 +114,5 @@ async def mark_tracking_habit_update(
     """Handles overwriting habits."""
     data: dict = await state.get_data()
     await habit_tracking_mark_update(data, call.from_user.id)
-    response: dict = await get_full_info(data.get("id"), call.from_user.id)
-    await state.set_state(HabitState.action)
-    send_message = await call.message.edit_text(
-        text=await generate_message_answer(response),
-        parse_mode="HTML",
-        reply_markup=await gen_habit_keyword()
-    )
-    await append_to_session(call.from_user.id, [call, send_message])
+    await bot_send_message(state, call.from_user.id)
+    await append_to_session(call.from_user.id, [call])

@@ -11,13 +11,11 @@ from api.comment import (
     request_for_save_comment,
     delete_comment
 )
-from handlers.decorator_handlers import decorator_errors
-from keyboards.comment import get_comment_keyboard
+from keyboards.comment import get_comment_keyboard, comment_button
 from utils.comment import generate_message_answer
-from loader import input_comment, is_not_valid_comment, comment_save
-from keyboards.keyboard import cancel
+from utils.common import bot_send_message, decorator_errors
+from loader import input_comment, is_not_valid_comment
 from states.comment import CommentState
-from keyboards.keyboard import main_menu
 
 
 comment_router = Router()
@@ -86,10 +84,10 @@ async def create_comment_by_habit(
     callback: CallbackQuery, state: FSMContext
 ) -> None:
     await state.set_state(CommentState.body)
-    send_message: Message = await callback.message.answer(
+    send_message: Message = await callback.message.edit_text(
         text=input_comment,
         parse_mode="HTML",
-        reply_markup=cancel
+        reply_markup=comment_button
     )
     await append_to_session(callback.from_user.id, [callback, send_message])
 
@@ -101,8 +99,9 @@ async def save_comment(message: Message, state: FSMContext) -> None:
         send_message = await message.answer(
             text=is_not_valid_comment,
             parse_mode="HTML",
-            reply_markup=cancel
+            reply_markup=comment_button
         )
+        await append_to_session(message.from_user.id, [send_message])
     else:
         data: dict = await state.get_data()
         habit_id: int = data.get("id")
@@ -111,20 +110,17 @@ async def save_comment(message: Message, state: FSMContext) -> None:
             habit_id,
             {"body": message.text}
         )
-        send_message = await message.answer(
-            text=comment_save,
-            parse_mode="HTML",
-            reply_markup=main_menu
-        )
-    await append_to_session(message.from_user.id, [message, send_message])
+        await bot_send_message(state, message.from_user.id)
+        await append_to_session(message.from_user.id, [message])
 
 
 @comment_router.callback_query(F.data == "remove_comment")
+@decorator_errors
 async def remove_comment_by_id(
     call: CallbackQuery, state: FSMContext
 ) -> None:
     await state.set_state(CommentState.confirm)
-    send_message: CallbackQuery = await call.message.answer(
+    send_message: CallbackQuery = await call.message.edit_text(
         text=hbold("Подтвердите удаление."),
         parse_mode="HTML",
         reply_markup=confirm
@@ -140,9 +136,5 @@ async def confirm_remove_comment(
     data = await state.get_data()
     comment_id: int = data.get("comment_id")
     await delete_comment(comment_id, call.from_user.id)
-    send_message: CallbackQuery = await call.message.answer(
-        text=hbold("Комментарий был удален."),
-        reply_markup=main_menu,
-        parse_mode="HTML"
-    )
-    await append_to_session(call.from_user.id, [call, send_message])
+    await bot_send_message(state, call.from_user.id)
+    await append_to_session(call.from_user.id, [call])

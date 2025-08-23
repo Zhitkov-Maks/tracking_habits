@@ -6,7 +6,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from api.create import request_create_habit
-from handlers.decorator_handlers import decorator_errors
 from keyboards.keyboard import cancel, main_menu
 from loader import (
     create_body,
@@ -15,7 +14,7 @@ from loader import (
     success_save
 )
 from states.add import AddState
-from utils.common import append_to_session, send_sticker
+from utils.common import append_to_session, send_sticker, decorator_errors
 
 add: Router = Router()
 
@@ -30,6 +29,7 @@ STICKERS_LIST = [
 
 
 @add.callback_query(F.data == "create")
+@decorator_errors
 async def input_name_habits(call: CallbackQuery, state: FSMContext) -> None:
     """The handler asks the user for the name of the habit."""
     await state.set_state(AddState.title)
@@ -42,6 +42,7 @@ async def input_name_habits(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @add.message(AddState.title)
+@decorator_errors
 async def input_describe_habits(mess: Message, state: FSMContext) -> None:
     """The handler asks the user for a description of the habit."""
     await state.update_data(title=mess.text)
@@ -55,6 +56,7 @@ async def input_describe_habits(mess: Message, state: FSMContext) -> None:
 
 
 @add.message(AddState.describe)
+@decorator_errors
 async def input_numbers_days(mess: Message, state: FSMContext) -> None:
     """The handler asks the user for the number of days to track."""
     await state.update_data(body=mess.text)
