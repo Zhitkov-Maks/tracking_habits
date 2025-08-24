@@ -8,7 +8,7 @@ from aiogram import F
 
 from api.edit import request_update_habit
 from keyboards.edit import generate_inline_choice_edit, edit_button
-from keyboards.keyboard import cancel, confirm
+from keyboards.keyboard import confirm
 from loader import (
     update_data,
     what_edit,
