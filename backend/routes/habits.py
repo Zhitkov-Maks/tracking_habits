@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, status
 from fastapi.params import Depends, Security
 from fastapi.security import (
@@ -86,11 +87,15 @@ async def get_habits_by_id(
 ) -> HabitFull:
     """The method is designed to get complete information about the habit."""
     await valid_decode_jwt(token.credentials, session)
-    habit: Habit = await habit_by_id(habit_id, session)
 
-    done: int = await tracking_done_by_habit_id(habit_id, true(), session)
-    not_done: int = await tracking_done_by_habit_id(habit_id, false(), session)
-    seven_days: list = await tracking_for_seven_days(habit_id, session)
+    tasks = [
+        habit_by_id(habit_id, session),
+        tracking_done_by_habit_id(habit_id, true(), session),
+        tracking_done_by_habit_id(habit_id, false(), session),
+        tracking_for_seven_days(habit_id, session)
+    ]
+    results = await asyncio.gather(*tasks)
+    habit, done, not_done, seven_days = results
 
     return HabitFull(
         title=habit.title,
