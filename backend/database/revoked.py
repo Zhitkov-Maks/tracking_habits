@@ -7,7 +7,6 @@ from .base import Base
 
 
 class RevokedToken(Base):
-    token: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     token: Mapped[str] = mapped_column(
         String(64),
         unique=True,
@@ -22,5 +21,5 @@ class RevokedToken(Base):
         nullable=False
     )
     __table_args__ = (
-        Index('ix_token_hash', 'token'),  # Индекс для быстрого поиска
+        Index('ix_token_hash', 'token'),
     )

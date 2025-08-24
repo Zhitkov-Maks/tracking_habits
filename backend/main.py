@@ -31,7 +31,7 @@ app.include_router(remind)
 app.include_router(comment_rout)
 
 
-@app.get("/health")
+@app.get("/health", include_in_schema=False)
 async def health_check() -> JSONResponse:
     """It is needed to inform about readiness for work."""
     return JSONResponse(
