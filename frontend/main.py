@@ -20,7 +20,7 @@ from handlers.comments import comment_router
 from keyboards.keyboard import main_menu
 from loader import greeting, guide, menu_bot, options
 from utils.common import append_to_session
-from utils.remind import create_scheduler_all
+from utils.remind import create_scheduler_all, add_scheduler_remove_message
 
 dp = Dispatcher()
 dp.include_router(add)
@@ -39,7 +39,7 @@ dp.include_router(invalid_router)
 @dp.message(CommandStart())
 async def greeting_handler(message: types.Message) -> None:
     """Welcome Handler."""
-    await append_to_session(message.from_user.id, [message])
+    # await append_to_session(message.from_user.id, [message])
     await message.answer(
         text=greeting, reply_markup=main_menu, parse_mode="HTML"
     )
@@ -83,6 +83,9 @@ async def handler_help(mess: Message, state: FSMContext) -> None:
 async def show_all_commands(
     callback: CallbackQuery, state: FSMContext
 ) -> None:
+    """
+    Shows which commands are still available.
+    """
     send_message = await callback.message.edit_text(
         text=options,
         replay_markup=main_menu
@@ -99,6 +102,7 @@ async def main():
     there are notification settings.
     """
     await create_scheduler_all()
+    await add_scheduler_remove_message()
     logging.basicConfig(level=logging.DEBUG)
     await dp.start_polling(WORKER_BOT)
 

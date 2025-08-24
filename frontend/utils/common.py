@@ -158,3 +158,9 @@ async def bot_send_message(state: FSMContext, user_id: int):
         reply_markup=keyboard
     )
     await append_to_session(user_id, [send_message])
+
+
+async def delete_old_messages() -> None:
+    users: list[int] = list(user_sessions.keys())
+    for user_id in users:
+        await delete_sessions(user_id)

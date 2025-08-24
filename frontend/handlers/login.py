@@ -9,6 +9,7 @@ from aiogram.utils.markdown import hbold
 
 from api.auth import login_user
 from api.reset import revoke_token
+from config import WORKER_BOT
 from keyboards.keyboard import cancel, main_menu
 from keyboards.reset import generate_inline_keyboard_reset
 from loader import (
@@ -133,13 +134,22 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
 
 @auth.callback_query(F.data == "clear_history")
 @decorator_errors
-async def clean_messages(callback: CallbackQuery,  state: FSMContext):
-    await revoke_token(callback.from_user.id)
-    await delete_sessions(callback.from_user.id)
-    await delete_jwt_token(callback.from_user.id)
-    send_message = await callback.message.answer(
+async def clean_messages(
+    callback: CallbackQuery,
+    state: FSMContext
+):
+    """
+    Clears the message history,
+    revokes the token, and deletes the saved token.
+    """
+    user_id = callback.from_user.id
+    await revoke_token(user_id)
+    await delete_sessions(user_id)
+    await delete_jwt_token(user_id)
+    send_message: Message = await WORKER_BOT.send_message(
+        chat_id=user_id,
         text=hbold(clear_history),
-        replay_markup=main_menu,
+        reply_markup=main_menu,
         parse_mode="HTML"
     )
-    await remove_message_after_delay(10, send_message)
+    await append_to_session(user_id, [send_message])

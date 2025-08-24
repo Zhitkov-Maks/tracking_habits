@@ -4,10 +4,12 @@ from aiogram import BaseMiddleware, Bot, Dispatcher
 from aiogram.exceptions import TelegramForbiddenError
 from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from api.remind import get_all_users
 from config import BOT_TOKEN, app_schedule, scheduler_ids
 from keyboards.keyboard import main_menu
+from .common import delete_old_messages
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -97,3 +99,15 @@ async def remove_scheduler_job(user_chat_id: int) -> None:
     if schedule_id is not None:
         scheduler.remove_job(schedule_id)
         del scheduler_ids[user_chat_id]
+
+
+async def add_scheduler_remove_message() -> None:
+    """
+    Start deleting user messages.
+    """
+    scheduler: AsyncIOScheduler = await get_or_create_scheduler()
+    scheduler.add_job(
+        delete_old_messages,
+        trigger=CronTrigger(hour=4, minute=30, timezone='Europe/Moscow'),
+        id='daily_cleanup'
+    )
