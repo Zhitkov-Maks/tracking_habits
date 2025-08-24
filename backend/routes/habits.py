@@ -18,7 +18,6 @@ from crud.habits import (
 )
 from crud.tracking import tracking_done_by_habit_id, tracking_for_seven_days
 from crud.utils import valid_decode_jwt
-from database import User, Habit
 from database.conf_db import get_async_session
 from schemas.habits import (
     HabitSchema,
