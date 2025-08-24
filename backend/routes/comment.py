@@ -45,7 +45,7 @@ async def add_habits_comment(
     responses={403: {"model": ErrorSchema}},
     response_model=ListHabitsSchema,
 )
-async def get_list_habits(
+async def get_comment(
     habit_id: int,
     page: int,
     page_size: int = 10,
