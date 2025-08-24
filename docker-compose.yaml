@@ -11,29 +11,17 @@ services:
     restart: always
     volumes:
       - ./bot_db/:/var/lib/postgresql/data
-
-  telegram_bot:
-    container_name: Tracking
-    build:
-      context: frontend
-
-    environment:
-      - BOT_TOKEN=${TOKEN}
-
-    env_file:
-      - ./.env
-
-    ports:
-      - "443:443"
-
-    restart: always
-    depends_on:
-      - app
+    networks:
+      - app_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   app:
     build:
       context: backend
-    stop_signal: SIGKILL
     container_name: tracking_app
     restart: always
     ports:
@@ -41,4 +29,36 @@ services:
     env_file:
       - .env
     depends_on:
-      - bot_db
+      bot_db:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  telegram_bot:
+    container_name: Tracking
+    build:
+      context: frontend
+    environment:
+      - BOT_TOKEN=${TOKEN}
+    env_file:
+      - ./.env
+    ports:
+      - "443:443"
+    restart: always
+    depends_on:
+      app:
+        condition: service_healthy
+      bot_db:
+        condition: service_healthy
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

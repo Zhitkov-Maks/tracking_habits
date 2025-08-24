@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
+
 from api.get_habit import archive_habit, get_full_info, get_list_habits
 from keyboards.archive import generate_inline_habits_list
 from keyboards.detail import gen_habit_keyboard

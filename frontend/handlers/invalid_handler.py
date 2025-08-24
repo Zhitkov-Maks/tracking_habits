@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+
 from keyboards.keyboard import main_menu
 from utils.common import append_to_session, decorator_errors
 

@@ -2,10 +2,10 @@ async def generate_message_answer(
     data: dict[str, list[dict]]
 ) -> tuple[str, bool, int]:
     """
-    Формирует строку для ответа пользователю, а также сообщает
-    есть ли еще записи.
+    Generates a string for responding to the user, and also informs
+    are there any more recordings?
 
-    :param data: Словарь содержащий список комментариев.
+    :param data: A dictionary containing a list of comments.
     """
     message = "*" * 40 + "\n\n"
     exists_next_page = False

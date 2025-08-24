@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 from apscheduler.schedulers.background import BackgroundScheduler
+from fastapi.responses import JSONResponse
 
 from config import settings
 from routes.habits import habits_router
@@ -28,6 +29,15 @@ app.include_router(habits_router)
 app.include_router(track_rout)
 app.include_router(remind)
 app.include_router(comment_rout)
+
+
+@app.get("/health", include_in_schema=False)
+async def health_check() -> JSONResponse:
+    """It is needed to inform about readiness for work."""
+    return JSONResponse(
+        status_code=200,
+        content={"status": "healthy", "service": "tracking_app"}
+    )
 
 
 scheduler = BackgroundScheduler()

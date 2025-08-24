@@ -94,7 +94,7 @@ def decorator_errors(
                 arg.from_user.id, text=str(err), reply_markup=main_menu
             )
             await append_to_session(arg.from_user.id, [send_message])
-            
+
         except Exception as err:
             send_message = await WORKER_BOT.send_message(
                 arg.from_user.id, text=str(err), reply_markup=main_menu
@@ -132,6 +132,12 @@ async def delete_sessions(user_id: int) -> None:
 
 
 async def send_sticker(user_id: int, sticker: str) -> None:
+    """
+    Sends a random sticker to the user.
+
+    :param user_id: User ID.
+    :param sticker: The name of the sticker.
+    """
     sticker_path = Path(__file__).parent.parent.joinpath(
         "stickers", sticker
     )
@@ -140,10 +146,16 @@ async def send_sticker(user_id: int, sticker: str) -> None:
         chat_id=user_id,
         sticker=input_file
     )
-    asyncio.create_task(remove_message_after_delay(7, sticker))
+    asyncio.create_task(remove_message_after_delay(3, sticker))
 
 
 async def bot_send_message(state: FSMContext, user_id: int):
+    """
+    Opens the latest information about the habit.
+
+    :param user_id: User ID.
+    :param state: FSMContext for getting data about a habit. 
+    """
     data: dict = await state.get_data()
     id_: int = data.get("id")
     response: dict = await get_full_info(id_, user_id)
@@ -158,3 +170,13 @@ async def bot_send_message(state: FSMContext, user_id: int):
         reply_markup=keyboard
     )
     await append_to_session(user_id, [send_message])
+
+
+async def delete_old_messages() -> None:
+    """
+    Deletes messages for the last 24 hours from all users.
+    To avoid taking up memory.
+    """
+    users: list[int] = list(user_sessions.keys())
+    for user_id in users:
+        await delete_sessions(user_id)
