@@ -35,7 +35,10 @@ async def remove_message_after_delay(delay: int, message: Message):
     :return: None.
     """
     await asyncio.sleep(delay)
-    await message.delete()
+    try:
+        await message.delete()
+    except Exception:
+        pass
 
 
 async def append_to_session(
@@ -146,7 +149,7 @@ async def send_sticker(user_id: int, sticker: str) -> None:
         chat_id=user_id,
         sticker=input_file
     )
-    asyncio.create_task(remove_message_after_delay(3, sticker))
+    asyncio.create_task(remove_message_after_delay(60 * 5, sticker))
 
 
 async def bot_send_message(state: FSMContext, user_id: int):
@@ -154,7 +157,7 @@ async def bot_send_message(state: FSMContext, user_id: int):
     Opens the latest information about the habit.
 
     :param user_id: User ID.
-    :param state: FSMContext for getting data about a habit. 
+    :param state: FSMContext for getting data about a habit.
     """
     data: dict = await state.get_data()
     id_: int = data.get("id")

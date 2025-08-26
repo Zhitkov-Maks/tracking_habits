@@ -12,7 +12,8 @@ from loader import (
     enter_email,
     invalid_email,
     invalid_pass,
-    success_reset
+    success_reset,
+    input_token
 )
 from states.reset import ResetPassword
 from utils.common import (
@@ -31,7 +32,9 @@ async def input_email_for_reset(mess: Message, state: FSMContext) -> None:
     """A function for requesting an email to reset the password."""
     await state.set_state(ResetPassword.send_email)
     send_message = await mess.answer(
-        text=enter_email, reply_markup=cancel
+        text=enter_email,
+        reply_markup=cancel,
+        parse_mode="HTML"
     )
     await append_to_session(mess.from_user.id, [mess, send_message])
 
@@ -44,7 +47,9 @@ async def input_email_for_reset_callback(
     """A function for requesting an email to reset the password."""
     await state.set_state(ResetPassword.send_email)
     send_message = await call.message.edit_text(
-        text=enter_email, reply_markup=cancel
+        text=enter_email,
+        reply_markup=cancel,
+        parse_mode="HTML"
     )
     await append_to_session(call.from_user.id, [call, send_message])
 
@@ -61,11 +66,10 @@ async def send_request_for_reset(message: Message, state: FSMContext) -> None:
     asyncio.create_task(remove_message_after_delay(5, message))
     is_valid: bool = is_valid_email(email)
     if is_valid:
-        token: Dict[str, str] = await get_token_for_reset(email)
+        await get_token_for_reset(email)
         await state.set_state(ResetPassword.send_token)
-        await state.update_data(token=token.get("token"))
         send_message = await message.answer(
-            text=password,
+            text=input_token,
             reply_markup=cancel, parse_mode="HTML")
     else:
         send_message = await message.answer(
@@ -74,14 +78,30 @@ async def send_request_for_reset(message: Message, state: FSMContext) -> None:
             reply_markup=cancel
         )
     await append_to_session(message.from_user.id, [message, send_message])
-
-
+    
+    
 @reset.message(ResetPassword.send_token)
+@decorator_errors
+async def get_token(message: Message, state: FSMContext) -> None:
+    """Saves the token to be sent to the server.."""
+    token: str = message.text
+    await state.update_data(token=token)
+    await state.set_state(ResetPassword.send_password)
+    asyncio.create_task(remove_message_after_delay(30, message))
+    send_message = await message.answer(
+            text=password,
+            parse_mode="HTML",
+            reply_markup=cancel
+        )
+    await append_to_session(message.from_user.id, [message, send_message])
+
+
+@reset.message(ResetPassword.send_password)
 @decorator_errors
 async def reset_password_query(message: Message, state: FSMContext) -> None:
     """Sends a new password to change the user's password."""
     new_password: str = message.text
-    asyncio.create_task(remove_message_after_delay(5, message))
+    asyncio.create_task(remove_message_after_delay(15, message))
     is_valid: bool = is_valid_password(new_password)
     if is_valid:
         data: Dict[str, str] = await state.get_data()

@@ -118,11 +118,14 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
                 reply_markup=main_menu,
                 parse_mode="HTML"
             )
+            await state.clear()
         else:
             send_message = await message.answer(
-                result, reply_markup=await generate_inline_keyboard_reset()
+                result + ". Попробуйте еще раз.",
+                reply_markup=await generate_inline_keyboard_reset(),
+                parse_mode="HTML"
             )
-        await state.clear()
+            await state.set_state(LoginState.email)
 
     else:
         text: str = invalid_pass
