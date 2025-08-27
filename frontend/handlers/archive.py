@@ -44,7 +44,7 @@ async def archive_list_habits(call: CallbackQuery, state: FSMContext) -> None:
 
     await state.update_data(page=page, is_active=0)
     await state.set_state(ArchiveState.show)
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=text,
         reply_markup=keyword,
         parse_mode="HTML"
@@ -62,7 +62,7 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(id=call.data)
     await state.set_state(ArchiveState.action)
     keyword: InlineKeyboardMarkup = await gen_habit_keyword_archive()
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=text,
         parse_mode="HTML",
         reply_markup=keyword
@@ -79,7 +79,7 @@ async def delete_habit_by_id(
     Confirmation of the habit deletion. Shows the keyboard
     with the choice is yes or no.
     """
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=delete_habit_message,
         reply_markup=confirm,
         parse_mode="HTML"
@@ -95,7 +95,7 @@ async def confirm_delete_habit_by_id(
     """Confirmation of permanent removal of the habit."""
     data: dict = await state.get_data()
     await delete_habit(int(data.get("id", 0)), call.from_user.id)
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=success_remove,
         reply_markup=main_menu,
         parse_mode="HTML"
@@ -114,7 +114,7 @@ async def habit_to_un_archive(call: CallbackQuery, state: FSMContext) -> None:
         call.from_user.id,
         is_active=True
     )
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=recovery_text,
         reply_markup=main_menu,
         parse_mode="HTML"

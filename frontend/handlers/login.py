@@ -65,7 +65,7 @@ async def input_email_callback(
 ) -> None:
     """The handler for the email request."""
     await state.set_state(LoginState.email)
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=enter_email,
         parse_mode="HTML",
         reply_markup=cancel
