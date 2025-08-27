@@ -65,7 +65,7 @@ async def input_email_callback(
 ) -> None:
     """The handler for the email request."""
     await state.set_state(LoginState.email)
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=enter_email,
         parse_mode="HTML",
         reply_markup=cancel
@@ -118,11 +118,14 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
                 reply_markup=main_menu,
                 parse_mode="HTML"
             )
+            await state.clear()
         else:
             send_message = await message.answer(
-                result, reply_markup=await generate_inline_keyboard_reset()
+                result + ". Попробуйте еще раз.",
+                reply_markup=await generate_inline_keyboard_reset(),
+                parse_mode="HTML"
             )
-        await state.clear()
+            await state.set_state(LoginState.email)
 
     else:
         text: str = invalid_pass

@@ -18,8 +18,6 @@ EMAIL_PASSWORD: str = os.environ.get("YOUR_EMAIL_PASSWORD")
 
 
 BASE_DIR = Path(__file__).parent
-BODY = ("Ваш пароль был успешно изменен. Если это были не вы сообщите "
-        "об этом в обратном сообщении.")
 SUBJECT = "Changed PASSWORD"
 
 

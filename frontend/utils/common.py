@@ -35,7 +35,10 @@ async def remove_message_after_delay(delay: int, message: Message):
     :return: None.
     """
     await asyncio.sleep(delay)
-    await message.delete()
+    try:
+        await message.delete()
+    except Exception:
+        pass
 
 
 async def append_to_session(
@@ -71,7 +74,6 @@ def decorator_errors(
         """
         try:
             await func(arg, state)
-
         except KeyError:
             sticker_path = Path(__file__).parent.parent.joinpath(
                 "stickers", "stop_not_auth.tgs"
@@ -87,7 +89,9 @@ def decorator_errors(
                 parse_mode="HTML",
                 reply_markup=main_menu
             )
-            await append_to_session(arg.from_user.id, [send_message, sticker])
+            await append_to_session(
+                arg.from_user.id, [send_message, sticker, arg]
+            )
 
         except HTTPException as err:
             send_message = await WORKER_BOT.send_message(
@@ -146,7 +150,7 @@ async def send_sticker(user_id: int, sticker: str) -> None:
         chat_id=user_id,
         sticker=input_file
     )
-    asyncio.create_task(remove_message_after_delay(3, sticker))
+    asyncio.create_task(remove_message_after_delay(60 * 5, sticker))
 
 
 async def bot_send_message(state: FSMContext, user_id: int):
@@ -154,7 +158,7 @@ async def bot_send_message(state: FSMContext, user_id: int):
     Opens the latest information about the habit.
 
     :param user_id: User ID.
-    :param state: FSMContext for getting data about a habit. 
+    :param state: FSMContext for getting data about a habit.
     """
     data: dict = await state.get_data()
     id_: int = data.get("id")

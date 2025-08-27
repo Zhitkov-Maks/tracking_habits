@@ -10,7 +10,7 @@ from database import Habit, Tracking
 async def check_count_days(
     habit: Habit,
     session: AsyncSession
-) -> bool | None:
+) -> bool:
     """
     The function checks how many days were not completed.
     If the number of such days is more than three, it deletes all
@@ -30,6 +30,7 @@ async def check_count_days(
         habit.end_date = habit.start_date + timedelta(
             days=habit.number_of_days
         )
+        return False
     return True
 
 
@@ -44,7 +45,7 @@ async def add_days_for_tracking(
     :param session: A session for database queries.
     """
     habit: Habit | None = await session.get(Habit, habit_id)
-    check: bool | None = await check_count_days(habit, session)
+    check: bool = await check_count_days(habit, session)
     if check:
         habit.end_date = habit.end_date + timedelta(days=1)
     session.add(habit)

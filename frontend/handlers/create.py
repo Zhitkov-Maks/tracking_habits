@@ -33,7 +33,7 @@ STICKERS_LIST = [
 async def input_name_habits(call: CallbackQuery, state: FSMContext) -> None:
     """The handler asks the user for the name of the habit."""
     await state.set_state(AddState.title)
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=create_title,
         parse_mode="HTML",
         reply_markup=cancel

@@ -124,7 +124,7 @@ async def habit_to_archive_confirm(
     call: CallbackQuery, state: FSMContext
 ) -> None:
     """Confirmation of adding a habit to the archive."""
-    send_message = await call.message.answer(
+    send_message = await call.message.edit_text(
         text=mark_as_archive,
         reply_markup=confirm,
         parse_mode="HTML"

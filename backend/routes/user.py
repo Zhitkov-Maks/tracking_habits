@@ -12,13 +12,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
-from config import SUBJECT, BODY
+from config import SUBJECT
 from crud.user import create_user, update_user_password
 from crud.utils import validate_auth_user, validate_user_mail, valid_decode_jwt
 from database import User
 from database.conf_db import get_async_session
 from routes.utils import hash_password, encode_jwt, send_email
-from schemas.general import ErrorSchema, SuccessSchema, TokenSchema, TokenReset
+from schemas.general import ErrorSchema, SuccessSchema, TokenSchema
 from schemas.user import UserData, ResetPassword
 from .utils import revoke_token, decode_jwt
 
@@ -66,10 +66,11 @@ async def auth_user(
 )
 async def request_password_reset(
         user: UserData = Depends(validate_user_mail)
-) -> TokenReset:
+) -> SuccessSchema:
     """The method is designed to issue a password reset token."""
     token: str = await encode_jwt(user, expire_timedelta=timedelta(minutes=1))
-    return TokenReset(token=token)
+    asyncio.create_task(send_email(user.email, SUBJECT, body=token))
+    return SuccessSchema(result=True)
 
 
 @user_rout.post(
@@ -87,7 +88,7 @@ async def reset_password(
     """
     user: User = await valid_decode_jwt(reset_data.token, session)
     await update_user_password(user.email, reset_data, session)
-    asyncio.create_task(send_email(user.email, SUBJECT, BODY))
+
     return SuccessSchema(result=True)
 
 

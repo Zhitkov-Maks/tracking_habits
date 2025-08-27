@@ -39,7 +39,7 @@ async def change_habit_is_active(
         await delete_all_habit_tracking(habit_id, session)
         habit.start_date = dt.now().date()
         habit.end_date = (
-                dt.now() + timedelta(days=habit.number_of_days - 1)
+                dt.now() + timedelta(days=habit.number_of_days)
         ).date()
     await session.commit()
 
