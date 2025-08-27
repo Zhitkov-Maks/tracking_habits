@@ -1,4 +1,4 @@
-from typing import Tuple, Dict
+from typing import Dict
 
 from api.client import Client
 from config import register_url, login_url

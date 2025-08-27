@@ -74,7 +74,6 @@ def decorator_errors(
         """
         try:
             await func(arg, state)
-
         except KeyError:
             sticker_path = Path(__file__).parent.parent.joinpath(
                 "stickers", "stop_not_auth.tgs"
@@ -90,7 +89,9 @@ def decorator_errors(
                 parse_mode="HTML",
                 reply_markup=main_menu
             )
-            await append_to_session(arg.from_user.id, [send_message, sticker])
+            await append_to_session(
+                arg.from_user.id, [send_message, sticker, arg]
+            )
 
         except HTTPException as err:
             send_message = await WORKER_BOT.send_message(
