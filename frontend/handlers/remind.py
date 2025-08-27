@@ -61,7 +61,9 @@ async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
     await remove_scheduler_job(call.from_user.id)
     await call.answer(text="Напоминание удалено", show_alert=True)
     send_message = await call.message.edit_text(
-        text=menu_bot, reply_markup=main_menu
+        text=menu_bot,
+        reply_markup=main_menu,
+        parse_mode="HTML"
     )
     await state.clear()
     await append_to_session(call.from_user.id, [call, send_message])
@@ -105,8 +107,10 @@ async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
         f"Напоминание {'добавлено.' if not update else 'изменено'}",
         show_alert=True
     )
-    send_message = await call.message.answer(
-        text=menu_bot, reply_markup=main_menu, parse_mode="HTML"
+    send_message = await call.message.edit_text(
+        text=menu_bot,
+        reply_markup=main_menu,
+        parse_mode="HTML"
     )
     await state.clear()
     await append_to_session(call.from_user.id, [call, send_message])
