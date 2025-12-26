@@ -34,7 +34,7 @@ async def send_message_cron(user_chat_id: int):
     try:
         await bot.send_message(
                 user_chat_id,
-                "Не забудьте про отслеживание привычек!!!",
+                "Напоминаю вам о себе.😎",
                 reply_markup=main_menu
             )
     except TelegramForbiddenError:
@@ -60,11 +60,16 @@ async def get_or_create_scheduler() -> AsyncIOScheduler:
     return scheduler
 
 
-async def add_send_message(user_chat_id: int, time: int) -> None:
+async def add_send_message(
+    user_chat_id: int,
+    hours: int,
+    minutes: int
+) -> None:
     """
     Adding tasks to the scheduler.
     :param user_chat_id: The ID of the chat where to send the message.
-    :param time: The time when the reminder was completed.
+    :param hours: The hours when the reminder was completed.
+    :param minutes: The minutes when the reminder was completed.
     :return AsyncIOScheduler: An instance of the scheduler.
     """
     scheduler: AsyncIOScheduler = await get_or_create_scheduler()
@@ -72,8 +77,8 @@ async def add_send_message(user_chat_id: int, time: int) -> None:
         send_message_cron,
         'cron',
         args=[user_chat_id],
-        hour=time,
-        minute=00,
+        hour=hours,
+        minute=minutes,
     )
     scheduler_ids[user_chat_id] = schedule_obj.id
 
@@ -86,7 +91,13 @@ async def create_scheduler_all() -> None:
     result: Dict[str, List[Dict[str, int]]] | None = await get_all_users()
     if result:
         for user in result.get("users"):
-            await add_send_message(user.get("user_chat_id"), user.get("time"))
+            hour = int(str(user.get("time"))[:2])
+            minute = int(str(user.get("time"))[2:])
+            await add_send_message(
+                user.get("user_chat_id"),
+                hour,
+                minute
+            )
 
 
 async def remove_scheduler_job(user_chat_id: int) -> None:

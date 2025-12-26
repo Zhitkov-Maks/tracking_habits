@@ -8,7 +8,7 @@ from keyboards.keyboard import (
     main_menu,
     confirm
 )
-from keyboards.remind import create_time
+from keyboards.remind import create_time, actions_list, update_time
 
 from states.remind import RemindState
 from utils.remind import (
@@ -70,7 +70,7 @@ async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @remind.callback_query(RemindState.start, F.data.in_(["add", "change"]))
-@decorator_errors
+#@decorator_errors
 async def add_remind(call: CallbackQuery, state: FSMContext) -> None:
     """
     A handler for adding or changing the reminder time.
@@ -84,25 +84,46 @@ async def add_remind(call: CallbackQuery, state: FSMContext) -> None:
     else:
         await state.update_data(update=False)
 
+    await state.update_data(hours=12, minutes=0)
     send_message = await call.message.edit_text(
         text=choice_hour,
         reply_markup=await create_time()
     )
     await append_to_session(call.from_user.id, [call, send_message])
-
-
-@remind.callback_query(RemindState.add, F.data.isdigit())
+    
+    
+@remind.callback_query(F.data.in_(actions_list))
 @decorator_errors
+async def update_clock(call: CallbackQuery, state: FSMContext) -> None:
+    """
+    A handler for adding or changing the reminder time.
+    Shows the keyboard to select the hour for notification.
+    """
+    await state.set_state(RemindState.add)
+    send_message = await call.message.edit_text(
+        text=choice_hour,
+        reply_markup=await update_time(call.data, state)
+    )
+    await append_to_session(call.from_user.id, [call, send_message])
+
+
+@remind.callback_query(RemindState.add, F.data == "save_time")
+#@decorator_errors
 async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
     """The final handler for adding a reminder."""
-    update: bool = (await state.get_data())["update"]
-    data: dict = {"time": int(call.data), "user_chat_id": call.from_user.id}
+    data = await state.get_data()
+    update: bool = data["update"]
+    hours, minutes = data["hours"], data["minutes"]
+    add_data: dict = {
+        "time": int(str(hours) + str(minutes)),
+        "user_chat_id": call.from_user.id
+    }
 
     if update:
         await remove_scheduler_job(call.from_user.id)
 
-    await add_time_remind(data, update, call.from_user.id)
-    await add_send_message(call.from_user.id, time=int(call.data))
+    await add_time_remind(add_data, update, call.from_user.id)
+    await add_send_message(call.from_user.id, hours, minutes)
     await call.answer(
         f"Напоминание {'добавлено.' if not update else 'изменено'}",
         show_alert=True
