@@ -6,7 +6,9 @@ from config import remind_url
 from utils.create import create_header
 
 
-async def add_time_remind(data: dict, update: bool, user_id: int) -> None:
+async def add_time_remind(
+    data: dict, update: bool, user_id: int
+) -> None | str:
     """
     A function for creating a reminder.
     :param data: Data for the save request.
@@ -21,7 +23,7 @@ async def add_time_remind(data: dict, update: bool, user_id: int) -> None:
         status_code, response = await client.patch()
 
     if status_code not in (200, 201):
-        raise HTTPException(response.get("detail").get("descr"))
+        return HTTPException(response.get("detail").get("descr"))
 
 
 async def remove_time(user_id: int) -> None:

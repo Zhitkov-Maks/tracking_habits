@@ -1,3 +1,4 @@
+from xml.etree.ElementTree import parse
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
@@ -16,7 +17,7 @@ from utils.remind import (
     remove_scheduler_job
 )
 from utils.common import decorator_errors
-from loader import menu_remind, choice_hour, menu_bot
+from loader import menu_remind, choice_hour, menu_bot, remaind_is_exist
 
 remind: Router = Router()
 
@@ -84,7 +85,8 @@ async def add_remind(call: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(hours=12, minutes=0)
     await call.message.edit_text(
         text=choice_hour,
-        reply_markup=await create_time()
+        reply_markup=await create_time(),
+        parse_mode="HTML"
     )
 
 
@@ -98,7 +100,8 @@ async def update_clock(call: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(RemindState.add)
     await call.message.edit_text(
         text=choice_hour,
-        reply_markup=await update_time(call.data, state)
+        reply_markup=await update_time(call.data, state),
+        parse_mode="HTML"
     )
 
 
@@ -117,13 +120,23 @@ async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
     if update:
         await remove_scheduler_job(call.from_user.id)
 
-    await add_time_remind(add_data, update, call.from_user.id)
-    await add_send_message(call.from_user.id, hours, minutes)
-    await call.answer(
-        f"Напоминание {'добавлено.' if not update else 'изменено'}",
-        show_alert=True
+    result: None | str = await add_time_remind(
+        add_data, update, call.from_user.id
     )
-    await call.message.edit_text(
-        text=menu_bot, reply_markup=main_menu, parse_mode="HTML"
-    )
+    
+    if result is None:
+        await add_send_message(call.from_user.id, hours, minutes)
+        await call.answer(
+            f"Напоминание {'добавлено.' if not update else 'изменено'}",
+            show_alert=True
+        )
+        await call.message.edit_text(
+            text=menu_bot, reply_markup=main_menu, parse_mode="HTML"
+        )
+    else:
+        await call.message.edit_text(
+            text=remaind_is_exist,
+            reply_markup=main_menu,
+            parse_mode="HTML"
+        )
     await state.clear()

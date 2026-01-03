@@ -23,7 +23,6 @@ from loader import (
 from states.login import LoginState
 from utils.common import (
     decorator_errors,
-    delete_sessions,
     remove_message_after_delay,
     delete_jwt_token,
     send_sticker

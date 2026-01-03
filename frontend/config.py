@@ -25,6 +25,5 @@ remind_url: str = API_ADDRESS + BASE_URL + "reminds/"
 jwt_token_data: Dict[int, dict] = {}
 app_schedule: dict = {}
 scheduler_ids: dict = {}
-user_sessions: dict[int, set[tuple[int, int]]] = defaultdict(set)
 
 PAGE_SIZE: int = 10

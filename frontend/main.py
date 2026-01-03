@@ -19,7 +19,7 @@ from handlers.tracking import track
 from handlers.comments import comment_router
 from keyboards.keyboard import main_menu
 from loader import greeting, guide, menu_bot, options
-from utils.remind import create_scheduler_all, add_scheduler_remove_message
+from utils.remind import create_scheduler_all
 
 dp = Dispatcher()
 dp.include_router(add)
@@ -95,7 +95,6 @@ async def main():
     there are notification settings.
     """
     await create_scheduler_all()
-    await add_scheduler_remove_message()
     logging.basicConfig(level=logging.DEBUG)
     await dp.start_polling(WORKER_BOT)
 

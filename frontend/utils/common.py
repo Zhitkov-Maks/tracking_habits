@@ -15,7 +15,7 @@ from aiogram.types import CallbackQuery as CQ
 
 from keyboards.keyboard import main_menu
 from loader import not_auth
-from config import user_sessions, jwt_token_data, WORKER_BOT
+from config import jwt_token_data, WORKER_BOT
 from api.get_habit import get_full_info
 from utils.habits import generate_message_answer
 from keyboards.detail import gen_habit_keyboard
