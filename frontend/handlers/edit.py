@@ -66,6 +66,22 @@ async def partial_update_title(message: Message, state: FSMContext) -> None:
     )
 
 
+@edit_rout.callback_query(PartialEditHabit.save)
+@decorator_errors
+async def partial_update_save(
+    callback: CallbackQuery, state: FSMContext
+) -> None:
+    """
+    The handler saves new data for the habit, displays a notification
+    of successful saving, and opens the habit with updated data.
+    """
+    data: Dict[str, int] = await state.get_data()
+    await request_update_habit(data, callback.from_user.id)
+    await callback.answer(update_data, show_alert=True)
+
+    await bot_send_message(state, callback.from_user.id)
+
+
 @edit_rout.callback_query(F.data == "edit_body")
 @decorator_errors
 async def update_body(callback: CallbackQuery, state: FSMContext) -> None:
@@ -114,22 +130,6 @@ async def partial_update_number_days(
     await message.answer(
         text=confirm_new_days, parse_mode="HTML", reply_markup=confirm
     )
-
-
-@edit_rout.callback_query(PartialEditHabit.save, F.data == "yes")
-@decorator_errors
-async def partial_update_save(
-    callback: CallbackQuery, state: FSMContext
-) -> None:
-    """
-    The handler saves new data for the habit, displays a notification
-    of successful saving, and opens the habit with updated data.
-    """
-    data: Dict[str, int] = await state.get_data()
-    await request_update_habit(data, callback.from_user.id)
-    await callback.answer(update_data, show_alert=True)
-
-    await bot_send_message(state, callback.from_user.id)
 
 
 @edit_rout.callback_query(F.data == "edit_full")

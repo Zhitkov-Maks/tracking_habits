@@ -35,7 +35,7 @@ menu_bot: List[List[InlineKeyboardButton]] = [
         ],
         [
             InlineKeyboardButton(
-                text="Выйти и очистить историю.",
+                text="Выйти из аккаунта",
                 callback_data="clear_history"
             )
         ]

@@ -54,6 +54,19 @@ async def generate_message_seven_days(data: List[Dict[str, str]]) -> str:
     return mess
 
 
+async def calculate_progress(
+        full_time: int,
+        success_days: int
+) -> str:
+    step: float = round(100 // full_time, 1)  
+    progress = (step * success_days) // 10
+    percent = (success_days / full_time) * 100
+    message = (
+        f"{'🟢' * progress}{'⚪️' * (10 - progress)} ({percent}%)."
+    ) if percent < 100 else "✅ 100%"
+    return message
+
+
 async def generate_message_answer(data: dict) -> str:
     """
     The function generates messages to show
@@ -73,6 +86,10 @@ async def generate_message_answer(data: dict) -> str:
         f"Дата окончания: {hbold(data.get("end_date", "")[:10])};\n"
         f"Успешных дней: {hbold(count_days[0])};\n"
         f"Не успешных дней: {hbold(count_days[1])};\n"
+        f"Прогресс 👇\n{await calculate_progress(
+            data.get("number_of_days", 0),
+            count_days[0]
+        )}"
 
         f"{hbold("\nОтметки за последние 7 дней:") if len(
             data.get("tracking", "").get("all")) > 0 else
