@@ -9,7 +9,7 @@ from keyboards.keyboard import confirm, main_menu
 from loader import active_list, archived, mark_as_archive, not_active_list
 from states.add import HabitState
 from states.archive import ArchiveState
-from utils.common import append_to_session, decorator_errors
+from utils.common import decorator_errors
 from utils.habits import generate_message_answer, get_base_data_habit
 
 detail: Router = Router()
@@ -35,12 +35,9 @@ async def output_list_habits(call: CallbackQuery, state: FSMContext) -> None:
 
     await state.update_data(page=page, is_active=1)
     await state.set_state(HabitState.show)
-    send_message = await call.message.edit_text(
-        text=text,
-        reply_markup=keyword,
-        parse_mode="HTML"
+    await call.message.edit_text(
+        text=text, reply_markup=keyword, parse_mode="HTML"
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(F.data.in_(["next_page", "prev_page"]))
@@ -70,10 +67,9 @@ async def next_output_list_habits(
     else:
         await state.set_state(ArchiveState.show)
 
-    send_message = await call.message.edit_reply_markup(
+    await call.message.edit_reply_markup(
         reply_markup=keyword
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(HabitState.show, F.data.isdigit())
@@ -92,12 +88,11 @@ async def detail_info_habit(call: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(HabitState.action)
 
     keyword: InlineKeyboardMarkup = await gen_habit_keyboard()
-    send_message = await call.message.edit_text(
+    await call.message.edit_text(
         text=text,
         parse_mode="HTML",
         reply_markup=keyword
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(F.data == "show_detail")
@@ -110,12 +105,9 @@ async def show_detail_habit(call: CallbackQuery, state: FSMContext):
     keyboard: InlineKeyboardMarkup = await gen_habit_keyboard()
 
     await state.set_state(HabitState.action)
-    send_message = await call.message.edit_text(
-        text=text,
-        parse_mode="HTML",
-        reply_markup=keyboard
+    await call.message.edit_text(
+        text=text, parse_mode="HTML", reply_markup=keyboard
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(HabitState.action, F.data == "archive")
@@ -124,12 +116,9 @@ async def habit_to_archive_confirm(
     call: CallbackQuery, state: FSMContext
 ) -> None:
     """Confirmation of adding a habit to the archive."""
-    send_message = await call.message.edit_text(
-        text=mark_as_archive,
-        reply_markup=confirm,
-        parse_mode="HTML"
+    await call.message.edit_text(
+        text=mark_as_archive, reply_markup=confirm, parse_mode="HTML"
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @detail.callback_query(HabitState.action, F.data == "yes")
@@ -138,13 +127,9 @@ async def habit_to_archive(call: CallbackQuery, state: FSMContext) -> None:
     """Adding a habit to the archive."""
     data: dict = await state.get_data()
     await archive_habit(
-        int(data.get("id", 0)),
-        call.from_user.id, is_active=False
+        int(data.get("id", 0)), call.from_user.id, is_active=False
     )
-    send_message = await call.message.edit_text(
-        text=archived,
-        reply_markup=main_menu,
-        parse_mode="HTML"
+    await call.message.edit_text(
+        text=archived, reply_markup=main_menu, parse_mode="HTML"
     )
     await state.clear()
-    await append_to_session(call.from_user.id, [call, send_message])

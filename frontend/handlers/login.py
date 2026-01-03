@@ -22,7 +22,6 @@ from loader import (
 )
 from states.login import LoginState
 from utils.common import (
-    append_to_session,
     decorator_errors,
     delete_sessions,
     remove_message_after_delay,
@@ -50,12 +49,9 @@ STICKERS_LIST = [
 async def input_email(mess: Message, state: FSMContext) -> None:
     """The handler for the email request."""
     await state.set_state(LoginState.email)
-    send_message = await mess.answer(
-        text=enter_email,
-        parse_mode="HTML",
-        reply_markup=cancel
+    await mess.answer(
+        text=enter_email, parse_mode="HTML", reply_markup=cancel
     )
-    await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @auth.callback_query(F.data == "auth")
@@ -65,12 +61,9 @@ async def input_email_callback(
 ) -> None:
     """The handler for the email request."""
     await state.set_state(LoginState.email)
-    send_message = await call.message.edit_text(
-        text=enter_email,
-        parse_mode="HTML",
-        reply_markup=cancel
+    await call.message.edit_text(
+        text=enter_email, parse_mode="HTML", reply_markup=cancel
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @auth.message(LoginState.email)
@@ -89,12 +82,11 @@ async def input_password(mess: Message, state: FSMContext) -> None:
 
     else:
         text: str = invalid_email
-        send_message = await mess.answer(
+        await mess.answer(
             text=text + enter_email,
             parse_mode="HTML",
             reply_markup=cancel
         )
-    await append_to_session(mess.from_user.id, [send_message])
 
 
 @auth.message(LoginState.password)
@@ -113,14 +105,14 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
                 message.from_user.id,
                 random.choice(STICKERS_LIST)
             )
-            send_message = await message.answer(
+            await message.answer(
                 success_auth,
                 reply_markup=main_menu,
                 parse_mode="HTML"
             )
             await state.clear()
         else:
-            send_message = await message.answer(
+            await message.answer(
                 result + ". Попробуйте еще раз.",
                 reply_markup=await generate_inline_keyboard_reset(),
                 parse_mode="HTML"
@@ -129,10 +121,9 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
 
     else:
         text: str = invalid_pass
-        send_message = await message.answer(
+        await message.answer(
             text=text + password, parse_mode="HTML", reply_markup=cancel
         )
-    await append_to_session(message.from_user.id, [send_message])
 
 
 @auth.callback_query(F.data == "clear_history")
@@ -147,12 +138,10 @@ async def clean_messages(
     """
     user_id = callback.from_user.id
     await revoke_token(user_id)
-    await delete_sessions(user_id)
     await delete_jwt_token(user_id)
-    send_message: Message = await WORKER_BOT.send_message(
+    await WORKER_BOT.send_message(
         chat_id=user_id,
         text=hbold(clear_history),
         reply_markup=main_menu,
         parse_mode="HTML"
     )
-    await append_to_session(user_id, [send_message])

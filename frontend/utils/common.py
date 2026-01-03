@@ -7,7 +7,6 @@ from typing import Any, Callable, Coroutine, TypeVar
 
 from aiogram.types import (
     Message,
-    CallbackQuery,
     FSInputFile,
     InlineKeyboardMarkup
 )
@@ -41,26 +40,6 @@ async def remove_message_after_delay(delay: int, message: Message):
         pass
 
 
-async def append_to_session(
-    user_id: int, messages: list[Message | CallbackQuery]
-) -> None:
-    """
-    A function for adding messages that we will delete when we
-    click on the clear button.
-
-    :param user_id: ID user.
-    :param messages: A set with messages to delete.
-    """
-    for mess in messages:
-        if isinstance(mess, Message):
-            user_sessions[user_id].add((mess.chat.id, mess.message_id))
-
-        if isinstance(mess, CallbackQuery) and mess.message is not None:
-            user_sessions[user_id].add(
-                (mess.message.chat.id, mess.message.message_id)
-            )
-
-
 def decorator_errors(
     func: Callable[[Message | CQ, FSMContext], Coroutine[Any, Any, T]]
 ) -> Callable[[Message | CQ, FSMContext], Coroutine[Any, Any, None]]:
@@ -78,32 +57,29 @@ def decorator_errors(
             sticker_path = Path(__file__).parent.parent.joinpath(
                 "stickers", "stop_not_auth.tgs"
             )
+
             input_file = FSInputFile(sticker_path)
-            sticker = await WORKER_BOT.send_sticker(
+            await WORKER_BOT.send_sticker(
                 chat_id=arg.from_user.id,
                 sticker=input_file
             )
-            send_message = await WORKER_BOT.send_message(
+
+            await WORKER_BOT.send_message(
                 arg.from_user.id,
                 not_auth,
                 parse_mode="HTML",
                 reply_markup=main_menu
             )
-            await append_to_session(
-                arg.from_user.id, [send_message, sticker, arg]
-            )
 
         except HTTPException as err:
-            send_message = await WORKER_BOT.send_message(
+            await WORKER_BOT.send_message(
                 arg.from_user.id, text=str(err), reply_markup=main_menu
             )
-            await append_to_session(arg.from_user.id, [send_message])
 
         except Exception as err:
-            send_message = await WORKER_BOT.send_message(
+            await WORKER_BOT.send_message(
                 arg.from_user.id, text=str(err), reply_markup=main_menu
             )
-            await append_to_session(arg.from_user.id, [send_message])
 
     return wrapper
 
@@ -118,21 +94,6 @@ async def delete_jwt_token(user_id: int) -> None:
         del jwt_token_data[user_id]
     except KeyError:
         pass
-
-
-async def delete_sessions(user_id: int) -> None:
-    """
-    Deleting chat messages and jwt token.
-
-    :param user_id: ID user.
-    """
-    messages: set[tuple[int, int]] = user_sessions.get(user_id, set())
-    for chat_id, message_id in messages:
-        try:
-            await WORKER_BOT.delete_message(chat_id, message_id)
-        except TelegramBadRequest:
-            # Если сообщение вдруг уже удалено.
-            pass
 
 
 async def send_sticker(user_id: int, sticker: str) -> None:
@@ -167,20 +128,9 @@ async def bot_send_message(state: FSMContext, user_id: int):
     keyboard: InlineKeyboardMarkup = await gen_habit_keyboard()
 
     await state.set_state(HabitState.action)
-    send_message = await WORKER_BOT.send_message(
+    await WORKER_BOT.send_message(
         chat_id=user_id,
         text=text,
         parse_mode="HTML",
         reply_markup=keyboard
     )
-    await append_to_session(user_id, [send_message])
-
-
-async def delete_old_messages() -> None:
-    """
-    Deletes messages for the last 24 hours from all users.
-    To avoid taking up memory.
-    """
-    users: list[int] = list(user_sessions.keys())
-    for user_id in users:
-        await delete_sessions(user_id)

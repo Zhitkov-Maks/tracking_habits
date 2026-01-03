@@ -19,7 +19,6 @@ from handlers.tracking import track
 from handlers.comments import comment_router
 from keyboards.keyboard import main_menu
 from loader import greeting, guide, menu_bot, options
-from utils.common import append_to_session
 from utils.remind import create_scheduler_all, add_scheduler_remove_message
 
 dp = Dispatcher()
@@ -49,34 +48,31 @@ async def greeting_handler(message: types.Message) -> None:
 async def handler_main_button(call: CallbackQuery, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
-    send_message = await call.message.edit_text(
+    await call.message.edit_text(
         text=menu_bot,
         reply_markup=main_menu,
         parse_mode="HTML"
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @dp.message(F.text == "/main")
 async def handler_main_command(message: Message, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
-    send_message = await message.answer(
+    await message.answer(
         text=menu_bot,
         reply_markup=main_menu,
         parse_mode="HTML"
     )
-    await append_to_session(message.from_user.id, [message, send_message])
 
 
 @dp.message(F.text == "/guide")
 async def handler_help(mess: Message, state: FSMContext) -> None:
     """Shows detailed information about the work of the bot."""
     await state.clear()
-    send_message = await mess.answer(
+    await mess.answer(
         text=guide, reply_markup=main_menu
     )
-    await append_to_session(mess.from_user.id, [mess, send_message])
 
 
 @dp.callback_query(F.data == "show_commands")
@@ -86,12 +82,9 @@ async def show_all_commands(
     """
     Shows which commands are still available.
     """
-    send_message = await callback.message.edit_text(
+    await callback.message.edit_text(
         text=options,
         replay_markup=main_menu
-    )
-    await append_to_session(
-        callback.from_user.id, [callback, send_message]
     )
 
 
