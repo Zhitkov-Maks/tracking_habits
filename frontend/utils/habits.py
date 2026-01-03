@@ -62,7 +62,7 @@ async def calculate_progress(
     progress = (step * success_days) // 10
     percent = (success_days / full_time) * 100
     message = (
-        f"{'🟢' * progress}{'⚪️' * (10 - progress)} ({percent}%)."
+        f"{'🟢' * progress}{'⚪️' * (10 - progress)} ({percent:.2f}%)."
     ) if percent < 100 else "✅ 100%"
     return message
 
