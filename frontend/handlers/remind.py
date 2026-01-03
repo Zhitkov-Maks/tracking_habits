@@ -15,7 +15,7 @@ from utils.remind import (
     add_send_message,
     remove_scheduler_job
 )
-from utils.common import append_to_session, decorator_errors
+from utils.common import decorator_errors
 from loader import menu_remind, choice_hour, menu_bot
 
 remind: Router = Router()
@@ -29,12 +29,11 @@ async def start_work_to_remind(call: CallbackQuery, state: FSMContext) -> None:
     Shows a menu for selecting an action.
     """
     await state.set_state(RemindState.start)
-    send_message = await call.message.edit_text(
+    await call.message.edit_text(
         text=menu_remind,
         reply_markup=remind_button,
         parse_mode="HTML"
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @remind.callback_query(RemindState.start, F.data == "remove")
@@ -47,10 +46,9 @@ async def confirm_to_remove_remind(
     Shows the menu for confirmation.
     """
     await state.set_state(RemindState.confirm)
-    send_message = await call.message.edit_text(
+    await call.message.edit_text(
         text="Вы уверены?", reply_markup=confirm
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @remind.callback_query(RemindState.confirm, F.data == "yes")
@@ -60,13 +58,12 @@ async def finalize_remove(call: CallbackQuery, state: FSMContext) -> None:
     await remove_time(call.from_user.id)
     await remove_scheduler_job(call.from_user.id)
     await call.answer(text="Напоминание удалено", show_alert=True)
-    send_message = await call.message.edit_text(
+    await call.message.edit_text(
         text=menu_bot,
         reply_markup=main_menu,
         parse_mode="HTML"
     )
     await state.clear()
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @remind.callback_query(RemindState.start, F.data.in_(["add", "change"]))
@@ -85,13 +82,12 @@ async def add_remind(call: CallbackQuery, state: FSMContext) -> None:
         await state.update_data(update=False)
 
     await state.update_data(hours=12, minutes=0)
-    send_message = await call.message.edit_text(
+    await call.message.edit_text(
         text=choice_hour,
         reply_markup=await create_time()
     )
-    await append_to_session(call.from_user.id, [call, send_message])
-    
-    
+
+
 @remind.callback_query(F.data.in_(actions_list))
 @decorator_errors
 async def update_clock(call: CallbackQuery, state: FSMContext) -> None:
@@ -100,11 +96,10 @@ async def update_clock(call: CallbackQuery, state: FSMContext) -> None:
     Shows the keyboard to select the hour for notification.
     """
     await state.set_state(RemindState.add)
-    send_message = await call.message.edit_text(
+    await call.message.edit_text(
         text=choice_hour,
         reply_markup=await update_time(call.data, state)
     )
-    await append_to_session(call.from_user.id, [call, send_message])
 
 
 @remind.callback_query(RemindState.add, F.data == "save_time")
@@ -128,10 +123,7 @@ async def finalize_add_remind(call: CallbackQuery, state: FSMContext) -> None:
         f"Напоминание {'добавлено.' if not update else 'изменено'}",
         show_alert=True
     )
-    send_message = await call.message.edit_text(
-        text=menu_bot,
-        reply_markup=main_menu,
-        parse_mode="HTML"
+    await call.message.edit_text(
+        text=menu_bot, reply_markup=main_menu, parse_mode="HTML"
     )
     await state.clear()
-    await append_to_session(call.from_user.id, [call, send_message])
