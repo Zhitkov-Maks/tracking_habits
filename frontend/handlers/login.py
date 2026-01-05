@@ -28,7 +28,7 @@ from utils.common import (
     send_sticker
 )
 from utils.register import create_data, is_valid_email, is_valid_password
-from stickers.sticker import STICKER_PACK_HELLO
+from stickers.sticker import STICKER_PACK_HELLO, STICKER_PACK_CRY
 
 auth = Router()
 
@@ -126,6 +126,7 @@ async def clean_messages(
     """
     user_id = callback.from_user.id
     await revoke_token(user_id)
+    await send_sticker(user_id, random.choice(STICKER_PACK_CRY))
     await delete_jwt_token(user_id)
     await WORKER_BOT.send_message(
         chat_id=user_id,
