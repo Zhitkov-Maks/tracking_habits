@@ -37,7 +37,7 @@ async def inline_choice_calendar(days_ago: int) -> InlineKeyboardMarkup:
         inline_choice.append(
             [
                 InlineKeyboardButton(
-                    text=weekdays[days_ago],
+                    text=weekdays[days_ago] + " ❓",
                     callback_data=str(date_for_mark)
                 )
             ]
@@ -46,7 +46,7 @@ async def inline_choice_calendar(days_ago: int) -> InlineKeyboardMarkup:
         inline_choice.append(
             [
                 InlineKeyboardButton(
-                    text=str(date_for_mark),
+                    text=f"{date_for_mark} ?",
                     callback_data=str(date_for_mark)
                 )
             ]

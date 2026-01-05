@@ -1,3 +1,4 @@
+import random
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
@@ -7,10 +8,11 @@ from api.tracking import (
     habit_tracking_mark,
     habit_tracking_mark_update
 )
+from stickers.sticker import STICKER_PACK_DONE, STICKER_PACK_NOT_DONE
 from keyboards.keyboard import confirm
 from states.add import HabitState
 from keyboards.tracking import inline_choice_calendar, inline_done_not_done
-from utils.common import bot_send_message, decorator_errors
+from utils.common import bot_send_message, decorator_errors, choice_sticker
 
 track: Router = Router()
 
@@ -22,12 +24,12 @@ async def choice_date(call: CallbackQuery, state: FSMContext) -> None:
     Processes the command about the need to mark the habit,
     gets a keyboard to show possible days to mark.
     """
-    keyword: InlineKeyboardMarkup = await inline_choice_calendar(days_ago=0)
+    keyboard: InlineKeyboardMarkup = await inline_choice_calendar(days_ago=0)
     await state.set_state(HabitState.done)
     await state.update_data(days_ago=0)
     await call.message.edit_text(
         text=hbold("Выберите день:"),
-        reply_markup=keyword,
+        reply_markup=keyboard,
         parse_mode="HTML"
     )
 
@@ -69,8 +71,8 @@ async def choice_done(call: CallbackQuery, state: FSMContext) -> None:
     await call.message.edit_text(
         text=hbold(
             "Выберите:\n"
-            "✅ - если выполнили\n"
-            "❌ - если не выполнили."),
+            "✅ - если выполнили;\n"
+            "❌ - если не выполнили;"),
         reply_markup=keyword,
         parse_mode="HTML"
     )
@@ -87,17 +89,21 @@ async def mark_tracking_habit_done(
     If everything went well,
     it also re-shows the current habit.
     """
-    await state.update_data(done=call.data)
+    action, user = call.data, call.from_user.id
+    await state.update_data(done=action)
     data: dict = await state.get_data()
     status, response = await habit_tracking_mark(data, call.from_user.id)
 
     if status in (200, 201):
-        await bot_send_message(state, call.from_user.id)
+        await choice_sticker(user, action)
+        await bot_send_message(state, user)
+
     else:
         await state.set_state(HabitState.confirm)
         await call.message.edit_text(
-            text=response + "\nХотите изменить запись?",
-            reply_markup=confirm
+            text=hbold(response + "\nХотите изменить запись?"),
+            reply_markup=confirm,
+            parse_mode="HTML"
         )
 
 
@@ -108,5 +114,7 @@ async def mark_tracking_habit_update(
 ) -> None:
     """Handles overwriting habits."""
     data: dict = await state.get_data()
+    action = data.get("done")
     await habit_tracking_mark_update(data, call.from_user.id)
+    await choice_sticker(call.from_user.id, action)
     await bot_send_message(state, call.from_user.id)

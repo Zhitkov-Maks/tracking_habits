@@ -15,6 +15,7 @@ from loader import (
 )
 from states.add import AddState
 from utils.common import send_sticker, decorator_errors
+from stickers.sticker import STICKER_PACK_DONE
 
 add: Router = Router()
 
@@ -33,7 +34,7 @@ STICKERS_LIST = [
 async def input_name_habits(call: CallbackQuery, state: FSMContext) -> None:
     """The handler asks the user for the name of the habit."""
     await state.set_state(AddState.title)
-    await call.message.edit_text(
+    await call.message.answer(
         text=create_title,
         parse_mode="HTML",
         reply_markup=cancel
@@ -73,7 +74,7 @@ async def create_and_record_db(mess: Message, state: FSMContext) -> None:
     await state.update_data(number_of_days=mess.text)
     await request_create_habit(await state.get_data(), mess.from_user.id)
     await send_sticker(
-        mess.from_user.id, random.choice(STICKERS_LIST)
+        mess.from_user.id, random.choice(STICKER_PACK_DONE)
     )
     await mess.answer(
         text=success_save, reply_markup=main_menu, parse_mode="HTML"

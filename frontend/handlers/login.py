@@ -28,19 +28,9 @@ from utils.common import (
     send_sticker
 )
 from utils.register import create_data, is_valid_email, is_valid_password
+from stickers.sticker import STICKER_PACK_HELLO
 
 auth = Router()
-
-STICKERS_LIST = [
-    "cheburator.tgs",
-    "hello.tgs",
-    "hi_cat.tgs",
-    "hi_croco.tgs",
-    "hi_fire.tgs",
-    "hI_hi.tgs",
-    "hi_windows.tgs",
-    "HI.tgs"
-]
 
 
 @auth.message(F.text == "/auth")
@@ -75,7 +65,7 @@ async def input_password(mess: Message, state: FSMContext) -> None:
     if valid:
         await state.update_data(email=mess.text)
         await state.set_state(LoginState.password)
-        send_message = await mess.answer(
+        await mess.answer(
             text=password, parse_mode="HTML", reply_markup=cancel
         )
 
@@ -101,8 +91,7 @@ async def final_authentication(message: Message, state: FSMContext) -> None:
         result: str | None = await login_user(data, message.from_user.id)
         if result is None:
             await send_sticker(
-                message.from_user.id,
-                random.choice(STICKERS_LIST)
+                message.from_user.id, random.choice(STICKER_PACK_HELLO)
             )
             await message.answer(
                 success_auth,

@@ -4,6 +4,7 @@ from pathlib import Path
 from functools import wraps
 from http.client import HTTPException
 from typing import Any, Callable, Coroutine, TypeVar
+from random import choice
 
 from aiogram.types import (
     Message,
@@ -20,6 +21,7 @@ from api.get_habit import get_full_info
 from utils.habits import generate_message_answer
 from keyboards.detail import gen_habit_keyboard
 from states.add import HabitState
+from stickers.sticker import STICKER_PACK_NOT_DONE, STICKER_PACK_DONE
 
 
 T = TypeVar("T")
@@ -54,14 +56,9 @@ def decorator_errors(
         try:
             await func(arg, state)
         except KeyError:
-            sticker_path = Path(__file__).parent.parent.joinpath(
-                "stickers", "stop_not_auth.tgs"
-            )
-
-            input_file = FSInputFile(sticker_path)
             await WORKER_BOT.send_sticker(
                 chat_id=arg.from_user.id,
-                sticker=input_file
+                sticker=choice(STICKER_PACK_NOT_DONE)
             )
 
             await WORKER_BOT.send_message(
@@ -103,14 +100,7 @@ async def send_sticker(user_id: int, sticker: str) -> None:
     :param user_id: User ID.
     :param sticker: The name of the sticker.
     """
-    sticker_path = Path(__file__).parent.parent.joinpath(
-        "stickers", sticker
-    )
-    input_file = FSInputFile(sticker_path)
-    sticker: Message = await WORKER_BOT.send_sticker(
-        chat_id=user_id,
-        sticker=input_file
-    )
+    await WORKER_BOT.send_sticker(chat_id=user_id, sticker=sticker)
     asyncio.create_task(remove_message_after_delay(60 * 5, sticker))
 
 
@@ -134,3 +124,10 @@ async def bot_send_message(state: FSMContext, user_id: int):
         parse_mode="HTML",
         reply_markup=keyboard
     )
+
+async def choice_sticker(user: int, action: str) -> None:
+    if action == "done":
+        sticker = choice(STICKER_PACK_DONE)
+    else:
+        sticker = choice(STICKER_PACK_NOT_DONE)
+    await send_sticker(user, sticker)
