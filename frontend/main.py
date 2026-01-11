@@ -20,6 +20,7 @@ from handlers.comments import comment_router
 from keyboards.keyboard import main_menu
 from loader import greeting, guide, menu_bot, options
 from utils.remind import create_scheduler_all
+from utils.common import decorator_errors
 
 dp = Dispatcher()
 dp.include_router(add)
@@ -36,6 +37,7 @@ dp.include_router(invalid_router)
 
 
 @dp.message(CommandStart())
+@decorator_errors
 async def greeting_handler(message: types.Message) -> None:
     """Welcome Handler."""
     # await append_to_session(message.from_user.id, [message])
@@ -45,6 +47,7 @@ async def greeting_handler(message: types.Message) -> None:
 
 
 @dp.callback_query(F.data == "main")
+@decorator_errors
 async def handler_main_button(call: CallbackQuery, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
@@ -56,6 +59,7 @@ async def handler_main_button(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @dp.message(F.text == "/main")
+@decorator_errors
 async def handler_main_command(message: Message, state: FSMContext) -> None:
     """Show base bot's menu."""
     await state.clear()
@@ -67,6 +71,7 @@ async def handler_main_command(message: Message, state: FSMContext) -> None:
 
 
 @dp.message(F.text == "/guide")
+@decorator_errors
 async def handler_help(mess: Message, state: FSMContext) -> None:
     """Shows detailed information about the work of the bot."""
     await state.clear()
@@ -76,6 +81,7 @@ async def handler_help(mess: Message, state: FSMContext) -> None:
 
 
 @dp.callback_query(F.data == "show_commands")
+@decorator_errors
 async def show_all_commands(
     callback: CallbackQuery, state: FSMContext
 ) -> None:

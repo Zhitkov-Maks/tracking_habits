@@ -8,9 +8,9 @@ from random import choice
 
 from aiogram.types import (
     Message,
-    FSInputFile,
     InlineKeyboardMarkup
 )
+from aiogram.utils.markdown import hbold
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery as CQ
 
@@ -68,9 +68,11 @@ def decorator_errors(
                 reply_markup=main_menu
             )
 
-        except HTTPException as err:
+        except (HTTPException, TelegramBadRequest) as err:
             await WORKER_BOT.send_message(
-                arg.from_user.id, text=str(err), reply_markup=main_menu
+                arg.from_user.id,
+                text=hbold("У нас проблемы с синтернетом 💻🌐!\n"),
+                reply_markup=main_menu
             )
 
         except Exception as err:
@@ -101,7 +103,6 @@ async def send_sticker(user_id: int, sticker: str) -> None:
     :param sticker: The name of the sticker.
     """
     await WORKER_BOT.send_sticker(chat_id=user_id, sticker=sticker)
-    asyncio.create_task(remove_message_after_delay(60 * 5, sticker))
 
 
 async def bot_send_message(state: FSMContext, user_id: int):
@@ -126,6 +127,12 @@ async def bot_send_message(state: FSMContext, user_id: int):
     )
 
 async def choice_sticker(user: int, action: str) -> None:
+    """
+    Show the sticker depending on the user's choice.
+    
+    :param user: ID user.
+    :param action: Done or not done.
+    """
     if action == "done":
         sticker = choice(STICKER_PACK_DONE)
     else:
