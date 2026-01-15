@@ -12,7 +12,12 @@ from stickers.sticker import STICKER_PACK_DONE, STICKER_PACK_NOT_DONE
 from keyboards.keyboard import confirm
 from states.add import HabitState
 from keyboards.tracking import inline_choice_calendar, inline_done_not_done
-from utils.common import bot_send_message, decorator_errors, choice_sticker
+from utils.common import (
+    bot_send_message,
+    decorator_errors,
+    choice_sticker,
+    send_sticker
+)
 
 track: Router = Router()
 
@@ -68,7 +73,11 @@ async def choice_done(call: CallbackQuery, state: FSMContext) -> None:
 
     await state.update_data(date=call.data)
     await state.set_state(HabitState.date)
-    await call.message.edit_text(
+    await send_sticker(
+        call.from_user.id,
+        "CAACAgIAAxkBAALaOWljY9zPPGDZbP-IboG6-LhuBjbkAAJpCQACGELuCJr74i1dU5tCOAQ"
+    )
+    await call.message.answer(
         text=hbold(
             "Выберите:\n"
             "✅ - если выполнили;\n"
